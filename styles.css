@@ -55,12 +55,23 @@
   height: 100vh;
   background: var(--sn-bg-primary);
   color: var(--sn-text-primary);
-  box-shadow: -2px 0 10px var(--sn-shadow);
+  border-left: 1px solid var(--sn-border);
   z-index: 9999;
   display: flex;
   flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  overscroll-behavior: contain;
+}
+
+/* When sidebar is visible, adjust the main Swagger UI container */
+body:has(.swagger-nav-sidebar:not(.hidden)) {
+  margin-right: 350px;
+}
+
+/* Smooth transition for the page adjustment */
+body {
+  transition: margin-right 0.3s ease;
 }
 
 .swagger-nav-sidebar.hidden {
@@ -229,6 +240,7 @@
   overflow-x: hidden;
   padding: 12px;
   padding-bottom: 16px;
+  overscroll-behavior: contain;
 }
 
 /* Footer */
@@ -505,7 +517,7 @@
   border-left-color: #fca130;
   border-left-width: 4px;
   transform: translateX(2px);
-  box-shadow: inset 0 0 0 1px #fca130, 0 2px 8px rgba(252, 161, 48, 0.3);
+  box-shadow: 0 2px 8px rgba(252, 161, 48, 0.3);
   animation: swagger-nav-pinned-pulse 0.6s ease-out;
   position: relative;
   z-index: 2;
@@ -638,7 +650,7 @@
   border-left-color: var(--sn-accent);
   border-left-width: 4px;
   transform: translateX(2px);
-  box-shadow: inset 0 0 0 1px var(--sn-accent), 0 2px 8px rgba(97, 175, 254, 0.3);
+  box-shadow: 0 2px 8px rgba(97, 175, 254, 0.3);
   animation: swagger-nav-item-pulse 0.6s ease-out;
   position: relative;
   z-index: 2;
@@ -647,19 +659,19 @@
 
 @keyframes swagger-nav-item-pulse {
   0%, 100% {
-    box-shadow: inset 0 0 0 1px var(--sn-accent), 0 2px 8px rgba(97, 175, 254, 0.3);
+    box-shadow: 0 2px 8px rgba(97, 175, 254, 0.3);
   }
   50% {
-    box-shadow: inset 0 0 0 1px var(--sn-accent), 0 4px 16px rgba(97, 175, 254, 0.5);
+    box-shadow: 0 4px 16px rgba(97, 175, 254, 0.5);
   }
 }
 
 @keyframes swagger-nav-pinned-pulse {
   0%, 100% {
-    box-shadow: inset 0 0 0 1px #fca130, 0 2px 8px rgba(252, 161, 48, 0.3);
+    box-shadow: 0 2px 8px rgba(252, 161, 48, 0.3);
   }
   50% {
-    box-shadow: inset 0 0 0 1px #fca130, 0 4px 16px rgba(252, 161, 48, 0.5);
+    box-shadow: 0 4px 16px rgba(252, 161, 48, 0.5);
   }
 }
 
@@ -826,6 +838,10 @@
     width: 280px;
   }
   
+  body:has(.swagger-nav-sidebar:not(.hidden)) {
+    margin-right: 280px;
+  }
+  
   .swagger-nav-sidebar.hidden {
     transform: translateX(100%);
   }
@@ -883,7 +899,8 @@
   }
 }
 
-/* Accessibility */
+/* Accessibility - Keyboard Navigation Only */
+/* Remove ALL outlines on regular focus (mouse click) */
 .swagger-nav-item:focus,
 .swagger-nav-toggle-btn:focus,
 .swagger-nav-scroll-top-btn:focus,
@@ -893,13 +910,27 @@
 .swagger-nav-section-header:focus,
 .swagger-nav-pin-btn:focus,
 .swagger-nav-copy-btn:focus,
-.swagger-nav-unpin-all-btn:focus,
-.swagger-nav-search-input:focus {
-  outline: 2px solid var(--sn-accent);
-  outline-offset: 2px;
+.swagger-nav-unpin-all-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-/* Remove default focus outline for better custom styling */
+/* Also remove focus styles when NOT using keyboard navigation */
+.swagger-nav-item:focus:not(:focus-visible),
+.swagger-nav-toggle-btn:focus:not(:focus-visible),
+.swagger-nav-scroll-top-btn:focus:not(:focus-visible),
+.swagger-nav-sync-btn:focus:not(:focus-visible),
+.swagger-nav-floating-show:focus:not(:focus-visible),
+.swagger-nav-expand-collapse-btn:focus:not(:focus-visible),
+.swagger-nav-section-header:focus:not(:focus-visible),
+.swagger-nav-pin-btn:focus:not(:focus-visible),
+.swagger-nav-copy-btn:focus:not(:focus-visible),
+.swagger-nav-unpin-all-btn:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Show enhanced outline only on keyboard navigation */
 .swagger-nav-item:focus-visible,
 .swagger-nav-toggle-btn:focus-visible,
 .swagger-nav-scroll-top-btn:focus-visible,

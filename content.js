@@ -918,6 +918,43 @@ class SwaggerNavigator {
         this.filterEndpoints(e.target.value);
       });
     }
+
+    // Prevent scroll chaining - stop scroll from propagating to main page
+    const contentArea = this.navBar.querySelector(".swagger-nav-content");
+    if (contentArea) {
+      contentArea.addEventListener(
+        "wheel",
+        (e) => {
+          const scrollTop = contentArea.scrollTop;
+          const scrollHeight = contentArea.scrollHeight;
+          const clientHeight = contentArea.clientHeight;
+          const deltaY = e.deltaY;
+
+          // At the top and trying to scroll up
+          if (scrollTop === 0 && deltaY < 0) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          // At the bottom and trying to scroll down
+          else if (scrollTop + clientHeight >= scrollHeight && deltaY > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        },
+        { passive: false }
+      );
+    }
+
+    // Also prevent scroll on the entire sidebar
+    if (this.navBar) {
+      this.navBar.addEventListener(
+        "wheel",
+        (e) => {
+          e.stopPropagation();
+        },
+        { passive: true }
+      );
+    }
   }
 
   // Create floating show button when sidebar is hidden
@@ -1142,45 +1179,39 @@ class SwaggerNavigator {
         }
       }, 500); // Increased delay to ensure scroll completes
 
-      // Add dramatic highlight animation
+      // Add subtle highlight animation (no outline, just glow and scale)
       const originalStyles = {
-        outline: element.style.outline,
-        outlineOffset: element.style.outlineOffset,
         boxShadow: element.style.boxShadow,
         transform: element.style.transform,
         transition: element.style.transition,
       };
 
-      // Apply eye-catching animation
+      // Apply subtle animation
       element.style.transition = "all 0.3s ease";
-      element.style.outline = "3px solid #61affe";
-      element.style.outlineOffset = "4px";
       element.style.boxShadow =
-        "0 0 20px rgba(97, 175, 254, 0.6), 0 0 40px rgba(97, 175, 254, 0.3)";
-      element.style.transform = "scale(1.01)";
+        "0 0 15px rgba(97, 175, 254, 0.4), 0 0 30px rgba(97, 175, 254, 0.2)";
+      element.style.transform = "scale(1.005)";
 
       // Pulse animation
       setTimeout(() => {
-        element.style.transform = "scale(1.02)";
+        element.style.transform = "scale(1.01)";
       }, 150);
 
       setTimeout(() => {
-        element.style.transform = "scale(1.01)";
+        element.style.transform = "scale(1.005)";
       }, 300);
 
       setTimeout(() => {
-        element.style.transform = "scale(1.02)";
+        element.style.transform = "scale(1.01)";
       }, 450);
 
       setTimeout(() => {
-        element.style.transform = "scale(1.01)";
+        element.style.transform = "scale(1.005)";
       }, 600);
 
       // Fade out the effects
       setTimeout(() => {
         element.style.transition = "all 0.6s ease-out";
-        element.style.outline = originalStyles.outline;
-        element.style.outlineOffset = originalStyles.outlineOffset;
         element.style.boxShadow = originalStyles.boxShadow;
         element.style.transform = originalStyles.transform;
       }, 1500);
