@@ -32,7 +32,7 @@ The extension adds a sleek navigation sidebar on the right side of any Swagger U
 
 ### Option 1: Load Unpacked Extension (Development)
 
-1. **Download or Clone this Repository**
+1. **Download .zip in Releases and unzip or Clone this Repository**
    ```bash
    git clone https://github.com/yourusername/SwaggerNav.git
    cd SwaggerNav
