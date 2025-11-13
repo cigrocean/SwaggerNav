@@ -19,6 +19,8 @@ A Chrome extension that adds a powerful navigation sidebar to Swagger UI pages, 
 
 ## Screenshots
 
+![Image](https://github.com/user-attachments/assets/f9ceec9f-e031-493a-a3ad-fc61b07b4ff3)
+
 The extension adds a sleek navigation sidebar on the right side of any Swagger UI page:
 
 - **Navigation Bar**: Fixed sidebar with all endpoints organized by tags
