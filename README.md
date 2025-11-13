@@ -32,7 +32,7 @@ The extension adds a sleek navigation sidebar on the right side of any Swagger U
 
 ### Quick Install (30 seconds) ⚡
 
-1. **[Download the latest release](https://github.com/cigrocean/SwaggerNav/releases/latest/download/swaggernav-latest.zip)**
+1. **[Download the latest release](https://github.com/cigrocean/SwaggerNav/releases)**
 2. **Extract the ZIP file**
 3. **Open `chrome://extensions/` in Chrome**
 4. **Enable "Developer mode"** (top-right toggle)
