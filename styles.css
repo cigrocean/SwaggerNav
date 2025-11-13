@@ -1453,22 +1453,38 @@ body {
 .swagger-nav-pinned-item.swagger-nav-current {
   position: relative;
   margin: 5px 0 !important;
-  background: linear-gradient(90deg, rgba(97, 175, 254, 0.15), rgba(97, 175, 254, 0.05)) !important;
+  background: linear-gradient(90deg, rgba(97, 175, 254, 0.2), rgba(97, 175, 254, 0.08)) !important;
   border-radius: 6px;
+  border: 2px solid rgba(97, 175, 254, 0.5) !important;
   animation: swagger-nav-current-pulse 2s ease-in-out infinite;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(97, 175, 254, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 @keyframes swagger-nav-current-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(97, 175, 254, 0);
+    box-shadow: 0 2px 8px rgba(97, 175, 254, 0.2), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 0 0 rgba(97, 175, 254, 0);
+    border-color: rgba(97, 175, 254, 0.5);
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(97, 175, 254, 0.1);
+    box-shadow: 0 2px 8px rgba(97, 175, 254, 0.3), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 0 4px rgba(97, 175, 254, 0.15);
+    border-color: rgba(97, 175, 254, 0.7);
   }
 }
 
-/* Method-based left border colors */
+/* Method-specific border and accent colors */
+
+/* GET method */
+.swagger-nav-item.swagger-nav-current[data-method="get"],
+.swagger-nav-pinned-item.swagger-nav-current[data-method="get"] {
+  border-color: rgba(97, 175, 254, 0.6) !important;
+  background: linear-gradient(90deg, rgba(97, 175, 254, 0.2), rgba(97, 175, 254, 0.08)) !important;
+}
+
 .swagger-nav-item.swagger-nav-current[data-method="get"]::before,
 .swagger-nav-pinned-item.swagger-nav-current[data-method="get"]::before {
   content: "";
@@ -1481,6 +1497,13 @@ body {
   border-radius: 6px 0 0 6px;
   box-shadow: 0 0 12px rgba(97, 175, 254, 0.6), inset 0 0 4px rgba(255, 255, 255, 0.3);
   z-index: 1;
+}
+
+/* POST method */
+.swagger-nav-item.swagger-nav-current[data-method="post"],
+.swagger-nav-pinned-item.swagger-nav-current[data-method="post"] {
+  border-color: rgba(73, 204, 144, 0.6) !important;
+  background: linear-gradient(90deg, rgba(73, 204, 144, 0.2), rgba(73, 204, 144, 0.08)) !important;
 }
 
 .swagger-nav-item.swagger-nav-current[data-method="post"]::before,
@@ -1497,6 +1520,13 @@ body {
   z-index: 1;
 }
 
+/* PUT method */
+.swagger-nav-item.swagger-nav-current[data-method="put"],
+.swagger-nav-pinned-item.swagger-nav-current[data-method="put"] {
+  border-color: rgba(252, 161, 48, 0.6) !important;
+  background: linear-gradient(90deg, rgba(252, 161, 48, 0.2), rgba(252, 161, 48, 0.08)) !important;
+}
+
 .swagger-nav-item.swagger-nav-current[data-method="put"]::before,
 .swagger-nav-pinned-item.swagger-nav-current[data-method="put"]::before {
   content: "";
@@ -1509,6 +1539,13 @@ body {
   border-radius: 6px 0 0 6px;
   box-shadow: 0 0 12px rgba(252, 161, 48, 0.6), inset 0 0 4px rgba(255, 255, 255, 0.3);
   z-index: 1;
+}
+
+/* DELETE method */
+.swagger-nav-item.swagger-nav-current[data-method="delete"],
+.swagger-nav-pinned-item.swagger-nav-current[data-method="delete"] {
+  border-color: rgba(249, 62, 62, 0.6) !important;
+  background: linear-gradient(90deg, rgba(249, 62, 62, 0.2), rgba(249, 62, 62, 0.08)) !important;
 }
 
 .swagger-nav-item.swagger-nav-current[data-method="delete"]::before,
@@ -1525,6 +1562,13 @@ body {
   z-index: 1;
 }
 
+/* PATCH method */
+.swagger-nav-item.swagger-nav-current[data-method="patch"],
+.swagger-nav-pinned-item.swagger-nav-current[data-method="patch"] {
+  border-color: rgba(80, 227, 194, 0.6) !important;
+  background: linear-gradient(90deg, rgba(80, 227, 194, 0.2), rgba(80, 227, 194, 0.08)) !important;
+}
+
 .swagger-nav-item.swagger-nav-current[data-method="patch"]::before,
 .swagger-nav-pinned-item.swagger-nav-current[data-method="patch"]::before {
   content: "";
@@ -1539,6 +1583,13 @@ body {
   z-index: 1;
 }
 
+/* OPTIONS method */
+.swagger-nav-item.swagger-nav-current[data-method="options"],
+.swagger-nav-pinned-item.swagger-nav-current[data-method="options"] {
+  border-color: rgba(13, 90, 167, 0.6) !important;
+  background: linear-gradient(90deg, rgba(13, 90, 167, 0.2), rgba(13, 90, 167, 0.08)) !important;
+}
+
 .swagger-nav-item.swagger-nav-current[data-method="options"]::before,
 .swagger-nav-pinned-item.swagger-nav-current[data-method="options"]::before {
   content: "";
@@ -1551,6 +1602,13 @@ body {
   border-radius: 6px 0 0 6px;
   box-shadow: 0 0 12px rgba(13, 90, 167, 0.6), inset 0 0 4px rgba(255, 255, 255, 0.3);
   z-index: 1;
+}
+
+/* HEAD method */
+.swagger-nav-item.swagger-nav-current[data-method="head"],
+.swagger-nav-pinned-item.swagger-nav-current[data-method="head"] {
+  border-color: rgba(144, 18, 254, 0.6) !important;
+  background: linear-gradient(90deg, rgba(144, 18, 254, 0.2), rgba(144, 18, 254, 0.08)) !important;
 }
 
 .swagger-nav-item.swagger-nav-current[data-method="head"]::before,
@@ -1576,8 +1634,9 @@ body {
 /* Enhanced hover effect for current item */
 .swagger-nav-item.swagger-nav-current:hover,
 .swagger-nav-pinned-item.swagger-nav-current:hover {
-  background: linear-gradient(90deg, rgba(97, 175, 254, 0.2), rgba(97, 175, 254, 0.08)) !important;
+  background: linear-gradient(90deg, rgba(97, 175, 254, 0.25), rgba(97, 175, 254, 0.12)) !important;
   transform: translateX(2px);
+  box-shadow: 0 4px 12px rgba(97, 175, 254, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* Add a subtle right accent line on hover */
@@ -1621,4 +1680,5 @@ body {
 .swagger-nav-settings-btn:active {
   transform: translateY(0);
 }
+
 

@@ -2,7 +2,7 @@
 // Detects Swagger UI and adds navigation sidebar
 
 // VERSION - Update this for new releases
-const SWAGGERNAV_VERSION = "1.0.2";
+const SWAGGERNAV_VERSION = "1.0.3";
 
 class SwaggerNavigator {
   constructor() {
@@ -147,6 +147,7 @@ class SwaggerNavigator {
       const defaults = {
         autoExpand: true,
         autoTryOut: true,
+        autoTheme: true, // Auto-sync theme with OS
       };
       return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
     } catch (error) {
@@ -154,6 +155,7 @@ class SwaggerNavigator {
       return {
         autoExpand: true,
         autoTryOut: true,
+        autoTheme: true,
       };
     }
   }
@@ -314,6 +316,11 @@ class SwaggerNavigator {
         this.theme = e.matches ? "dark" : "light";
         console.log(`SwaggerNav: Theme changed to ${this.theme} mode`);
         this.updateThemeIndicator();
+
+        // Apply theme to Swagger UI if auto-theme is enabled
+        if (this.settings.autoTheme) {
+          this.applySwaggerTheme();
+        }
       });
     }
   }
@@ -330,6 +337,440 @@ class SwaggerNavigator {
           this.theme === "dark" ? "Dark" : "Light"
         } mode (follows OS)`;
       }
+    }
+  }
+
+  // Apply theme to Swagger UI page (Proper Dark Mode)
+  applySwaggerTheme() {
+    // Remove existing style if any
+    const existingStyle = document.getElementById("swagger-nav-theme-style");
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+
+    // Only apply if auto-theme is enabled
+    if (!this.settings.autoTheme) {
+      return;
+    }
+
+    const isDark = this.theme === "dark";
+
+    // Create style element for theme
+    const style = document.createElement("style");
+    style.id = "swagger-nav-theme-style";
+
+    if (isDark) {
+      // Proper dark theme with color overrides
+      style.textContent = `
+        /* SwaggerNav Auto-Theme: Dark Mode */
+        
+        /* Page-wide overrides */
+        html,
+        body {
+          background-color: #1a1a1a !important;
+        }
+        
+        /* Main backgrounds */
+        .swagger-ui,
+        .swagger-ui .wrapper,
+        .swagger-ui > div,
+        .swagger-ui .wrapper > div {
+          background-color: #1a1a1a !important;
+          color: #e0e0e0 !important;
+        }
+        
+        /* Remove all white borders */
+        .swagger-ui *,
+        .swagger-ui *::before,
+        .swagger-ui *::after {
+          border-color: #3a3a3a !important;
+        }
+        
+        /* Topbar / Header */
+        .swagger-ui .topbar,
+        .swagger-ui .topbar-wrapper,
+        .swagger-ui .topbar a,
+        .swagger-ui .information-container .info__extdocs,
+        .swagger-ui .information-container section {
+          background-color: #242424 !important;
+          color: #e0e0e0 !important;
+        }
+        
+        .swagger-ui .information-container,
+        .swagger-ui .scheme-container {
+          background-color: #242424 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        /* All divs and sections */
+        .swagger-ui div,
+        .swagger-ui section {
+          background-color: transparent !important;
+        }
+        
+        /* Main content area */
+        .swagger-ui .swagger-container,
+        .swagger-ui .main,
+        .swagger-ui section.models {
+          background-color: #1a1a1a !important;
+        }
+        
+        /* Info section */
+        .swagger-ui .info {
+          background-color: #242424 !important;
+        }
+        
+        .swagger-ui .info .title,
+        .swagger-ui .info h1,
+        .swagger-ui .info h2,
+        .swagger-ui .info h3,
+        .swagger-ui .info h4,
+        .swagger-ui .info h5 {
+          color: #e0e0e0 !important;
+        }
+        
+        .swagger-ui .info p,
+        .swagger-ui .info li,
+        .swagger-ui .info .description {
+          color: #d0d0d0 !important;
+        }
+        
+        /* Operation blocks */
+        .swagger-ui .opblock {
+          background-color: #2a2a2a !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .opblock .opblock-summary {
+          border-color: #3a3a3a !important;
+          background-color: #2a2a2a !important;
+        }
+        
+        .swagger-ui .opblock .opblock-body {
+          background-color: #242424 !important;
+        }
+        
+        .swagger-ui .opblock .opblock-section-header {
+          background-color: #222222 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .opblock-tag-section {
+          background-color: transparent !important;
+          border-bottom-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .opblock-tag {
+          background-color: transparent !important;
+          color: #e0e0e0 !important;
+          border-bottom-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .opblock-description-wrapper p,
+        .swagger-ui .opblock-external-docs-wrapper p,
+        .swagger-ui .opblock-title_normal p {
+          color: #d0d0d0 !important;
+        }
+        
+        .swagger-ui .opblock .opblock-summary-path,
+        .swagger-ui .opblock .opblock-summary-description {
+          color: #e0e0e0 !important;
+        }
+        
+        /* Tables */
+        .swagger-ui table thead tr td,
+        .swagger-ui table thead tr th {
+          background-color: #2a2a2a !important;
+          color: #e0e0e0 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui table tbody tr td {
+          background-color: #242424 !important;
+          color: #c0c0c0 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .parameter__name,
+        .swagger-ui .parameter__type {
+          color: #e0e0e0 !important;
+        }
+        
+        .swagger-ui .parameter__in {
+          color: #888888 !important;
+        }
+        
+        /* Inputs and textareas */
+        .swagger-ui input[type="text"],
+        .swagger-ui input[type="email"],
+        .swagger-ui input[type="password"],
+        .swagger-ui input[type="search"],
+        .swagger-ui input[type="number"],
+        .swagger-ui textarea,
+        .swagger-ui select {
+          background-color: #2a2a2a !important;
+          color: #e0e0e0 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui input[type="text"]:focus,
+        .swagger-ui input[type="email"]:focus,
+        .swagger-ui input[type="password"]:focus,
+        .swagger-ui input[type="search"]:focus,
+        .swagger-ui input[type="number"]:focus,
+        .swagger-ui textarea:focus,
+        .swagger-ui select:focus {
+          border-color: #4a9eff !important;
+          background-color: #2f2f2f !important;
+        }
+        
+        /* Code blocks */
+        .swagger-ui pre,
+        .swagger-ui code {
+          background-color: #1e1e1e !important;
+          color: #d4d4d4 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .highlight-code pre,
+        .swagger-ui .highlight-code code {
+          background-color: #1e1e1e !important;
+        }
+        
+        /* Syntax highlighting */
+        .swagger-ui .highlight-code .hljs {
+          background-color: #1e1e1e !important;
+          color: #d4d4d4 !important;
+        }
+        
+        .swagger-ui .highlight-code .hljs-string,
+        .swagger-ui .highlight-code .hljs-number,
+        .swagger-ui .highlight-code .hljs-literal {
+          color: #ce9178 !important;
+        }
+        
+        .swagger-ui .highlight-code .hljs-attr,
+        .swagger-ui .highlight-code .hljs-property {
+          color: #9cdcfe !important;
+        }
+        
+        .swagger-ui .highlight-code .hljs-keyword {
+          color: #569cd6 !important;
+        }
+        
+        /* Response section */
+        .swagger-ui .responses-wrapper {
+          background-color: #242424 !important;
+        }
+        
+        .swagger-ui .response,
+        .swagger-ui .response-col_status {
+          color: #e0e0e0 !important;
+        }
+        
+        .swagger-ui .response-col_description {
+          color: #b0b0b0 !important;
+        }
+        
+        /* Model section */
+        .swagger-ui .model-box,
+        .swagger-ui .model {
+          background-color: #242424 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .model-title,
+        .swagger-ui .model .property {
+          color: #e0e0e0 !important;
+        }
+        
+        .swagger-ui .prop-type,
+        .swagger-ui .prop-format {
+          color: #888888 !important;
+        }
+        
+        /* Schema and models containers */
+        .swagger-ui .model-container,
+        .swagger-ui .models-control,
+        .swagger-ui section.models,
+        .swagger-ui section.models .model-container {
+          background-color: #1a1a1a !important;
+        }
+        
+        /* Download and version info */
+        .swagger-ui .info .download-contents,
+        .swagger-ui .info hgroup.main,
+        .swagger-ui .info .version {
+          background-color: transparent !important;
+          color: #e0e0e0 !important;
+        }
+        
+        /* All boxes and wrappers */
+        .swagger-ui .wrapper,
+        .swagger-ui .box,
+        .swagger-ui .tab-content,
+        .swagger-ui .parameters-wrapper,
+        .swagger-ui .request-url,
+        .swagger-ui .response-wrapper {
+          background-color: transparent !important;
+        }
+        
+        /* Description and documentation - more readable */
+        .swagger-ui .description {
+          color: #d0d0d0 !important;
+        }
+        
+        .swagger-ui .markdown p {
+          color: #d0d0d0 !important;
+        }
+        
+        /* Buttons */
+        .swagger-ui .btn {
+          background-color: #3a3a3a !important;
+          color: #e0e0e0 !important;
+          border-color: #4a4a4a !important;
+        }
+        
+        .swagger-ui .btn:hover {
+          background-color: #4a4a4a !important;
+        }
+        
+        .swagger-ui .btn.execute {
+          background-color: #4a9eff !important;
+          color: #ffffff !important;
+          border-color: #4a9eff !important;
+        }
+        
+        .swagger-ui .btn.execute:hover {
+          background-color: #357abd !important;
+        }
+        
+        /* Authorization */
+        .swagger-ui .auth-wrapper,
+        .swagger-ui .auth-container {
+          background-color: #242424 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .auth-wrapper .authorize,
+        .swagger-ui .auth-container .authorize {
+          color: #e0e0e0 !important;
+        }
+        
+        /* Modals */
+        .swagger-ui .modal-ux {
+          background-color: rgba(0, 0, 0, 0.8) !important;
+        }
+        
+        .swagger-ui .modal-ux-content {
+          background-color: #2a2a2a !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        .swagger-ui .modal-ux-header {
+          background-color: #242424 !important;
+          border-color: #3a3a3a !important;
+          color: #e0e0e0 !important;
+        }
+        
+        /* Markdown rendered content */
+        .swagger-ui .renderedMarkdown p,
+        .swagger-ui .renderedMarkdown li {
+          color: #d0d0d0 !important;
+        }
+        
+        .swagger-ui .renderedMarkdown td {
+          color: #c0c0c0 !important;
+        }
+        
+        .swagger-ui .renderedMarkdown code {
+          background-color: #1e1e1e !important;
+          color: #d4d4d4 !important;
+        }
+        
+        /* Links */
+        .swagger-ui a,
+        .swagger-ui a:visited {
+          color: #4a9eff !important;
+        }
+        
+        .swagger-ui a:hover {
+          color: #6eb3ff !important;
+        }
+        
+        /* Headers and labels */
+        .swagger-ui .opblock-tag,
+        .swagger-ui h4,
+        .swagger-ui h5,
+        .swagger-ui label {
+          color: #e0e0e0 !important;
+        }
+        
+        /* Copy button */
+        .swagger-ui .copy-to-clipboard {
+          background-color: #3a3a3a !important;
+          color: #e0e0e0 !important;
+        }
+        
+        .swagger-ui .copy-to-clipboard:hover {
+          background-color: #4a4a4a !important;
+        }
+        
+        /* Servers dropdown */
+        .swagger-ui .servers > label {
+          color: #e0e0e0 !important;
+        }
+        
+        .swagger-ui .servers select {
+          background-color: #2a2a2a !important;
+          color: #e0e0e0 !important;
+          border-color: #3a3a3a !important;
+        }
+        
+        /* Try it out section */
+        .swagger-ui .try-out__btn {
+          background-color: #3a3a3a !important;
+          color: #e0e0e0 !important;
+          border-color: #4a4a4a !important;
+        }
+        
+        .swagger-ui .try-out__btn:hover {
+          background-color: #4a4a4a !important;
+        }
+        
+        /* Global responses and loading */
+        .swagger-ui .global-responses,
+        .swagger-ui .loading-container {
+          background-color: #242424 !important;
+        }
+        
+        /* Catch-all for any remaining white backgrounds */
+        .swagger-ui .swagger-ui > *,
+        .swagger-ui [class*="wrapper"],
+        .swagger-ui [class*="container"]:not(.swagger-nav-sidebar):not([class*="swagger-nav"]) {
+          background-color: transparent !important;
+        }
+      `;
+    } else {
+      // Light theme (reset to default)
+      style.textContent = `
+        /* SwaggerNav Auto-Theme: Light Mode */
+        /* No overrides needed - use Swagger UI defaults */
+      `;
+    }
+
+    document.head.appendChild(style);
+    console.log(
+      `SwaggerNav: Applied ${isDark ? "dark" : "light"} theme to Swagger UI`
+    );
+  }
+
+  // Remove theme styling from Swagger UI
+  removeSwaggerTheme() {
+    const existingStyle = document.getElementById("swagger-nav-theme-style");
+    if (existingStyle) {
+      existingStyle.remove();
+      console.log("SwaggerNav: Removed theme styling from Swagger UI");
     }
   }
 
@@ -362,10 +803,19 @@ class SwaggerNavigator {
       setTimeout(() => {
         this.isSwaggerUI = this.detectSwaggerUI();
         if (this.isSwaggerUI) {
+          // Apply theme immediately when detected
+          if (this.settings.autoTheme) {
+            this.applySwaggerTheme();
+          }
           this.setup();
         }
       }, 2000);
       return;
+    }
+
+    // Apply theme immediately for instant dark mode
+    if (this.settings.autoTheme) {
+      this.applySwaggerTheme();
     }
 
     this.setup();
@@ -383,6 +833,11 @@ class SwaggerNavigator {
       this.createNavBar();
       this.setupObserver();
       this.setupSwaggerUISync();
+
+      // Apply theme if auto-theme is enabled
+      if (this.settings.autoTheme) {
+        this.applySwaggerTheme();
+      }
 
       // Check for already expanded endpoints on page load
       // Longer delay to let Swagger UI process URL hash and expand endpoint
@@ -1090,6 +1545,17 @@ class SwaggerNavigator {
               </span>
             </label>
           </div>
+          <div class="swagger-nav-setting-item">
+            <label class="swagger-nav-setting-label">
+              <input type="checkbox" class="swagger-nav-setting-checkbox" id="setting-auto-theme" ${
+                this.settings.autoTheme ? "checked" : ""
+              }>
+              <span class="swagger-nav-setting-text">
+                <strong>Auto-sync Swagger UI theme</strong>
+                <small>Automatically sync Swagger UI theme with your OS dark/light mode</small>
+              </span>
+            </label>
+          </div>
         </div>
       </div>
     `;
@@ -1248,6 +1714,25 @@ class SwaggerNavigator {
       });
     }
 
+    const autoThemeCheckbox = this.navBar.querySelector("#setting-auto-theme");
+    if (autoThemeCheckbox) {
+      autoThemeCheckbox.addEventListener("change", (e) => {
+        this.settings.autoTheme = e.target.checked;
+        this.saveSettings();
+        console.log(
+          "SwaggerNav: Auto-theme setting changed to",
+          e.target.checked
+        );
+
+        // Apply or remove theme immediately
+        if (e.target.checked) {
+          this.applySwaggerTheme();
+        } else {
+          this.removeSwaggerTheme();
+        }
+      });
+    }
+
     // Search functionality
     const searchInput = this.navBar.querySelector(".swagger-nav-search-input");
     const searchClearBtn = this.navBar.querySelector(
@@ -1263,7 +1748,13 @@ class SwaggerNavigator {
         searchInput.value = "";
         searchClearBtn.style.display = "none";
         this.filterEndpoints("");
-        this.hideSearchHistory();
+
+        // Keep dropdown open and show all history items
+        if (searchHistory && this.searchHistory.length > 0) {
+          this.showSearchHistory();
+          this.filterSearchHistory(""); // Show all history items
+        }
+
         searchInput.focus();
       });
     }
@@ -1328,6 +1819,11 @@ class SwaggerNavigator {
 
       // Focus event to show history
       searchInput.addEventListener("focus", () => {
+        // Show clear button if input has text
+        if (searchClearBtn && searchInput.value) {
+          searchClearBtn.style.display = "flex";
+        }
+
         if (searchHistory && this.searchHistory.length > 0) {
           this.showSearchHistory();
           // Filter based on current value (or show all if empty)
@@ -1380,6 +1876,11 @@ class SwaggerNavigator {
           );
         }
       });
+
+      // Initial check: Show clear button if input already has text (e.g., from saved state)
+      if (searchClearBtn && searchInput.value) {
+        searchClearBtn.style.display = "flex";
+      }
     }
 
     // Prevent scroll chaining - stop scroll from propagating to main page
@@ -1619,6 +2120,9 @@ class SwaggerNavigator {
       clearAllBtn.addEventListener("click", () => {
         this.clearSearchHistory();
         this.updateSearchHistoryUI();
+
+        // Keep dropdown open to show the empty state
+        this.showSearchHistory();
       });
     }
 
@@ -2321,4 +2825,10 @@ class SwaggerNavigator {
 
 // Initialize the extension
 const swaggerNav = new SwaggerNavigator();
+
+// Apply theme immediately on page load for instant dark mode (before extension UI appears)
+if (swaggerNav.settings.autoTheme) {
+  swaggerNav.applySwaggerTheme();
+}
+
 swaggerNav.init();
