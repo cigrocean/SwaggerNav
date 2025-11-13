@@ -49,7 +49,6 @@ ehthumbs.db
 # Chrome extension packaging
 *.pem
 *.crx
-*.zip
 
 # Temporary files
 tmp/

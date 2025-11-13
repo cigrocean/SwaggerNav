@@ -1,6 +1,9 @@
 // SwaggerNav - Content Script
 // Detects Swagger UI and adds navigation sidebar
 
+// VERSION - Update this for new releases
+const SWAGGERNAV_VERSION = "1.0.1";
+
 class SwaggerNavigator {
   constructor() {
     this.navBar = null;
@@ -10,6 +13,9 @@ class SwaggerNavigator {
     this.theme = this.detectTheme();
     this.setupThemeListener();
     this.pinnedEndpoints = this.loadPinnedEndpoints();
+    this.searchHistory = this.loadSearchHistory();
+    this.settings = this.loadSettings();
+    this.currentEndpointId = null; // Track currently selected endpoint
   }
 
   // Load pinned endpoints from localStorage
@@ -55,6 +61,114 @@ class SwaggerNavigator {
     }
   }
 
+  // Load search history from localStorage
+  loadSearchHistory() {
+    try {
+      const stored = localStorage.getItem("swagger-nav-search-history");
+      const history = stored ? JSON.parse(stored) : [];
+      console.log(
+        `SwaggerNav: Loaded ${history.length} items from search history:`,
+        history
+      );
+      return history;
+    } catch (error) {
+      console.error("SwaggerNav: Error loading search history", error);
+      return [];
+    }
+  }
+
+  // Save search history to localStorage (keep last 10)
+  saveSearchHistory() {
+    try {
+      const historyToSave = this.searchHistory.slice(0, 10);
+      localStorage.setItem(
+        "swagger-nav-search-history",
+        JSON.stringify(historyToSave)
+      );
+    } catch (error) {
+      console.error("SwaggerNav: Error saving search history", error);
+    }
+  }
+
+  // Add search query to history
+  addToSearchHistory(query) {
+    if (!query || query.trim().length === 0) return;
+
+    const trimmedQuery = query.trim();
+
+    // Remove if already exists (to move to top)
+    const wasExisting = this.searchHistory.includes(trimmedQuery);
+    this.searchHistory = this.searchHistory.filter(
+      (item) => item !== trimmedQuery
+    );
+
+    // Add to beginning
+    this.searchHistory.unshift(trimmedQuery);
+
+    // Keep only last 10
+    if (this.searchHistory.length > 10) {
+      this.searchHistory = this.searchHistory.slice(0, 10);
+    }
+
+    this.saveSearchHistory();
+    console.log(
+      `SwaggerNav: ${
+        wasExisting ? "Moved" : "Added"
+      } "${trimmedQuery}" to search history. Total: ${
+        this.searchHistory.length
+      } items`
+    );
+  }
+
+  // Remove single item from search history
+  removeFromSearchHistory(query) {
+    this.searchHistory = this.searchHistory.filter((item) => item !== query);
+    this.saveSearchHistory();
+    console.log(
+      `SwaggerNav: Removed "${query}" from search history. Remaining: ${this.searchHistory.length} items`
+    );
+  }
+
+  // Clear all search history
+  clearSearchHistory() {
+    const count = this.searchHistory.length;
+    this.searchHistory = [];
+    this.saveSearchHistory();
+    console.log(
+      `SwaggerNav: Cleared all search history (${count} items removed)`
+    );
+  }
+
+  // Load settings from localStorage
+  loadSettings() {
+    try {
+      const stored = localStorage.getItem("swagger-nav-settings");
+      const defaults = {
+        autoExpand: true,
+        autoTryOut: true,
+      };
+      return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
+    } catch (error) {
+      console.error("SwaggerNav: Error loading settings", error);
+      return {
+        autoExpand: true,
+        autoTryOut: true,
+      };
+    }
+  }
+
+  // Save settings to localStorage
+  saveSettings() {
+    try {
+      localStorage.setItem(
+        "swagger-nav-settings",
+        JSON.stringify(this.settings)
+      );
+    } catch (error) {
+      console.error("SwaggerNav: Error saving settings", error);
+    }
+  }
+
   // Check if endpoint is pinned
   isPinned(method, path) {
     return this.pinnedEndpoints.some(
@@ -68,6 +182,31 @@ class SwaggerNavigator {
       (ep) => ep.method === method && ep.path === path
     );
 
+    // Save scroll position AND expanded sections state
+    const contentArea = this.navBar?.querySelector(".swagger-nav-content");
+    const savedScrollTop = contentArea ? contentArea.scrollTop : 0;
+
+    // Save current search query if any
+    const searchInput = this.navBar?.querySelector(".swagger-nav-search-input");
+    const currentSearchQuery = searchInput ? searchInput.value : "";
+
+    // Save which sections are currently expanded
+    const expandedSections = [];
+    const sections = this.navBar?.querySelectorAll(".swagger-nav-section");
+    sections?.forEach((section) => {
+      if (!section.classList.contains("collapsed")) {
+        const titleEl = section.querySelector(".swagger-nav-section-title");
+        if (titleEl) {
+          expandedSections.push(titleEl.textContent.trim());
+        }
+      }
+    });
+
+    console.log(
+      `SwaggerNav: Saved scroll: ${savedScrollTop}px, search: "${currentSearchQuery}", expanded sections:`,
+      expandedSections
+    );
+
     if (index >= 0) {
       // Unpin
       this.pinnedEndpoints.splice(index, 1);
@@ -79,7 +218,64 @@ class SwaggerNavigator {
     }
 
     this.savePinnedEndpoints();
+
+    // Refresh navbar
     this.refreshNavBar();
+
+    // Restore expanded sections and scroll position
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const newContentArea = this.navBar?.querySelector(
+          ".swagger-nav-content"
+        );
+
+        // Re-expand the sections that were expanded
+        const newSections = this.navBar?.querySelectorAll(
+          ".swagger-nav-section"
+        );
+        newSections?.forEach((section) => {
+          const titleEl = section.querySelector(".swagger-nav-section-title");
+          if (
+            titleEl &&
+            expandedSections.includes(titleEl.textContent.trim())
+          ) {
+            section.classList.remove("collapsed");
+            const sectionContent = section.querySelector(
+              ".swagger-nav-section-content"
+            );
+            const toggle = section.querySelector(".swagger-nav-section-toggle");
+            const sectionHeader = section.querySelector(
+              ".swagger-nav-section-header"
+            );
+
+            if (sectionContent) sectionContent.style.display = "block";
+            if (toggle) toggle.textContent = "▲";
+            if (sectionHeader)
+              sectionHeader.setAttribute("aria-expanded", "true");
+          }
+        });
+
+        // Restore search query and re-apply filter
+        const newSearchInput = this.navBar?.querySelector(
+          ".swagger-nav-search-input"
+        );
+        if (newSearchInput && currentSearchQuery) {
+          newSearchInput.value = currentSearchQuery;
+          this.filterEndpoints(currentSearchQuery);
+          console.log(
+            `SwaggerNav: Restored search query: "${currentSearchQuery}"`
+          );
+        }
+
+        // Restore scroll position
+        if (newContentArea) {
+          newContentArea.scrollTop = savedScrollTop;
+          console.log(
+            `SwaggerNav: Restored ${expandedSections.length} sections and scroll to ${savedScrollTop}px`
+          );
+        }
+      });
+    });
   }
 
   // Unpin all endpoints
@@ -379,7 +575,11 @@ class SwaggerNavigator {
         // Clear all active states
         this.navBar.querySelectorAll(".swagger-nav-item").forEach((item) => {
           item.classList.remove("active-nav");
+          item.classList.remove("swagger-nav-current");
         });
+
+        // Set current endpoint
+        this.currentEndpointId = foundEndpoint.id;
 
         // Find and highlight the actual (non-pinned) endpoint item immediately
         const actualItem = this.findActualEndpointItem(
@@ -388,6 +588,9 @@ class SwaggerNavigator {
         );
 
         if (actualItem) {
+          // Add current class to actual item
+          actualItem.classList.add("swagger-nav-current");
+
           // Expand its section if collapsed
           const section = actualItem.closest(".swagger-nav-section");
           if (section && section.classList.contains("collapsed")) {
@@ -497,16 +700,22 @@ class SwaggerNavigator {
     const header = document.createElement("div");
     header.className = "swagger-nav-header";
     header.innerHTML = `
-      <div class="swagger-nav-header-left">
+      <div class="swagger-nav-header-top">
         <div class="swagger-nav-title">
           <span class="swagger-nav-icon" aria-hidden="true">📋</span>
-          <span>API Navigator</span>
+          <span>SwaggerNav</span>
+          <span class="swagger-nav-version">v${SWAGGERNAV_VERSION}</span>
           <span class="swagger-nav-theme-indicator" title="${
             this.theme === "dark" ? "Dark" : "Light"
           } mode (follows OS)" aria-label="${
       this.theme === "dark" ? "Dark" : "Light"
     } mode">${this.theme === "dark" ? "🌙" : "☀️"}</span>
         </div>
+        <button type="button" class="swagger-nav-toggle-btn" title="Hide sidebar" aria-label="Hide sidebar" aria-expanded="true">
+          <span aria-hidden="true">▶</span>
+        </button>
+      </div>
+      <div class="swagger-nav-header-actions">
         <button type="button" class="swagger-nav-scroll-top-btn" title="Scroll to top of list" aria-label="Scroll to top of list">
           <span class="swagger-nav-btn-icon" aria-hidden="true">⬆</span>
           <span class="swagger-nav-btn-label">Top</span>
@@ -515,10 +724,11 @@ class SwaggerNavigator {
           <span class="swagger-nav-btn-icon" aria-hidden="true">🔄</span>
           <span class="swagger-nav-btn-label">Sync</span>
         </button>
+        <button type="button" class="swagger-nav-settings-btn" title="Settings" aria-label="Open settings">
+          <span class="swagger-nav-btn-icon" aria-hidden="true">⚙️</span>
+          <span class="swagger-nav-btn-label">Settings</span>
+        </button>
       </div>
-      <button type="button" class="swagger-nav-toggle-btn" title="Hide sidebar" aria-label="Hide sidebar" aria-expanded="true">
-        <span aria-hidden="true">▶</span>
-      </button>
     `;
 
     this.navBar.appendChild(header);
@@ -527,7 +737,8 @@ class SwaggerNavigator {
     const searchBox = document.createElement("div");
     searchBox.className = "swagger-nav-search";
     searchBox.innerHTML = `
-      <input type="text" placeholder="Search endpoints..." class="swagger-nav-search-input" aria-label="Search API endpoints" role="searchbox">
+      <input type="text" placeholder="Search endpoints..." class="swagger-nav-search-input" aria-label="Search API endpoints" role="searchbox" autocomplete="off">
+      <div class="swagger-nav-search-history" style="display: none;"></div>
     `;
     this.navBar.appendChild(searchBox);
 
@@ -649,15 +860,22 @@ class SwaggerNavigator {
           // Remove active class from all items
           this.navBar.querySelectorAll(".swagger-nav-item").forEach((item) => {
             item.classList.remove("active-nav");
+            item.classList.remove("swagger-nav-current");
           });
 
-          // Add active class to clicked item
+          // Set current endpoint
+          this.currentEndpointId = endpoint.id;
+
+          // Add active class to clicked item (for animation)
           endpointItem.classList.add("active-nav");
+
+          // Add current class (for persistent border indicator)
+          endpointItem.classList.add("swagger-nav-current");
 
           // Navigate to endpoint
           this.scrollToEndpoint(endpoint.id);
 
-          // Remove active class after animation
+          // Remove active animation class after animation (but keep current class)
           setTimeout(() => {
             endpointItem.classList.remove("active-nav");
           }, 2500);
@@ -816,6 +1034,44 @@ class SwaggerNavigator {
 
     this.navBar.appendChild(content);
 
+    // Create settings modal
+    const settingsModal = document.createElement("div");
+    settingsModal.className = "swagger-nav-settings-modal";
+    settingsModal.innerHTML = `
+      <div class="swagger-nav-settings-overlay"></div>
+      <div class="swagger-nav-settings-panel">
+        <div class="swagger-nav-settings-header">
+          <h3>⚙️ Settings</h3>
+          <button type="button" class="swagger-nav-settings-close" aria-label="Close settings">✕</button>
+        </div>
+        <div class="swagger-nav-settings-body">
+          <div class="swagger-nav-setting-item">
+            <label class="swagger-nav-setting-label">
+              <input type="checkbox" class="swagger-nav-setting-checkbox" id="setting-auto-expand" ${
+                this.settings.autoExpand ? "checked" : ""
+              }>
+              <span class="swagger-nav-setting-text">
+                <strong>Auto-expand endpoint in Swagger UI</strong>
+                <small>Automatically expands the endpoint when clicked</small>
+              </span>
+            </label>
+          </div>
+          <div class="swagger-nav-setting-item">
+            <label class="swagger-nav-setting-label">
+              <input type="checkbox" class="swagger-nav-setting-checkbox" id="setting-auto-try-out" ${
+                this.settings.autoTryOut ? "checked" : ""
+              }>
+              <span class="swagger-nav-setting-text">
+                <strong>Auto-click "Try it out" button</strong>
+                <small>Automatically clicks "Try it out" after expanding (requires auto-expand)</small>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+    `;
+    this.navBar.appendChild(settingsModal);
+
     // Create footer with author info
     const footer = document.createElement("div");
     footer.className = "swagger-nav-footer";
@@ -911,11 +1167,145 @@ class SwaggerNavigator {
       });
     }
 
+    // Settings button
+    const settingsBtn = this.navBar.querySelector(".swagger-nav-settings-btn");
+    const settingsModal = this.navBar.querySelector(
+      ".swagger-nav-settings-modal"
+    );
+    if (settingsBtn && settingsModal) {
+      settingsBtn.addEventListener("click", () => {
+        settingsModal.classList.add("active");
+      });
+    }
+
+    // Settings modal close
+    const settingsClose = this.navBar.querySelector(
+      ".swagger-nav-settings-close"
+    );
+    const settingsOverlay = this.navBar.querySelector(
+      ".swagger-nav-settings-overlay"
+    );
+    if (settingsClose && settingsModal) {
+      settingsClose.addEventListener("click", () => {
+        settingsModal.classList.remove("active");
+      });
+    }
+    if (settingsOverlay && settingsModal) {
+      settingsOverlay.addEventListener("click", () => {
+        settingsModal.classList.remove("active");
+      });
+    }
+
+    // Settings checkboxes
+    const autoExpandCheckbox = this.navBar.querySelector(
+      "#setting-auto-expand"
+    );
+    if (autoExpandCheckbox) {
+      autoExpandCheckbox.addEventListener("change", (e) => {
+        this.settings.autoExpand = e.target.checked;
+        this.saveSettings();
+        console.log(
+          "SwaggerNav: Auto-expand setting changed to",
+          e.target.checked
+        );
+      });
+    }
+
+    const autoTryOutCheckbox = this.navBar.querySelector(
+      "#setting-auto-try-out"
+    );
+    if (autoTryOutCheckbox) {
+      autoTryOutCheckbox.addEventListener("change", (e) => {
+        this.settings.autoTryOut = e.target.checked;
+        this.saveSettings();
+        console.log(
+          "SwaggerNav: Auto-try-out setting changed to",
+          e.target.checked
+        );
+      });
+    }
+
     // Search functionality
     const searchInput = this.navBar.querySelector(".swagger-nav-search-input");
+    const searchHistory = this.navBar.querySelector(
+      ".swagger-nav-search-history"
+    );
+
     if (searchInput) {
+      let searchTimeout = null;
+
+      // Input event for filtering
       searchInput.addEventListener("input", (e) => {
-        this.filterEndpoints(e.target.value);
+        const query = e.target.value;
+        this.filterEndpoints(query);
+
+        // Filter and show search history
+        if (searchHistory && this.searchHistory.length > 0) {
+          // Always show if we have history (filterSearchHistory will hide items that don't match)
+          this.showSearchHistory();
+          this.filterSearchHistory(query);
+        } else if (searchHistory) {
+          this.hideSearchHistory();
+        }
+
+        // Auto-save to history after user stops typing (1 second delay)
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
+
+        if (query.trim().length > 0) {
+          searchTimeout = setTimeout(() => {
+            this.addToSearchHistory(query);
+            console.log(`SwaggerNav: Auto-saved search "${query}" to history`);
+          }, 1000); // Save after 1 second of no typing
+        }
+      });
+
+      // Focus event to show history
+      searchInput.addEventListener("focus", () => {
+        if (searchHistory && this.searchHistory.length > 0) {
+          this.showSearchHistory();
+          // Filter based on current value (or show all if empty)
+          this.filterSearchHistory(searchInput.value);
+        }
+      });
+
+      // Track if we're clicking inside the history dropdown
+      let isClickingHistory = false;
+
+      // Blur event to hide history (with delay to allow clicks)
+      searchInput.addEventListener("blur", () => {
+        setTimeout(() => {
+          // Don't hide if we're clicking inside the history dropdown
+          if (!isClickingHistory) {
+            this.hideSearchHistory();
+          }
+          isClickingHistory = false;
+        }, 200);
+      });
+
+      // Prevent blur when clicking inside history dropdown
+      if (searchHistory) {
+        searchHistory.addEventListener("mousedown", (e) => {
+          isClickingHistory = true;
+          // Keep focus on search input
+          e.preventDefault();
+        });
+      }
+
+      // Enter key to immediately add to history
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.target.value.trim().length > 0) {
+          // Clear the auto-save timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+          // Immediately save to history
+          this.addToSearchHistory(e.target.value);
+          console.log(
+            `SwaggerNav: Saved search "${e.target.value}" to history (Enter pressed)`
+          );
+        }
       });
     }
 
@@ -991,15 +1381,226 @@ class SwaggerNavigator {
     }
   }
 
+  // Show search history dropdown
+  showSearchHistory() {
+    const searchHistory = this.navBar?.querySelector(
+      ".swagger-nav-search-history"
+    );
+    if (!searchHistory) return;
+
+    this.updateSearchHistoryUI();
+    searchHistory.style.display = "block";
+
+    // Trigger animation after display is set
+    requestAnimationFrame(() => {
+      searchHistory.classList.add("visible");
+    });
+
+    // Disable interaction with content area items
+    const contentArea = this.navBar?.querySelector(".swagger-nav-content");
+    if (contentArea) {
+      contentArea.classList.add("search-dropdown-open");
+    }
+  }
+
+  // Hide search history dropdown
+  hideSearchHistory() {
+    const searchHistory = this.navBar?.querySelector(
+      ".swagger-nav-search-history"
+    );
+    const contentArea = this.navBar?.querySelector(".swagger-nav-content");
+
+    if (searchHistory) {
+      searchHistory.classList.remove("visible");
+      // Wait for animation to complete before hiding
+      setTimeout(() => {
+        searchHistory.style.display = "none";
+      }, 150);
+    }
+    if (contentArea) contentArea.classList.remove("search-dropdown-open");
+  }
+
+  // Filter search history items in UI
+  filterSearchHistory(query) {
+    const historyContainer = this.navBar?.querySelector(
+      ".swagger-nav-search-history"
+    );
+    if (!historyContainer) return;
+
+    const historyItems = historyContainer.querySelectorAll(
+      ".swagger-nav-history-item"
+    );
+    const lowerQuery = query.toLowerCase();
+    let visibleCount = 0;
+
+    historyItems.forEach((item) => {
+      const queryBtn = item.querySelector(".swagger-nav-history-query");
+      const historyQuery = queryBtn?.dataset.query || "";
+
+      if (!query || historyQuery.toLowerCase().includes(lowerQuery)) {
+        item.style.display = "";
+        visibleCount++;
+      } else {
+        item.style.display = "none";
+      }
+    });
+
+    const header = historyContainer.querySelector(
+      ".swagger-nav-history-header"
+    );
+
+    // Show/hide "no results" message
+    let noResultsMsg = historyContainer.querySelector(
+      ".swagger-nav-history-no-results"
+    );
+
+    if (visibleCount === 0 && query) {
+      // Show "no results" message
+      if (!noResultsMsg) {
+        noResultsMsg = document.createElement("div");
+        noResultsMsg.className = "swagger-nav-history-no-results";
+        noResultsMsg.textContent = `No history matching "${query}"`;
+        historyContainer.appendChild(noResultsMsg);
+      } else {
+        noResultsMsg.textContent = `No history matching "${query}"`;
+        noResultsMsg.style.display = "block";
+      }
+      if (header) header.style.display = "none";
+    } else {
+      // Hide "no results" message
+      if (noResultsMsg) {
+        noResultsMsg.style.display = "none";
+      }
+      if (header) header.style.display = "";
+    }
+  }
+
+  // Update search history UI
+  updateSearchHistoryUI() {
+    const historyContainer = this.navBar.querySelector(
+      ".swagger-nav-search-history"
+    );
+    if (!historyContainer) return;
+
+    if (this.searchHistory.length === 0) {
+      historyContainer.innerHTML = `
+        <div class="swagger-nav-history-empty">No search history</div>
+      `;
+      return;
+    }
+
+    let historyHTML = '<div class="swagger-nav-history-header">';
+    historyHTML += "<span>Recent Searches</span>";
+    historyHTML +=
+      '<button type="button" class="swagger-nav-history-clear-all" title="Clear all history">Clear All</button>';
+    historyHTML += "</div>";
+    historyHTML += '<div class="swagger-nav-history-items">';
+
+    this.searchHistory.forEach((query) => {
+      historyHTML += `
+        <div class="swagger-nav-history-item">
+          <button type="button" class="swagger-nav-history-query" data-query="${this.escapeHtml(
+            query
+          )}" title="Search for: ${this.escapeHtml(query)}">
+            <span class="swagger-nav-history-icon">🔍</span>
+            <span class="swagger-nav-history-text">${this.escapeHtml(
+              query
+            )}</span>
+          </button>
+          <button type="button" class="swagger-nav-history-remove" data-query="${this.escapeHtml(
+            query
+          )}" title="Remove from history" aria-label="Remove from history">×</button>
+        </div>
+      `;
+    });
+
+    historyHTML += "</div>";
+    historyContainer.innerHTML = historyHTML;
+
+    // Add event listeners for history items
+    const searchInput = this.navBar.querySelector(".swagger-nav-search-input");
+
+    // Clear all button
+    const clearAllBtn = historyContainer.querySelector(
+      ".swagger-nav-history-clear-all"
+    );
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener("click", () => {
+        this.clearSearchHistory();
+        this.updateSearchHistoryUI();
+      });
+    }
+
+    // History item clicks
+    const historyItems = historyContainer.querySelectorAll(
+      ".swagger-nav-history-query"
+    );
+    historyItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        const query = item.dataset.query;
+        if (searchInput) {
+          searchInput.value = query;
+          this.filterEndpoints(query);
+          this.hideSearchHistory();
+        }
+      });
+    });
+
+    // Remove buttons
+    const removeButtons = historyContainer.querySelectorAll(
+      ".swagger-nav-history-remove"
+    );
+    removeButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const query = btn.dataset.query;
+        this.removeFromSearchHistory(query);
+
+        // Re-render and keep dropdown open
+        this.updateSearchHistoryUI();
+
+        // Only hide if completely empty, otherwise keep showing
+        if (this.searchHistory.length === 0) {
+          this.hideSearchHistory();
+        } else {
+          // Re-apply current filter if any
+          const searchInput = this.navBar?.querySelector(
+            ".swagger-nav-search-input"
+          );
+          if (searchInput && searchInput.value) {
+            this.filterSearchHistory(searchInput.value);
+          }
+        }
+      });
+    });
+  }
+
+  // Helper to escape HTML in search queries
+  escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Filter endpoints based on search
   filterEndpoints(query) {
     if (!query) {
       query = "";
     }
     const lowerQuery = query.toLowerCase();
-    const items = this.navBar.querySelectorAll(".swagger-nav-item");
-    let visibleCount = 0;
 
+    // Filter both regular items AND pinned items
+    // Note: Exclude pinned items from regular count (they have both classes)
+    const items = this.navBar.querySelectorAll(
+      ".swagger-nav-item:not(.swagger-nav-pinned-item)"
+    );
+    const pinnedItems = this.navBar.querySelectorAll(
+      ".swagger-nav-pinned-item"
+    );
+    let visibleRegularCount = 0;
+    let visiblePinnedCount = 0;
+
+    // Filter regular items
     items.forEach((item) => {
       // Safely get dataset values with proper fallbacks
       const method = String(item.dataset.method || "").toLowerCase();
@@ -1013,7 +1614,27 @@ class SwaggerNavigator {
 
       if (matches) {
         item.style.display = "";
-        visibleCount++;
+        visibleRegularCount++;
+      } else {
+        item.style.display = "none";
+      }
+    });
+
+    // Filter pinned items
+    pinnedItems.forEach((item) => {
+      // Safely get dataset values with proper fallbacks
+      const method = String(item.dataset.method || "").toLowerCase();
+      const path = String(item.dataset.path || "");
+      const summary = String(item.dataset.summary || "");
+
+      const matches =
+        method.includes(lowerQuery) ||
+        path.includes(lowerQuery) ||
+        summary.includes(lowerQuery);
+
+      if (matches) {
+        item.style.display = "";
+        visiblePinnedCount++;
       } else {
         item.style.display = "none";
       }
@@ -1025,15 +1646,23 @@ class SwaggerNavigator {
       const isPinnedSection = section.classList.contains(
         "swagger-nav-pinned-section"
       );
-      const visibleItems = section.querySelectorAll(
+
+      // Check for visible items in both regular and pinned sections
+      const visibleRegularItems = section.querySelectorAll(
         '.swagger-nav-item:not([style*="display: none"])'
       );
+      const visiblePinnedItems = section.querySelectorAll(
+        '.swagger-nav-pinned-item:not([style*="display: none"])'
+      );
+      const totalVisibleItems =
+        visibleRegularItems.length + visiblePinnedItems.length;
+
       const sectionContent = section.querySelector(
         ".swagger-nav-section-content"
       );
       const toggle = section.querySelector(".swagger-nav-section-toggle");
 
-      if (visibleItems.length === 0) {
+      if (totalVisibleItems === 0) {
         section.style.display = "none";
       } else {
         section.style.display = "";
@@ -1074,11 +1703,12 @@ class SwaggerNavigator {
       }
     });
 
-    // Update counter
+    // Update counter (count only regular items, not pinned duplicates)
     const counter = this.navBar.querySelector(".swagger-nav-counter");
     if (counter) {
       if (query) {
-        counter.textContent = `${visibleCount} of ${items.length} endpoints`;
+        // When searching, show only regular items count (exclude pinned duplicates)
+        counter.textContent = `${visibleRegularCount} of ${items.length} endpoints`;
       } else {
         counter.textContent = `${items.length} endpoints`;
       }
@@ -1093,59 +1723,56 @@ class SwaggerNavigator {
     if (element) {
       console.log(`SwaggerNav: Navigating to endpoint ${endpointId}`);
 
-      // Scroll to element first
+      // Scroll to element first (top alignment so user can see content after expansion)
       element.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: "start",
       });
 
-      // Always click the endpoint to expand it
-      setTimeout(() => {
-        // Check multiple indicators for open state
-        const isOpen = element.classList.contains("is-open");
-        const ariaExpanded = element
-          .querySelector("[aria-expanded]")
-          ?.getAttribute("aria-expanded");
-        console.log(
-          `SwaggerNav: Endpoint ${endpointId} is currently ${
-            isOpen ? "open" : "closed"
-          } (aria-expanded: ${ariaExpanded})`
-        );
-
-        // Try multiple selectors to find the clickable element
-        // Priority 1: The actual button control (most reliable)
-        let clickableElement = element.querySelector(
-          ".opblock-summary-control"
-        );
-        if (!clickableElement) {
-          // Priority 2: The summary wrapper
-          clickableElement = element.querySelector(".opblock-summary");
-        }
-        if (!clickableElement) {
-          // Priority 3: Check if element itself is clickable
-          if (element.classList.contains("opblock-summary")) {
-            clickableElement = element;
-          }
-        }
-
-        console.log(`SwaggerNav: Clickable element:`, clickableElement);
-        console.log(
-          `SwaggerNav: Clickable element tagName:`,
-          clickableElement?.tagName
-        );
-        console.log(
-          `SwaggerNav: Clickable element aria-expanded:`,
-          clickableElement?.getAttribute("aria-expanded")
-        );
-
-        if (clickableElement) {
+      // Expand endpoint if setting is enabled
+      if (this.settings.autoExpand) {
+        setTimeout(() => {
+          // Check multiple indicators for open state
+          const isOpen = element.classList.contains("is-open");
+          const ariaExpanded = element
+            .querySelector("[aria-expanded]")
+            ?.getAttribute("aria-expanded");
           console.log(
-            `SwaggerNav: Found clickable element, triggering click to ${
-              isOpen ? "toggle" : "expand"
-            }`
+            `SwaggerNav: Endpoint ${endpointId} is currently ${
+              isOpen ? "open" : "closed"
+            } (aria-expanded: ${ariaExpanded})`
           );
-          // Always click to ensure it's expanded (or re-expand if already open)
-          if (!isOpen) {
+
+          // Try multiple selectors to find the clickable element
+          // Priority 1: The actual button control (most reliable)
+          let clickableElement = element.querySelector(
+            ".opblock-summary-control"
+          );
+          if (!clickableElement) {
+            // Priority 2: The summary wrapper
+            clickableElement = element.querySelector(".opblock-summary");
+          }
+          if (!clickableElement) {
+            // Priority 3: Check if element itself is clickable
+            if (element.classList.contains("opblock-summary")) {
+              clickableElement = element;
+            }
+          }
+
+          console.log(`SwaggerNav: Clickable element:`, clickableElement);
+          console.log(
+            `SwaggerNav: Clickable element tagName:`,
+            clickableElement?.tagName
+          );
+          console.log(
+            `SwaggerNav: Clickable element aria-expanded:`,
+            clickableElement?.getAttribute("aria-expanded")
+          );
+
+          if (clickableElement && !isOpen) {
+            console.log(
+              `SwaggerNav: Found clickable element, expanding endpoint`
+            );
             // Use MouseEvent for more reliable clicking
             const mouseEvent = new MouseEvent("click", {
               view: window,
@@ -1159,6 +1786,13 @@ class SwaggerNavigator {
               `SwaggerNav: Dispatched click event to expand endpoint ${endpointId}`
             );
 
+            // After expansion, check if we should auto-click "Try it out"
+            if (this.settings.autoTryOut) {
+              setTimeout(() => {
+                this.clickTryItOut(element, endpointId);
+              }, 800); // Wait for expansion animation to complete
+            }
+
             // Verify after a delay
             setTimeout(() => {
               const newAriaExpanded =
@@ -1167,17 +1801,21 @@ class SwaggerNavigator {
                 `SwaggerNav: After click, aria-expanded is now: ${newAriaExpanded}`
               );
             }, 200);
+          } else if (isOpen) {
+            console.log(`SwaggerNav: Endpoint ${endpointId} already open`);
+            // If already open and autoTryOut is enabled, try clicking the button
+            if (this.settings.autoTryOut) {
+              setTimeout(() => {
+                this.clickTryItOut(element, endpointId);
+              }, 300);
+            }
           } else {
-            console.log(
-              `SwaggerNav: Endpoint ${endpointId} already open, skipping click`
+            console.warn(
+              `SwaggerNav: Could not find clickable element for endpoint ${endpointId}`
             );
           }
-        } else {
-          console.warn(
-            `SwaggerNav: Could not find clickable element for endpoint ${endpointId}`
-          );
-        }
-      }, 500); // Increased delay to ensure scroll completes
+        }, 500); // Increased delay to ensure scroll completes
+      }
 
       // Add subtle highlight animation (no outline, just glow and scale)
       const originalStyles = {
@@ -1220,6 +1858,33 @@ class SwaggerNavigator {
       setTimeout(() => {
         element.style.transition = originalStyles.transition;
       }, 2100);
+    }
+  }
+
+  // Click "Try it out" button after endpoint is expanded
+  clickTryItOut(endpointElement, endpointId) {
+    console.log(`SwaggerNav: Looking for "Try it out" button in ${endpointId}`);
+
+    // Find the "Try it out" button within the expanded endpoint
+    const tryItOutBtn = endpointElement.querySelector(".btn.try-out__btn");
+
+    if (tryItOutBtn) {
+      // Check if button text says "Try it out" (not "Cancel" which means it's already activated)
+      const buttonText = tryItOutBtn.textContent.trim();
+      console.log(`SwaggerNav: Found button with text: "${buttonText}"`);
+
+      if (buttonText.toLowerCase().includes("try it out")) {
+        console.log(
+          `SwaggerNav: Clicking "Try it out" button for ${endpointId}`
+        );
+        tryItOutBtn.click();
+      } else {
+        console.log(
+          `SwaggerNav: Button already activated (shows "${buttonText}")`
+        );
+      }
+    } else {
+      console.log(`SwaggerNav: "Try it out" button not found in ${endpointId}`);
     }
   }
 
@@ -1389,10 +2054,17 @@ class SwaggerNavigator {
         }
       }
 
-      // Remove active class from all items
-      allItems.forEach((item) => item.classList.remove("active-nav"));
+      // Remove active and current class from all items
+      allItems.forEach((item) => {
+        item.classList.remove("active-nav");
+        item.classList.remove("swagger-nav-current");
+      });
 
-      // Add active class to target item
+      // Set as current endpoint (persistent border)
+      this.currentEndpointId = endpointId;
+      targetItem.classList.add("swagger-nav-current");
+
+      // Add active class for pulse animation
       targetItem.classList.add("active-nav");
 
       // Scroll the item into view in the sidebar
@@ -1401,7 +2073,7 @@ class SwaggerNavigator {
         block: "center",
       });
 
-      // Remove active class after animation
+      // Remove active class after animation (keep current class)
       setTimeout(() => {
         targetItem.classList.remove("active-nav");
       }, 2500);

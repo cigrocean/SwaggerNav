@@ -30,32 +30,31 @@ The extension adds a sleek navigation sidebar on the right side of any Swagger U
 
 ## Installation
 
-### Option 1: Load Unpacked Extension (Development)
+### Quick Install (30 seconds) ⚡
 
-1. **Download .zip in Releases and unzip or Clone this Repository**
-   ```bash
-   git clone https://github.com/yourusername/SwaggerNav.git
-   cd SwaggerNav
-   ```
+1. **[Download the latest release](https://github.com/cigrocean/SwaggerNav/releases/latest/download/swaggernav-latest.zip)**
+2. **Extract the ZIP file**
+3. **Open `chrome://extensions/` in Chrome**
+4. **Enable "Developer mode"** (top-right toggle)
+5. **Click "Load unpacked"** and select the extracted folder
+6. **Done!** 🎉
 
-2. **Open Chrome Extensions Page**
-   - Navigate to `chrome://extensions/`
-   - Or click the Extensions menu (puzzle icon) → "Manage Extensions"
+📖 **Detailed installation guide**: [INSTALL.md](INSTALL.md)
 
-3. **Enable Developer Mode**
-   - Toggle "Developer mode" switch in the top-right corner
+---
 
-4. **Load the Extension**
-   - Click "Load unpacked"
-   - Select the `SwaggerNav` folder (the one containing `manifest.json`)
+### Why Not CRX Files?
 
-5. **Verify Installation**
-   - You should see "SwaggerNav - Swagger UI Navigator" in your extensions list
-   - The extension icon will appear in your Chrome toolbar
+Chrome blocks self-signed `.crx` files with `CRX_REQUIRED_PROOF_MISSING` error since Chrome 75+. The ZIP + "Load unpacked" method is:
 
-### Option 2: Chrome Web Store (Coming Soon)
+- ✅ Simple and fast (30 seconds)
+- ✅ Secure (you can inspect the code)
+- ✅ Works everywhere
+- ✅ No Chrome Web Store approval needed
 
-The extension will be available on the Chrome Web Store soon for easy one-click installation.
+### Alternative: Chrome Web Store (Coming Soon)
+
+The extension will be submitted to the Chrome Web Store for one-click installation.
 
 ## Usage
 
@@ -96,6 +95,7 @@ Keyboard shortcuts may be added in future versions for even faster navigation.
 - **Brave**: Latest version
 
 **Works with:**
+
 - OpenAPI/Swagger UI 2.x and 3.x
 - Any website using the standard Swagger UI interface
 - Custom Swagger UI implementations
@@ -121,16 +121,18 @@ SwaggerNav/
 ### Building from Source
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/SwaggerNav.git
    cd SwaggerNav
    ```
 
 2. **Regenerate icons (optional)**
+
    ```bash
    python3 create_icons_simple.py
    ```
-   
+
    Or open `icon_generator.html` in your browser to create custom icons.
 
 3. **Load in Chrome**
@@ -267,6 +269,7 @@ If you encounter any issues or have questions:
 ## Developer
 
 **Ocean Litmers**
+
 - GitHub: [@cigrocean](https://github.com/cigrocean)
 - This project: [SwaggerNav](https://github.com/cigrocean/SwaggerNav)
 
@@ -274,7 +277,6 @@ If you encounter any issues or have questions:
 
 **Made with ❤️ for developers who work with APIs**
 
-*Built with [Cursor](https://www.cursor.com) - The AI-first code editor*
+_Built with [Cursor](https://www.cursor.com) - The AI-first code editor_
 
-*If you find this extension helpful, please consider giving it a ⭐ on [GitHub](https://github.com/cigrocean/SwaggerNav)!*
-
+_If you find this extension helpful, please consider giving it a ⭐ on [GitHub](https://github.com/cigrocean/SwaggerNav)!_
