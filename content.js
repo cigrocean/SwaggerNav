@@ -2,7 +2,7 @@
 // Detects Swagger UI and adds navigation sidebar
 
 // VERSION - Update this for new releases
-const SWAGGERNAV_VERSION = "1.0.1";
+const SWAGGERNAV_VERSION = "1.0.2";
 
 class SwaggerNavigator {
   constructor() {
@@ -16,6 +16,7 @@ class SwaggerNavigator {
     this.searchHistory = this.loadSearchHistory();
     this.settings = this.loadSettings();
     this.currentEndpointId = null; // Track currently selected endpoint
+    this.activeMethodFilters = new Set(); // Track active method filters
   }
 
   // Load pinned endpoints from localStorage
@@ -737,7 +738,29 @@ class SwaggerNavigator {
     const searchBox = document.createElement("div");
     searchBox.className = "swagger-nav-search";
     searchBox.innerHTML = `
-      <input type="text" placeholder="Search endpoints..." class="swagger-nav-search-input" aria-label="Search API endpoints" role="searchbox" autocomplete="off">
+      <div class="swagger-nav-search-container">
+        <input type="text" placeholder="Search endpoints..." class="swagger-nav-search-input" aria-label="Search API endpoints" role="searchbox" autocomplete="off">
+        <button type="button" class="swagger-nav-search-clear" title="Clear search" aria-label="Clear search" style="display: none;">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="swagger-nav-method-filters">
+        <button type="button" class="swagger-nav-method-filter" data-method="get" title="Filter GET requests">
+          <span class="swagger-nav-method-badge swagger-nav-method-get">GET</span>
+        </button>
+        <button type="button" class="swagger-nav-method-filter" data-method="post" title="Filter POST requests">
+          <span class="swagger-nav-method-badge swagger-nav-method-post">POST</span>
+        </button>
+        <button type="button" class="swagger-nav-method-filter" data-method="put" title="Filter PUT requests">
+          <span class="swagger-nav-method-badge swagger-nav-method-put">PUT</span>
+        </button>
+        <button type="button" class="swagger-nav-method-filter" data-method="delete" title="Filter DELETE requests">
+          <span class="swagger-nav-method-badge swagger-nav-method-delete">DELETE</span>
+        </button>
+        <button type="button" class="swagger-nav-method-filter" data-method="patch" title="Filter PATCH requests">
+          <span class="swagger-nav-method-badge swagger-nav-method-patch">PATCH</span>
+        </button>
+      </div>
       <div class="swagger-nav-search-history" style="display: none;"></div>
     `;
     this.navBar.appendChild(searchBox);
@@ -1227,9 +1250,45 @@ class SwaggerNavigator {
 
     // Search functionality
     const searchInput = this.navBar.querySelector(".swagger-nav-search-input");
+    const searchClearBtn = this.navBar.querySelector(
+      ".swagger-nav-search-clear"
+    );
     const searchHistory = this.navBar.querySelector(
       ".swagger-nav-search-history"
     );
+
+    // Clear button functionality
+    if (searchClearBtn && searchInput) {
+      searchClearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        searchClearBtn.style.display = "none";
+        this.filterEndpoints("");
+        this.hideSearchHistory();
+        searchInput.focus();
+      });
+    }
+
+    // Method filter buttons
+    const methodFilters = this.navBar.querySelectorAll(
+      ".swagger-nav-method-filter"
+    );
+    methodFilters.forEach((filterBtn) => {
+      filterBtn.addEventListener("click", () => {
+        const method = filterBtn.dataset.method;
+
+        if (this.activeMethodFilters.has(method)) {
+          this.activeMethodFilters.delete(method);
+          filterBtn.classList.remove("active");
+        } else {
+          this.activeMethodFilters.add(method);
+          filterBtn.classList.add("active");
+        }
+
+        // Re-filter with current query
+        const query = searchInput ? searchInput.value : "";
+        this.filterEndpoints(query);
+      });
+    });
 
     if (searchInput) {
       let searchTimeout = null;
@@ -1237,6 +1296,12 @@ class SwaggerNavigator {
       // Input event for filtering
       searchInput.addEventListener("input", (e) => {
         const query = e.target.value;
+
+        // Show/hide clear button
+        if (searchClearBtn) {
+          searchClearBtn.style.display = query ? "flex" : "none";
+        }
+
         this.filterEndpoints(query);
 
         // Filter and show search history
@@ -1293,8 +1358,16 @@ class SwaggerNavigator {
         });
       }
 
-      // Enter key to immediately add to history
+      // Keyboard shortcuts
       searchInput.addEventListener("keydown", (e) => {
+        // Escape key to close dropdown
+        if (e.key === "Escape") {
+          this.hideSearchHistory();
+          searchInput.blur(); // Also blur the input
+          return;
+        }
+
+        // Enter key to immediately add to history
         if (e.key === "Enter" && e.target.value.trim().length > 0) {
           // Clear the auto-save timeout
           if (searchTimeout) {
@@ -1312,6 +1385,24 @@ class SwaggerNavigator {
     // Prevent scroll chaining - stop scroll from propagating to main page
     const contentArea = this.navBar.querySelector(".swagger-nav-content");
     if (contentArea) {
+      // Click on content area to close search dropdown
+      contentArea.addEventListener("click", () => {
+        const searchHistory = this.navBar?.querySelector(
+          ".swagger-nav-search-history"
+        );
+        if (searchHistory && searchHistory.style.display === "block") {
+          this.hideSearchHistory();
+          // Also blur search input to fully close it
+          const searchInput = this.navBar?.querySelector(
+            ".swagger-nav-search-input"
+          );
+          if (searchInput) {
+            searchInput.blur();
+          }
+        }
+      });
+
+      // Scroll chaining prevention
       contentArea.addEventListener(
         "wheel",
         (e) => {
@@ -1600,6 +1691,9 @@ class SwaggerNavigator {
     let visibleRegularCount = 0;
     let visiblePinnedCount = 0;
 
+    // Check if method filters are active
+    const hasMethodFilters = this.activeMethodFilters.size > 0;
+
     // Filter regular items
     items.forEach((item) => {
       // Safely get dataset values with proper fallbacks
@@ -1607,12 +1701,19 @@ class SwaggerNavigator {
       const path = String(item.dataset.path || "");
       const summary = String(item.dataset.summary || "");
 
-      const matches =
+      // Check search query match
+      const searchMatches =
+        !query ||
         method.includes(lowerQuery) ||
         path.includes(lowerQuery) ||
         summary.includes(lowerQuery);
 
-      if (matches) {
+      // Check method filter match
+      const methodMatches =
+        !hasMethodFilters || this.activeMethodFilters.has(method);
+
+      // Item is visible if it matches both search and method filters
+      if (searchMatches && methodMatches) {
         item.style.display = "";
         visibleRegularCount++;
       } else {
@@ -1627,12 +1728,19 @@ class SwaggerNavigator {
       const path = String(item.dataset.path || "");
       const summary = String(item.dataset.summary || "");
 
-      const matches =
+      // Check search query match
+      const searchMatches =
+        !query ||
         method.includes(lowerQuery) ||
         path.includes(lowerQuery) ||
         summary.includes(lowerQuery);
 
-      if (matches) {
+      // Check method filter match
+      const methodMatches =
+        !hasMethodFilters || this.activeMethodFilters.has(method);
+
+      // Item is visible if it matches both search and method filters
+      if (searchMatches && methodMatches) {
         item.style.display = "";
         visiblePinnedCount++;
       } else {
@@ -1648,27 +1756,51 @@ class SwaggerNavigator {
       );
 
       // Check for visible items in both regular and pinned sections
-      const visibleRegularItems = section.querySelectorAll(
-        '.swagger-nav-item:not([style*="display: none"])'
+      const allSectionItems = section.querySelectorAll(
+        ".swagger-nav-item, .swagger-nav-pinned-item"
       );
-      const visiblePinnedItems = section.querySelectorAll(
-        '.swagger-nav-pinned-item:not([style*="display: none"])'
-      );
-      const totalVisibleItems =
-        visibleRegularItems.length + visiblePinnedItems.length;
+      let totalVisibleItems = 0;
+      allSectionItems.forEach((item) => {
+        if (item.style.display !== "none") {
+          totalVisibleItems++;
+        }
+      });
 
       const sectionContent = section.querySelector(
         ".swagger-nav-section-content"
       );
       const toggle = section.querySelector(".swagger-nav-section-toggle");
+      const sectionCount = section.querySelector(".swagger-nav-section-count");
 
       if (totalVisibleItems === 0) {
         section.style.display = "none";
       } else {
         section.style.display = "";
 
-        // Expand all sections during search (except pinned section which has no toggle)
-        if (query && !isPinnedSection) {
+        // Update section count to show filtered results
+        if (sectionCount) {
+          if (query || hasMethodFilters) {
+            // Show filtered count during search or when method filters active
+            sectionCount.textContent = totalVisibleItems;
+            sectionCount.setAttribute(
+              "aria-label",
+              `${totalVisibleItems} matching endpoints`
+            );
+          } else {
+            // Restore original count when not filtering
+            const allItems = section.querySelectorAll(
+              ".swagger-nav-item:not(.swagger-nav-pinned-item)"
+            );
+            sectionCount.textContent = allItems.length;
+            sectionCount.setAttribute(
+              "aria-label",
+              `${allItems.length} endpoints`
+            );
+          }
+        }
+
+        // Expand all sections during search or when filters active (except pinned section)
+        if ((query || hasMethodFilters) && !isPinnedSection) {
           // Save original state if not already saved
           if (!section.dataset.wasCollapsed) {
             section.dataset.wasCollapsed = section.classList.contains(
@@ -1686,8 +1818,21 @@ class SwaggerNavigator {
           if (toggle) {
             toggle.textContent = "▲";
           }
-        } else if (!query && !isPinnedSection && section.dataset.wasCollapsed) {
-          // Restore original state when search is cleared
+
+          // Also update header aria-expanded for accessibility
+          const sectionHeader = section.querySelector(
+            ".swagger-nav-section-header"
+          );
+          if (sectionHeader) {
+            sectionHeader.setAttribute("aria-expanded", "true");
+          }
+        } else if (
+          !query &&
+          !hasMethodFilters &&
+          !isPinnedSection &&
+          section.dataset.wasCollapsed
+        ) {
+          // Restore original state when all filters are cleared
           if (section.dataset.wasCollapsed === "true") {
             section.classList.add("collapsed");
             if (sectionContent) {
@@ -1706,8 +1851,8 @@ class SwaggerNavigator {
     // Update counter (count only regular items, not pinned duplicates)
     const counter = this.navBar.querySelector(".swagger-nav-counter");
     if (counter) {
-      if (query) {
-        // When searching, show only regular items count (exclude pinned duplicates)
+      if (query || hasMethodFilters) {
+        // When searching or filtering by method, show filtered count
         counter.textContent = `${visibleRegularCount} of ${items.length} endpoints`;
       } else {
         counter.textContent = `${items.length} endpoints`;
