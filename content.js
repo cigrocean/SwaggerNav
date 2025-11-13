@@ -2,7 +2,7 @@
 // Detects Swagger UI and adds navigation sidebar
 
 // VERSION - Update this for new releases
-const SWAGGERNAV_VERSION = "1.0.3";
+const SWAGGERNAV_VERSION = "1.0.4";
 
 class SwaggerNavigator {
   constructor() {
@@ -342,6 +342,12 @@ class SwaggerNavigator {
 
   // Apply theme to Swagger UI page (Proper Dark Mode)
   applySwaggerTheme() {
+    // CRITICAL: Only apply theme on Swagger UI pages
+    if (!this.isSwaggerUI) {
+      console.log("SwaggerNav: Skipping theme - not a Swagger UI page");
+      return;
+    }
+
     // Remove existing style if any
     const existingStyle = document.getElementById("swagger-nav-theme-style");
     if (existingStyle) {
@@ -2826,9 +2832,5 @@ class SwaggerNavigator {
 // Initialize the extension
 const swaggerNav = new SwaggerNavigator();
 
-// Apply theme immediately on page load for instant dark mode (before extension UI appears)
-if (swaggerNav.settings.autoTheme) {
-  swaggerNav.applySwaggerTheme();
-}
-
+// Theme will be applied after Swagger UI detection in init()
 swaggerNav.init();
