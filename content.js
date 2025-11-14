@@ -2604,6 +2604,23 @@ class SwaggerNavigator {
               `SwaggerNav: Dispatched click event to expand endpoint ${endpointId}`
             );
 
+            // After expansion animation completes, re-scroll to ensure visibility
+            setTimeout(() => {
+              console.log(
+                `SwaggerNav: Re-scrolling to endpoint ${endpointId} after expansion`
+              );
+              const elementRect = element.getBoundingClientRect();
+              const absoluteElementTop = elementRect.top + window.pageYOffset;
+              const offset = 100;
+              window.scrollTo({
+                top: absoluteElementTop - offset,
+                behavior: "smooth",
+              });
+              console.log(
+                `SwaggerNav: Re-scrolled to maintain ${offset}px offset after expansion`
+              );
+            }, 600); // Wait for expansion animation to complete
+
             // After expansion, check if we should auto-click "Try it out"
             if (this.settings.autoTryOut) {
               setTimeout(() => {
@@ -3802,6 +3819,20 @@ class SwaggerNavigator {
       }textarea ${textareaId}`
     );
 
+    // Check if any input in the form currently has focus - if so, skip rebuild to prevent disrupting user input
+    const focusedElement = document.activeElement;
+    if (
+      focusedElement &&
+      formContainer.contains(focusedElement) &&
+      (focusedElement.tagName === "INPUT" ||
+        focusedElement.tagName === "TEXTAREA")
+    ) {
+      console.log(
+        `SwaggerNav: Skipping form rebuild - user is typing in ${focusedElement.tagName}`
+      );
+      return;
+    }
+
     try {
       const jsonValue = textarea.value.trim();
       if (!jsonValue) {
@@ -3878,6 +3909,7 @@ class SwaggerNavigator {
             input.type = "number";
             input.value = item;
             input.className = "swagger-nav-form-input";
+            input.step = "any"; // Allow any decimal value
           } else {
             input = document.createElement("input");
             input.type = "text";
@@ -3894,6 +3926,22 @@ class SwaggerNavigator {
           input.addEventListener("input", () => {
             this.updateJSONFromForm(textarea, itemPath, input);
           });
+
+          // On blur, ensure we update with final value (handles partial inputs like "-")
+          if (input.type === "number") {
+            input.addEventListener("blur", () => {
+              // Force final update when user leaves the field
+              if (
+                input.value === "-" ||
+                input.value === "." ||
+                input.value === "-."
+              ) {
+                // Invalid partial input - reset to 0 or null
+                input.value = "0";
+              }
+              this.updateJSONFromForm(textarea, itemPath, input);
+            });
+          }
 
           field.appendChild(label);
           field.appendChild(input);
@@ -3958,6 +4006,7 @@ class SwaggerNavigator {
             input.type = "number";
             input.value = value;
             input.className = "swagger-nav-form-input";
+            input.step = "any"; // Allow any decimal value
           } else {
             input = document.createElement("input");
             input.type = "text";
@@ -3974,6 +4023,22 @@ class SwaggerNavigator {
           input.addEventListener("input", (e) => {
             this.updateJSONFromForm(textarea, fieldPath, input);
           });
+
+          // On blur, ensure we update with final value (handles partial inputs like "-")
+          if (input.type === "number") {
+            input.addEventListener("blur", () => {
+              // Force final update when user leaves the field
+              if (
+                input.value === "-" ||
+                input.value === "." ||
+                input.value === "-."
+              ) {
+                // Invalid partial input - reset to 0 or null
+                input.value = "0";
+              }
+              this.updateJSONFromForm(textarea, fieldPath, input);
+            });
+          }
 
           field.appendChild(label);
           field.appendChild(input);
@@ -3996,8 +4061,31 @@ class SwaggerNavigator {
         if (input.value === "" || input.value === null) {
           value = null;
         } else {
-          const parsed = parseFloat(input.value);
-          value = isNaN(parsed) ? 0 : parsed;
+          const inputValue = input.value.trim();
+
+          // Allow partial number inputs during typing (e.g., "-", ".", "0.", "-0")
+          // Don't convert these to 0 or null, just skip the update
+          if (
+            inputValue === "-" ||
+            inputValue === "." ||
+            inputValue === "-." ||
+            inputValue.endsWith(".")
+          ) {
+            console.log(
+              `SwaggerNav: Allowing partial number input "${inputValue}" during typing`
+            );
+            return; // Skip update, let user finish typing
+          }
+
+          const parsed = parseFloat(inputValue);
+          if (isNaN(parsed)) {
+            console.warn(
+              `SwaggerNav: Invalid number "${inputValue}", defaulting to 0`
+            );
+            value = 0;
+          } else {
+            value = parsed;
+          }
         }
       } else {
         // Handle text inputs - check for special values
