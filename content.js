@@ -850,6 +850,9 @@ class SwaggerNavigator {
       setTimeout(() => {
         this.syncToCurrentSwaggerState();
       }, 500);
+
+      // Setup parameter enhancements (searchable selects & form builder)
+      this.setupParameterEnhancements();
     }, 1000);
   }
 
@@ -1200,29 +1203,30 @@ class SwaggerNavigator {
     searchBox.className = "swagger-nav-search";
     searchBox.innerHTML = `
       <div class="swagger-nav-search-container">
-        <input type="text" placeholder="Search endpoints..." class="swagger-nav-search-input" aria-label="Search API endpoints" role="searchbox" autocomplete="off">
-        <button type="button" class="swagger-nav-search-clear" title="Clear search" aria-label="Clear search" style="display: none;">
-          <span aria-hidden="true">×</span>
-        </button>
+        <div class="swagger-nav-search-input-wrapper">
+          <input type="text" placeholder="Search endpoints..." class="swagger-nav-search-input" aria-label="Search API endpoints" role="searchbox" autocomplete="off">
+          <button type="button" class="swagger-nav-search-clear" title="Clear search" aria-label="Clear search" style="display: none;">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="swagger-nav-method-filters">
+          <button type="button" class="swagger-nav-method-filter" data-method="get" title="Filter GET requests">
+            <span class="swagger-nav-method-badge swagger-nav-method-get">GET</span>
+          </button>
+          <button type="button" class="swagger-nav-method-filter" data-method="post" title="Filter POST requests">
+            <span class="swagger-nav-method-badge swagger-nav-method-post">POST</span>
+          </button>
+          <button type="button" class="swagger-nav-method-filter" data-method="put" title="Filter PUT requests">
+            <span class="swagger-nav-method-badge swagger-nav-method-put">PUT</span>
+          </button>
+          <button type="button" class="swagger-nav-method-filter" data-method="delete" title="Filter DELETE requests">
+            <span class="swagger-nav-method-badge swagger-nav-method-delete">DELETE</span>
+          </button>
+          <button type="button" class="swagger-nav-method-filter" data-method="patch" title="Filter PATCH requests">
+            <span class="swagger-nav-method-badge swagger-nav-method-patch">PATCH</span>
+          </button>
+        </div>
       </div>
-      <div class="swagger-nav-method-filters">
-        <button type="button" class="swagger-nav-method-filter" data-method="get" title="Filter GET requests">
-          <span class="swagger-nav-method-badge swagger-nav-method-get">GET</span>
-        </button>
-        <button type="button" class="swagger-nav-method-filter" data-method="post" title="Filter POST requests">
-          <span class="swagger-nav-method-badge swagger-nav-method-post">POST</span>
-        </button>
-        <button type="button" class="swagger-nav-method-filter" data-method="put" title="Filter PUT requests">
-          <span class="swagger-nav-method-badge swagger-nav-method-put">PUT</span>
-        </button>
-        <button type="button" class="swagger-nav-method-filter" data-method="delete" title="Filter DELETE requests">
-          <span class="swagger-nav-method-badge swagger-nav-method-delete">DELETE</span>
-        </button>
-        <button type="button" class="swagger-nav-method-filter" data-method="patch" title="Filter PATCH requests">
-          <span class="swagger-nav-method-badge swagger-nav-method-patch">PATCH</span>
-        </button>
-      </div>
-      <div class="swagger-nav-search-history" style="display: none;"></div>
     `;
     this.navBar.appendChild(searchBox);
 
@@ -1744,33 +1748,25 @@ class SwaggerNavigator {
     const searchClearBtn = this.navBar.querySelector(
       ".swagger-nav-search-clear"
     );
-    const searchHistory = this.navBar.querySelector(
-      ".swagger-nav-search-history"
+
+    console.log(`SwaggerNav: Found searchInput:`, !!searchInput);
+    console.log(
+      `SwaggerNav: Found searchClearBtn:`,
+      !!searchClearBtn,
+      searchClearBtn
     );
 
-    // Clear button functionality
-    if (searchClearBtn && searchInput) {
-      searchClearBtn.addEventListener("click", () => {
-        searchInput.value = "";
-        searchClearBtn.style.display = "none";
-        this.filterEndpoints("");
-
-        // Keep dropdown open and show all history items
-        if (searchHistory && this.searchHistory.length > 0) {
-          this.showSearchHistory();
-          this.filterSearchHistory(""); // Show all history items
-        }
-
-        searchInput.focus();
-      });
-    }
+    // Clear button functionality handled in setupEnhancedSearch()
+    // (removed old implementation)
 
     // Method filter buttons
     const methodFilters = this.navBar.querySelectorAll(
       ".swagger-nav-method-filter"
     );
     methodFilters.forEach((filterBtn) => {
-      filterBtn.addEventListener("click", () => {
+      filterBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent event from bubbling up
+
         const method = filterBtn.dataset.method;
 
         if (this.activeMethodFilters.has(method)) {
@@ -1784,122 +1780,50 @@ class SwaggerNavigator {
         // Re-filter with current query
         const query = searchInput ? searchInput.value : "";
         this.filterEndpoints(query);
+
+        // Refresh the enhanced dropdown if it's open (keep it open)
+        const enhancedDropdown = this.navBar?.querySelector(
+          ".swagger-nav-enhanced-dropdown"
+        );
+        if (enhancedDropdown && enhancedDropdown.style.display === "block") {
+          // Refresh the dropdown with filtered results
+          if (searchInput) {
+            searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+        }
       });
     });
 
     if (searchInput) {
-      let searchTimeout = null;
+      // Setup enhanced search with dropdown
+      this.setupEnhancedSearch(searchInput, searchClearBtn);
+    }
 
-      // Input event for filtering
-      searchInput.addEventListener("input", (e) => {
-        const query = e.target.value;
-
-        // Show/hide clear button
-        if (searchClearBtn) {
-          searchClearBtn.style.display = query ? "flex" : "none";
-        }
-
-        this.filterEndpoints(query);
-
-        // Filter and show search history
-        if (searchHistory && this.searchHistory.length > 0) {
-          // Always show if we have history (filterSearchHistory will hide items that don't match)
-          this.showSearchHistory();
-          this.filterSearchHistory(query);
-        } else if (searchHistory) {
-          this.hideSearchHistory();
-        }
-
-        // Auto-save to history after user stops typing (1 second delay)
-        if (searchTimeout) {
-          clearTimeout(searchTimeout);
-        }
-
-        if (query.trim().length > 0) {
-          searchTimeout = setTimeout(() => {
-            this.addToSearchHistory(query);
-            console.log(`SwaggerNav: Auto-saved search "${query}" to history`);
-          }, 1000); // Save after 1 second of no typing
-        }
+    // Prevent dropdown from closing when clicking on method filters area
+    const methodFiltersContainer = this.navBar.querySelector(
+      ".swagger-nav-method-filters"
+    );
+    if (methodFiltersContainer) {
+      // Prevent blur on mousedown (like the dropdown does)
+      methodFiltersContainer.addEventListener("mousedown", (e) => {
+        e.preventDefault(); // Prevent search input from losing focus
       });
-
-      // Focus event to show history
-      searchInput.addEventListener("focus", () => {
-        // Show clear button if input has text
-        if (searchClearBtn && searchInput.value) {
-          searchClearBtn.style.display = "flex";
-        }
-
-        if (searchHistory && this.searchHistory.length > 0) {
-          this.showSearchHistory();
-          // Filter based on current value (or show all if empty)
-          this.filterSearchHistory(searchInput.value);
-        }
+      methodFiltersContainer.addEventListener("click", (e) => {
+        e.stopPropagation(); // Keep dropdown open when clicking filters
       });
-
-      // Track if we're clicking inside the history dropdown
-      let isClickingHistory = false;
-
-      // Blur event to hide history (with delay to allow clicks)
-      searchInput.addEventListener("blur", () => {
-        setTimeout(() => {
-          // Don't hide if we're clicking inside the history dropdown
-          if (!isClickingHistory) {
-            this.hideSearchHistory();
-          }
-          isClickingHistory = false;
-        }, 200);
-      });
-
-      // Prevent blur when clicking inside history dropdown
-      if (searchHistory) {
-        searchHistory.addEventListener("mousedown", (e) => {
-          isClickingHistory = true;
-          // Keep focus on search input
-          e.preventDefault();
-        });
-      }
-
-      // Keyboard shortcuts
-      searchInput.addEventListener("keydown", (e) => {
-        // Escape key to close dropdown
-        if (e.key === "Escape") {
-          this.hideSearchHistory();
-          searchInput.blur(); // Also blur the input
-          return;
-        }
-
-        // Enter key to immediately add to history
-        if (e.key === "Enter" && e.target.value.trim().length > 0) {
-          // Clear the auto-save timeout
-          if (searchTimeout) {
-            clearTimeout(searchTimeout);
-          }
-          // Immediately save to history
-          this.addToSearchHistory(e.target.value);
-          console.log(
-            `SwaggerNav: Saved search "${e.target.value}" to history (Enter pressed)`
-          );
-        }
-      });
-
-      // Initial check: Show clear button if input already has text (e.g., from saved state)
-      if (searchClearBtn && searchInput.value) {
-        searchClearBtn.style.display = "flex";
-      }
     }
 
     // Prevent scroll chaining - stop scroll from propagating to main page
     const contentArea = this.navBar.querySelector(".swagger-nav-content");
     if (contentArea) {
-      // Click on content area to close search dropdown
+      // Click on content area to close enhanced dropdown
       contentArea.addEventListener("click", () => {
-        const searchHistory = this.navBar?.querySelector(
-          ".swagger-nav-search-history"
+        const enhancedDropdown = this.navBar?.querySelector(
+          ".swagger-nav-enhanced-dropdown"
         );
-        if (searchHistory && searchHistory.style.display === "block") {
-          this.hideSearchHistory();
-          // Also blur search input to fully close it
+        if (enhancedDropdown && enhancedDropdown.style.display === "block") {
+          enhancedDropdown.style.display = "none";
+          // Also blur search input
           const searchInput = this.navBar?.querySelector(
             ".swagger-nav-search-input"
           );
@@ -1979,208 +1903,419 @@ class SwaggerNavigator {
     }
   }
 
-  // Show search history dropdown
-  showSearchHistory() {
-    const searchHistory = this.navBar?.querySelector(
-      ".swagger-nav-search-history"
-    );
-    if (!searchHistory) return;
-
-    this.updateSearchHistoryUI();
-    searchHistory.style.display = "block";
-
-    // Trigger animation after display is set
-    requestAnimationFrame(() => {
-      searchHistory.classList.add("visible");
-    });
-
-    // Disable interaction with content area items
-    const contentArea = this.navBar?.querySelector(".swagger-nav-content");
-    if (contentArea) {
-      contentArea.classList.add("search-dropdown-open");
-    }
-  }
-
-  // Hide search history dropdown
-  hideSearchHistory() {
-    const searchHistory = this.navBar?.querySelector(
-      ".swagger-nav-search-history"
-    );
-    const contentArea = this.navBar?.querySelector(".swagger-nav-content");
-
-    if (searchHistory) {
-      searchHistory.classList.remove("visible");
-      // Wait for animation to complete before hiding
-      setTimeout(() => {
-        searchHistory.style.display = "none";
-      }, 150);
-    }
-    if (contentArea) contentArea.classList.remove("search-dropdown-open");
-  }
-
-  // Filter search history items in UI
-  filterSearchHistory(query) {
-    const historyContainer = this.navBar?.querySelector(
-      ".swagger-nav-search-history"
-    );
-    if (!historyContainer) return;
-
-    const historyItems = historyContainer.querySelectorAll(
-      ".swagger-nav-history-item"
-    );
-    const lowerQuery = query.toLowerCase();
-    let visibleCount = 0;
-
-    historyItems.forEach((item) => {
-      const queryBtn = item.querySelector(".swagger-nav-history-query");
-      const historyQuery = queryBtn?.dataset.query || "";
-
-      if (!query || historyQuery.toLowerCase().includes(lowerQuery)) {
-        item.style.display = "";
-        visibleCount++;
-      } else {
-        item.style.display = "none";
-      }
-    });
-
-    const header = historyContainer.querySelector(
-      ".swagger-nav-history-header"
-    );
-
-    // Show/hide "no results" message
-    let noResultsMsg = historyContainer.querySelector(
-      ".swagger-nav-history-no-results"
-    );
-
-    if (visibleCount === 0 && query) {
-      // Show "no results" message
-      if (!noResultsMsg) {
-        noResultsMsg = document.createElement("div");
-        noResultsMsg.className = "swagger-nav-history-no-results";
-        noResultsMsg.textContent = `No history matching "${query}"`;
-        historyContainer.appendChild(noResultsMsg);
-      } else {
-        noResultsMsg.textContent = `No history matching "${query}"`;
-        noResultsMsg.style.display = "block";
-      }
-      if (header) header.style.display = "none";
-    } else {
-      // Hide "no results" message
-      if (noResultsMsg) {
-        noResultsMsg.style.display = "none";
-      }
-      if (header) header.style.display = "";
-    }
-  }
-
-  // Update search history UI
-  updateSearchHistoryUI() {
-    const historyContainer = this.navBar.querySelector(
-      ".swagger-nav-search-history"
-    );
-    if (!historyContainer) return;
-
-    if (this.searchHistory.length === 0) {
-      historyContainer.innerHTML = `
-        <div class="swagger-nav-history-empty">No search history</div>
-      `;
-      return;
-    }
-
-    let historyHTML = '<div class="swagger-nav-history-header">';
-    historyHTML += "<span>Recent Searches</span>";
-    historyHTML +=
-      '<button type="button" class="swagger-nav-history-clear-all" title="Clear all history">Clear All</button>';
-    historyHTML += "</div>";
-    historyHTML += '<div class="swagger-nav-history-items">';
-
-    this.searchHistory.forEach((query) => {
-      historyHTML += `
-        <div class="swagger-nav-history-item">
-          <button type="button" class="swagger-nav-history-query" data-query="${this.escapeHtml(
-            query
-          )}" title="Search for: ${this.escapeHtml(query)}">
-            <span class="swagger-nav-history-icon">🔍</span>
-            <span class="swagger-nav-history-text">${this.escapeHtml(
-              query
-            )}</span>
-          </button>
-          <button type="button" class="swagger-nav-history-remove" data-query="${this.escapeHtml(
-            query
-          )}" title="Remove from history" aria-label="Remove from history">×</button>
-        </div>
-      `;
-    });
-
-    historyHTML += "</div>";
-    historyContainer.innerHTML = historyHTML;
-
-    // Add event listeners for history items
-    const searchInput = this.navBar.querySelector(".swagger-nav-search-input");
-
-    // Clear all button
-    const clearAllBtn = historyContainer.querySelector(
-      ".swagger-nav-history-clear-all"
-    );
-    if (clearAllBtn) {
-      clearAllBtn.addEventListener("click", () => {
-        this.clearSearchHistory();
-        this.updateSearchHistoryUI();
-
-        // Keep dropdown open to show the empty state
-        this.showSearchHistory();
-      });
-    }
-
-    // History item clicks
-    const historyItems = historyContainer.querySelectorAll(
-      ".swagger-nav-history-query"
-    );
-    historyItems.forEach((item) => {
-      item.addEventListener("click", () => {
-        const query = item.dataset.query;
-        if (searchInput) {
-          searchInput.value = query;
-          this.filterEndpoints(query);
-          this.hideSearchHistory();
-        }
-      });
-    });
-
-    // Remove buttons
-    const removeButtons = historyContainer.querySelectorAll(
-      ".swagger-nav-history-remove"
-    );
-    removeButtons.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const query = btn.dataset.query;
-        this.removeFromSearchHistory(query);
-
-        // Re-render and keep dropdown open
-        this.updateSearchHistoryUI();
-
-        // Only hide if completely empty, otherwise keep showing
-        if (this.searchHistory.length === 0) {
-          this.hideSearchHistory();
-        } else {
-          // Re-apply current filter if any
-          const searchInput = this.navBar?.querySelector(
-            ".swagger-nav-search-input"
-          );
-          if (searchInput && searchInput.value) {
-            this.filterSearchHistory(searchInput.value);
-          }
-        }
-      });
-    });
-  }
+  // Old search history functions removed - now using enhanced dropdown
 
   // Helper to escape HTML in search queries
   escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  // Setup enhanced search with dropdown functionality
+  setupEnhancedSearch(searchInput, searchClearBtn) {
+    console.log(
+      `SwaggerNav: setupEnhancedSearch - clearBtn exists:`,
+      !!searchClearBtn
+    );
+    console.log(
+      `SwaggerNav: setupEnhancedSearch - clearBtn element:`,
+      searchClearBtn
+    );
+
+    // Create new enhanced dropdown with CSS variables (auto-adapts to theme!)
+    const searchContainer = searchInput.closest(
+      ".swagger-nav-search-container"
+    );
+    const enhancedDropdown = document.createElement("div");
+    enhancedDropdown.className = "swagger-nav-enhanced-dropdown";
+    enhancedDropdown.style.cssText = `display: none; position: absolute; width: 100%; max-height: 400px; overflow-y: auto; background: var(--sn-endpoint-dropdown-bg); border: 2px solid var(--sn-endpoint-search-border); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; margin-top: 4px; left: 0; top: 100%;`;
+
+    // Append to search container so it appears below both input and filters
+    if (searchContainer) {
+      searchContainer.style.position = "relative";
+      searchContainer.appendChild(enhancedDropdown);
+    }
+
+    // CSS variables auto-adapt to theme changes - no JavaScript needed! ✨
+
+    let searchTimeout = null;
+    let selectedIndex = -1;
+    let currentResults = [];
+
+    // Function to collect matching endpoints
+    const getMatchingEndpoints = (query) => {
+      const lowerQuery = query.toLowerCase().trim();
+      const results = [];
+
+      if (!lowerQuery) return results;
+
+      // Get all endpoint items
+      const items = this.navBar.querySelectorAll(".swagger-nav-item");
+
+      items.forEach((item) => {
+        const method = String(item.dataset.method || "").toLowerCase();
+        const path = String(item.dataset.path || "");
+        const summary = String(item.dataset.summary || "");
+
+        // Check if matches search query
+        const searchMatches =
+          method.includes(lowerQuery) ||
+          path.includes(lowerQuery) ||
+          summary.includes(lowerQuery);
+
+        // Check if matches active method filters
+        const methodFilterMatches =
+          this.activeMethodFilters.size === 0 ||
+          this.activeMethodFilters.has(method);
+
+        if (searchMatches && methodFilterMatches) {
+          results.push({
+            type: "endpoint",
+            method: method.toUpperCase(),
+            path: path,
+            summary: summary,
+            element: item,
+          });
+        }
+      });
+
+      return results.slice(0, 10); // Limit to 10 results
+    };
+
+    // Function to show dropdown with results
+    const showEnhancedDropdown = (query) => {
+      // No need to update colors - CSS variables handle it! ✨
+      enhancedDropdown.innerHTML = "";
+      currentResults = [];
+      selectedIndex = -1;
+
+      const lowerQuery = query.toLowerCase().trim();
+
+      console.log(
+        `SwaggerNav: Enhanced dropdown - search history items: ${
+          this.searchHistory?.length || 0
+        }`
+      );
+      console.log(`SwaggerNav: Enhanced dropdown - query: "${query}"`);
+
+      // Section 1: Search History (if query is empty or matches history)
+      if (this.searchHistory && this.searchHistory.length > 0) {
+        const matchingHistory = lowerQuery
+          ? this.searchHistory.filter((h) =>
+              h.toLowerCase().includes(lowerQuery)
+            )
+          : this.searchHistory;
+
+        if (matchingHistory.length > 0) {
+          const historySection = document.createElement("div");
+          historySection.style.cssText = `border-bottom: 1px solid var(--sn-endpoint-item-border);`;
+
+          const historyHeader = document.createElement("div");
+          historyHeader.textContent = "Recent Searches";
+          historyHeader.style.cssText = `padding: 8px 12px; font-size: 11px; font-weight: 700; color: var(--sn-endpoint-text-secondary); text-transform: uppercase; background: var(--sn-endpoint-header-bg);`;
+          historySection.appendChild(historyHeader);
+
+          matchingHistory.slice(0, 5).forEach((historyQuery) => {
+            const historyItem = document.createElement("div");
+            historyItem.className = "swagger-nav-dropdown-item";
+            historyItem.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 14px;">🕐</span>
+                <span style="flex: 1; font-size: 14px; color: var(--sn-endpoint-search-text);">${this.escapeHtml(
+                  historyQuery
+                )}</span>
+                <button class="remove-history" style="padding: 4px 8px; background: transparent; border: none; color: var(--sn-endpoint-text-secondary); cursor: pointer; font-size: 12px; border-radius: 3px;">✕</button>
+              </div>
+            `;
+            historyItem.style.cssText = `padding: 10px 12px; cursor: pointer; background: var(--sn-endpoint-dropdown-bg); border-bottom: 1px solid var(--sn-endpoint-item-border); transition: background 0.15s;`;
+
+            historyItem.addEventListener("mouseenter", () => {
+              historyItem.style.background = "var(--sn-endpoint-item-hover)";
+            });
+
+            historyItem.addEventListener("mouseleave", () => {
+              historyItem.style.background = "var(--sn-endpoint-dropdown-bg)";
+            });
+
+            historyItem.addEventListener("click", (e) => {
+              if (!e.target.classList.contains("remove-history")) {
+                searchInput.value = historyQuery;
+                this.filterEndpoints(historyQuery);
+                enhancedDropdown.style.display = "none";
+              }
+            });
+
+            const removeBtn = historyItem.querySelector(".remove-history");
+            removeBtn.addEventListener("mouseenter", () => {
+              removeBtn.style.background = "var(--sn-endpoint-item-hover)";
+            });
+            removeBtn.addEventListener("mouseleave", () => {
+              removeBtn.style.background = "transparent";
+            });
+            removeBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.removeFromSearchHistory(historyQuery);
+              showEnhancedDropdown(searchInput.value);
+            });
+
+            historySection.appendChild(historyItem);
+            currentResults.push({
+              type: "history",
+              query: historyQuery,
+              element: historyItem,
+            });
+          });
+
+          enhancedDropdown.appendChild(historySection);
+        }
+      }
+
+      // Section 2: Matching Endpoints (if query is not empty)
+      if (lowerQuery) {
+        const endpoints = getMatchingEndpoints(lowerQuery);
+
+        if (endpoints.length > 0) {
+          const endpointsSection = document.createElement("div");
+
+          const endpointsHeader = document.createElement("div");
+          endpointsHeader.textContent = "Matching Endpoints";
+          endpointsHeader.style.cssText = `padding: 8px 12px; font-size: 11px; font-weight: 700; color: var(--sn-endpoint-text-secondary); text-transform: uppercase; background: var(--sn-endpoint-header-bg);`;
+          endpointsSection.appendChild(endpointsHeader);
+
+          endpoints.forEach((endpoint) => {
+            const endpointItem = document.createElement("div");
+            endpointItem.className = "swagger-nav-dropdown-item";
+
+            const methodColors = {
+              GET: "#61affe",
+              POST: "#49cc90",
+              PUT: "#fca130",
+              DELETE: "#f93e3e",
+              PATCH: "#50e3c2",
+            };
+
+            const methodColor = methodColors[endpoint.method] || "#666";
+
+            endpointItem.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; color: white; background: ${methodColor}; min-width: 52px; text-align: center;">${
+              endpoint.method
+            }</span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 13px; color: var(--sn-endpoint-search-text); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.escapeHtml(
+                    endpoint.path
+                  )}</div>
+                  ${
+                    endpoint.summary
+                      ? `<div style="font-size: 11px; color: var(--sn-endpoint-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px;">${this.escapeHtml(
+                          endpoint.summary
+                        )}</div>`
+                      : ""
+                  }
+                </div>
+              </div>
+            `;
+            endpointItem.style.cssText = `padding: 10px 12px; cursor: pointer; background: var(--sn-endpoint-dropdown-bg); border-bottom: 1px solid var(--sn-endpoint-item-border); transition: background 0.15s;`;
+
+            endpointItem.addEventListener("mouseenter", () => {
+              endpointItem.style.background = "var(--sn-endpoint-item-hover)";
+            });
+
+            endpointItem.addEventListener("mouseleave", () => {
+              endpointItem.style.background = "var(--sn-endpoint-dropdown-bg)";
+            });
+
+            endpointItem.addEventListener("click", () => {
+              endpoint.element.click();
+              enhancedDropdown.style.display = "none";
+              searchInput.blur();
+            });
+
+            endpointsSection.appendChild(endpointItem);
+            currentResults.push({
+              type: "endpoint",
+              data: endpoint,
+              element: endpointItem,
+            });
+          });
+
+          enhancedDropdown.appendChild(endpointsSection);
+        } else if (enhancedDropdown.children.length === 0) {
+          // No results at all
+          const noResults = document.createElement("div");
+          noResults.textContent = "No matching endpoints found";
+          noResults.style.cssText = `padding: 20px; text-align: center; color: var(--sn-endpoint-text-secondary); font-size: 14px; font-style: italic;`;
+          enhancedDropdown.appendChild(noResults);
+        }
+      }
+
+      // Show dropdown if we have any content
+      if (enhancedDropdown.children.length > 0 || !lowerQuery) {
+        enhancedDropdown.style.display = "block";
+      } else {
+        enhancedDropdown.style.display = "none";
+      }
+    };
+
+    // Keyboard navigation helper
+    const updateSelectedItem = () => {
+      const allItems = enhancedDropdown.querySelectorAll(
+        ".swagger-nav-dropdown-item"
+      );
+      allItems.forEach((item, idx) => {
+        if (idx === selectedIndex) {
+          item.style.background = "#e3f2fd";
+          item.scrollIntoView({ block: "nearest" });
+        } else {
+          item.style.background = "white";
+        }
+      });
+    };
+
+    // Function to update clear button visibility
+    const updateClearButtonVisibility = () => {
+      if (searchClearBtn) {
+        const shouldShow = searchInput.value ? "flex" : "none";
+        searchClearBtn.style.display = shouldShow;
+        console.log(
+          `SwaggerNav: Clear button visibility - input: "${searchInput.value}", display: ${shouldShow}`
+        );
+      } else {
+        console.log(`SwaggerNav: Clear button not found!`);
+      }
+    };
+
+    // Input event for filtering
+    searchInput.addEventListener("input", (e) => {
+      const query = e.target.value;
+
+      // Show/hide clear button
+      updateClearButtonVisibility();
+
+      this.filterEndpoints(query);
+      showEnhancedDropdown(query);
+
+      // Auto-save to history after user stops typing
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+
+      if (query.trim().length > 0) {
+        searchTimeout = setTimeout(() => {
+          this.addToSearchHistory(query);
+          console.log(`SwaggerNav: Auto-saved search "${query}" to history`);
+          // Refresh dropdown to show updated history
+          if (enhancedDropdown.style.display === "block") {
+            showEnhancedDropdown(searchInput.value);
+          }
+        }, 1000);
+      }
+    });
+
+    // Focus event
+    searchInput.addEventListener("focus", () => {
+      updateClearButtonVisibility();
+      showEnhancedDropdown(searchInput.value);
+
+      // Move cursor to end of text
+      const len = searchInput.value.length;
+      searchInput.setSelectionRange(len, len);
+    });
+
+    // Blur event
+    searchInput.addEventListener("blur", () => {
+      setTimeout(() => {
+        enhancedDropdown.style.display = "none";
+      }, 200);
+    });
+
+    // Prevent blur when clicking dropdown
+    enhancedDropdown.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+    });
+
+    // Keyboard navigation
+    searchInput.addEventListener("keydown", (e) => {
+      const allItems = enhancedDropdown.querySelectorAll(
+        ".swagger-nav-dropdown-item"
+      );
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, allItems.length - 1);
+        updateSelectedItem();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        updateSelectedItem();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (selectedIndex >= 0 && allItems[selectedIndex]) {
+          allItems[selectedIndex].click();
+        } else if (e.target.value.trim().length > 0) {
+          // Clear the auto-save timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+          // Immediately save to history
+          this.addToSearchHistory(e.target.value);
+        }
+      } else if (e.key === "Escape") {
+        enhancedDropdown.style.display = "none";
+        searchInput.blur();
+      }
+    });
+
+    // Clear button functionality
+    if (searchClearBtn) {
+      // Prevent blur when clicking clear button
+      searchClearBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault(); // Keep focus on search input
+      });
+
+      searchClearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        updateClearButtonVisibility();
+        this.filterEndpoints("");
+        showEnhancedDropdown(""); // Show history when cleared
+        searchInput.focus();
+      });
+    }
+
+    // Watch for programmatic changes to input value (not just user input)
+    const inputObserver = new MutationObserver(() => {
+      updateClearButtonVisibility();
+    });
+
+    // Observe attribute changes on the input
+    inputObserver.observe(searchInput, {
+      attributes: true,
+      attributeFilter: ["value"],
+    });
+
+    // Also periodically check (fallback for any edge cases)
+    setInterval(() => {
+      updateClearButtonVisibility();
+    }, 500);
+
+    // Initial checks on page load
+    updateClearButtonVisibility(); // Check if clear button should be visible
+
+    // Check for persisted search value and show dropdown if has value
+    if (searchInput.value) {
+      this.filterEndpoints(searchInput.value);
+    }
+
+    console.log(
+      `SwaggerNav: Enhanced search setup complete. Initial value: "${searchInput.value}", Clear btn visible: ${searchClearBtn?.style.display}`
+    );
+    console.log(
+      `SwaggerNav: Search history loaded with ${
+        this.searchHistory?.length || 0
+      } items:`,
+      this.searchHistory
+    );
   }
 
   // Filter endpoints based on search
@@ -2373,16 +2508,44 @@ class SwaggerNavigator {
   // Scroll to specific endpoint with eye-catching animation
   scrollToEndpoint(endpointId) {
     console.log(`SwaggerNav: scrollToEndpoint called with ID: ${endpointId}`);
-    const element = document.getElementById(endpointId);
-    console.log(`SwaggerNav: Element found:`, element);
-    if (element) {
+
+    const attemptScroll = (retryCount = 0) => {
+      const element = document.getElementById(endpointId);
+      console.log(
+        `SwaggerNav: Element found (attempt ${retryCount + 1}):`,
+        element
+      );
+
+      if (!element) {
+        if (retryCount < 3) {
+          console.log(
+            `SwaggerNav: Element not found yet, retrying in 500ms...`
+          );
+          setTimeout(() => attemptScroll(retryCount + 1), 500);
+        } else {
+          console.warn(
+            `SwaggerNav: Could not find element ${endpointId} after 3 attempts`
+          );
+        }
+        return;
+      }
+
       console.log(`SwaggerNav: Navigating to endpoint ${endpointId}`);
 
-      // Scroll to element first (top alignment so user can see content after expansion)
-      element.scrollIntoView({
+      // Get element position for offset scrolling
+      const elementRect = element.getBoundingClientRect();
+      const absoluteElementTop = elementRect.top + window.pageYOffset;
+      const offset = 100; // Scroll 100px above the endpoint for better visibility
+
+      // Scroll with offset for better visibility
+      window.scrollTo({
+        top: absoluteElementTop - offset,
         behavior: "smooth",
-        block: "start",
       });
+
+      console.log(
+        `SwaggerNav: Scrolled to endpoint with ${offset}px offset for visibility`
+      );
 
       // Expand endpoint if setting is enabled
       if (this.settings.autoExpand) {
@@ -2513,7 +2676,10 @@ class SwaggerNavigator {
       setTimeout(() => {
         element.style.transition = originalStyles.transition;
       }, 2100);
-    }
+    }; // End of attemptScroll function
+
+    // Start the scroll attempt
+    attemptScroll();
   }
 
   // Click "Try it out" button after endpoint is expanded
@@ -2622,6 +2788,13 @@ class SwaggerNavigator {
             `SwaggerNav: Initial sync to expanded endpoint: ${expandedOpblock.id}`
           );
           this.syncToSwaggerUI(expandedOpblock.id);
+
+          // Auto-click "Try it out" if setting is enabled (after page reload)
+          if (this.settings.autoTryOut) {
+            setTimeout(() => {
+              this.clickTryItOut(expandedOpblock, expandedOpblock.id);
+            }, 1000); // Wait for sync to complete
+          }
           return;
         }
 
@@ -2637,6 +2810,13 @@ class SwaggerNavigator {
                 `SwaggerNav: Initial sync to hash endpoint: ${opblock.id}`
               );
               this.syncToSwaggerUI(opblock.id);
+
+              // Auto-click "Try it out" if setting is enabled (after page reload)
+              if (this.settings.autoTryOut) {
+                setTimeout(() => {
+                  this.clickTryItOut(opblock, opblock.id);
+                }, 1000); // Wait for sync to complete
+              }
               return;
             }
           }
@@ -2650,6 +2830,13 @@ class SwaggerNavigator {
           `SwaggerNav: Initial sync to expanded endpoint: ${expandedOpblock.id}`
         );
         this.syncToSwaggerUI(expandedOpblock.id);
+
+        // Auto-click "Try it out" if setting is enabled (after page reload)
+        if (this.settings.autoTryOut) {
+          setTimeout(() => {
+            this.clickTryItOut(expandedOpblock, expandedOpblock.id);
+          }, 1000); // Wait for sync to complete
+        }
       }
     }, 300); // Small delay to ensure Swagger UI is fully rendered
   }
@@ -2826,6 +3013,1032 @@ class SwaggerNavigator {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  // ==============================================================================
+  // Parameter Enhancements: Searchable Selects & Form Builder
+  // ==============================================================================
+
+  setupParameterEnhancements() {
+    console.log("SwaggerNav: Setting up parameter enhancements...");
+
+    // Setup mutation observer to watch for "Try it out" mode
+    this.paramEnhancementObserver = new MutationObserver(() => {
+      if (this.paramEnhancementTimeout)
+        clearTimeout(this.paramEnhancementTimeout);
+      this.paramEnhancementTimeout = setTimeout(() => {
+        this.enhanceParameters();
+      }, 1000); // Increased debounce to 1000ms to prevent rapid re-runs and duplicates
+    });
+
+    const swaggerContainer = document.querySelector(".swagger-ui");
+    if (swaggerContainer) {
+      this.paramEnhancementObserver.observe(swaggerContainer, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    }
+
+    // Enhance after a delay to let content load
+    setTimeout(() => {
+      this.enhanceParameters();
+    }, 1000);
+
+    // Fallback check every 5 seconds (reduced frequency)
+    this.paramEnhancementInterval = setInterval(() => {
+      this.enhanceParameters();
+    }, 5000);
+  }
+
+  enhanceParameters() {
+    // Prevent re-entrance (don't process if already processing)
+    if (this.isEnhancing) {
+      console.log(
+        "SwaggerNav: Already enhancing, skipping to prevent duplicates"
+      );
+      return;
+    }
+
+    this.isEnhancing = true;
+    console.log("SwaggerNav: Starting enhancement (locked)");
+
+    // CRITICAL: Disconnect observer while we modify DOM to prevent infinite loop!
+    if (this.paramEnhancementObserver) {
+      this.paramEnhancementObserver.disconnect();
+      console.log("SwaggerNav: Observer DISCONNECTED");
+    }
+
+    try {
+      // Find all open endpoints in "Try it out" mode
+      const opblocks = document.querySelectorAll(
+        ".swagger-ui .opblock.is-open"
+      );
+      console.log(
+        `SwaggerNav: enhanceParameters - found ${opblocks.length} open opblocks`
+      );
+
+      opblocks.forEach((opblock, index) => {
+        // Check if in "Try it out" mode
+        const cancelButton = opblock.querySelector(".try-out__btn.cancel");
+        const isTryItOutActive = !!cancelButton;
+
+        if (!isTryItOutActive) {
+          console.log(
+            `SwaggerNav: Opblock ${index} - not in "Try it out" mode, hiding enhancements`
+          );
+
+          // Hide parameter search boxes
+          const searchWrappers = opblock.querySelectorAll(
+            ".swagger-nav-select-search"
+          );
+          searchWrappers.forEach((wrapper) => {
+            const parent = wrapper.closest("div");
+            if (parent && parent.querySelector(".swagger-nav-select-search")) {
+              parent.style.display = "none";
+            }
+          });
+
+          // Remove form builder and unhide original wrapper
+          const formContainers = opblock.querySelectorAll(
+            ".swagger-nav-body-container"
+          );
+          formContainers.forEach((container) => {
+            console.log(
+              "SwaggerNav: Removing form builder container and restoring wrapper"
+            );
+            // Clean up polling interval
+            if (container._textareaPollInterval) {
+              clearInterval(container._textareaPollInterval);
+            }
+            // Find the hidden wrapper (it's the previous sibling)
+            const hiddenWrapper = container.previousElementSibling;
+            if (hiddenWrapper && hiddenWrapper.style.display === "none") {
+              // Unhide the original wrapper
+              hiddenWrapper.style.display = "";
+              console.log("SwaggerNav: Restored original wrapper visibility");
+            }
+            // Remove our container
+            container.remove();
+          });
+
+          // Reset textarea flags for all textareas in this opblock
+          const textareas = opblock.querySelectorAll(
+            "textarea[data-swagger-nav-form-builder='true']"
+          );
+          textareas.forEach((ta) => {
+            ta.dataset.swaggerNavFormBuilder = "";
+          });
+
+          // Show original elements
+          const hiddenSelects = opblock.querySelectorAll(
+            "select[data-swagger-nav-searchable='true']"
+          );
+          hiddenSelects.forEach((select) => {
+            select.style.display = "";
+          });
+
+          return;
+        }
+
+        console.log(
+          `SwaggerNav: Opblock ${index} - in "Try it out" mode, enhancing...`
+        );
+
+        // Show parameter search boxes (if already created)
+        const searchWrappers = opblock.querySelectorAll(
+          ".swagger-nav-select-search"
+        );
+        searchWrappers.forEach((wrapper) => {
+          const parent = wrapper.closest("div");
+          if (parent && parent.querySelector(".swagger-nav-select-search")) {
+            parent.style.display = "block";
+          }
+        });
+
+        // Show form builder (if already created) and hide original wrapper
+        const formContainers = opblock.querySelectorAll(
+          ".swagger-nav-body-container"
+        );
+        formContainers.forEach((container) => {
+          container.style.display = "grid";
+          // Also hide the original wrapper if it's visible
+          const wrapper = container.previousElementSibling;
+          if (wrapper && wrapper.style.display !== "none") {
+            wrapper.style.display = "none";
+          }
+        });
+
+        // Hide original select elements
+        const searchableSelects = opblock.querySelectorAll(
+          "select[data-swagger-nav-searchable='true']"
+        );
+        searchableSelects.forEach((select) => {
+          select.style.display = "none";
+        });
+
+        // Add searchable selects to parameter dropdowns
+        this.addSearchableSelects(opblock);
+
+        // Add form builder for request body
+        this.addFormBuilder(opblock);
+      });
+    } finally {
+      // Always unlock, even if there's an error
+      this.isEnhancing = false;
+      console.log("SwaggerNav: Enhancement complete (unlocked)");
+
+      // CRITICAL: Reconnect observer after we're done modifying DOM
+      if (this.paramEnhancementObserver) {
+        const swaggerContainer = document.querySelector(".swagger-ui");
+        if (swaggerContainer) {
+          this.paramEnhancementObserver.observe(swaggerContainer, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["class"],
+          });
+          console.log("SwaggerNav: Observer RECONNECTED");
+        }
+      }
+    }
+  }
+
+  // ==============================================================================
+  // Feature 1: Searchable Select Dropdowns
+  // ==============================================================================
+
+  addSearchableSelects(opblock) {
+    const paramRows = opblock.querySelectorAll(".parameters tbody tr");
+    console.log(`SwaggerNav: Found ${paramRows.length} parameter rows`);
+
+    paramRows.forEach((row, index) => {
+      const select = row.querySelector("select");
+      if (!select) {
+        console.log(`SwaggerNav: Row ${index} - no select found`);
+        return;
+      }
+
+      console.log(
+        `SwaggerNav: Row ${index} - found select with ${select.options.length} options`
+      );
+      console.log(
+        `SwaggerNav: Row ${index} - select parent:`,
+        select.parentNode?.tagName,
+        select.parentNode?.className
+      );
+
+      // Skip if already enhanced AND search wrapper still exists
+      if (select.dataset.swaggerNavSearchable) {
+        // Verify the search wrapper actually exists in DOM
+        const existingWrapper = row.querySelector(".swagger-nav-select-search");
+        if (existingWrapper) {
+          console.log(
+            `SwaggerNav: Row ${index} - already enhanced and wrapper exists`
+          );
+          return;
+        } else {
+          // Wrapper was removed (endpoint was collapsed/reopened), reset flag
+          console.log(
+            `SwaggerNav: Row ${index} - was marked as enhanced but wrapper is missing, resetting...`
+          );
+          select.dataset.swaggerNavSearchable = "";
+        }
+      }
+
+      // Mark as enhanced
+      select.dataset.swaggerNavSearchable = "true";
+
+      // Hide the original select (we'll update it in background)
+      select.style.display = "none";
+
+      // Create wrapper for search input to ensure proper layout
+      const searchWrapper = document.createElement("div");
+      searchWrapper.style.cssText =
+        "width: 100% !important; max-width: 100% !important; margin-bottom: 6px; display: block !important; position: relative !important; box-sizing: border-box !important;";
+
+      // Create search input with CSS variables (auto-adapts to theme!)
+      const searchInput = document.createElement("input");
+      searchInput.type = "text";
+      searchInput.className = "swagger-nav-select-search";
+      searchInput.placeholder = "🔍 Search options...";
+      searchInput.style.cssText = `display: block !important; width: 100% !important; max-width: none !important; padding: 8px 36px 8px 12px !important; margin: 0 !important; border: 2px solid var(--sn-param-search-border) !important; border-radius: 4px !important; background: var(--sn-param-search-bg) !important; color: var(--sn-param-search-text) !important; font-size: 14px !important; box-sizing: border-box !important; outline: none !important; font-family: sans-serif !important; min-height: 38px !important; line-height: 1.5 !important; z-index: 1 !important; position: relative !important; flex: 1 !important;`;
+
+      // Create clear button with CSS variables
+      const clearButton = document.createElement("button");
+      clearButton.type = "button";
+      clearButton.className = "swagger-nav-param-clear";
+      clearButton.innerHTML = "×";
+      clearButton.title = "Clear search";
+      clearButton.style.cssText = `display: none; position: absolute !important; right: 10px !important; top: 50% !important; transform: translateY(-50%) !important; width: 24px !important; height: 24px !important; background: none !important; border: none !important; color: var(--sn-param-clear-btn) !important; font-size: 20px !important; line-height: 1 !important; cursor: pointer !important; border-radius: 4px !important; transition: all 0.2s !important; padding: 0 !important; z-index: 10 !important; margin: 0 !important; text-align: center !important; vertical-align: middle !important;`;
+
+      // Create results dropdown with CSS variables
+      const resultsDropdown = document.createElement("div");
+      resultsDropdown.className = "swagger-nav-search-results";
+      resultsDropdown.style.cssText = `display: none !important; position: absolute !important; width: 100% !important; max-height: 250px !important; overflow-y: auto !important; background: var(--sn-param-dropdown-bg) !important; border: 2px solid var(--sn-param-search-border) !important; border-radius: 4px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; z-index: 999 !important; margin-top: 2px !important; left: 0 !important; top: 100% !important; box-sizing: border-box !important;`;
+
+      searchWrapper.appendChild(searchInput);
+      searchWrapper.appendChild(clearButton);
+      searchWrapper.appendChild(resultsDropdown);
+
+      // CSS variables auto-adapt to theme changes - no JavaScript needed! ✨
+
+      // Insert search wrapper before the select
+      try {
+        // Ensure parent has full width
+        if (select.parentNode) {
+          const parent = select.parentNode;
+          parent.style.width = "100%";
+          parent.style.maxWidth = "100%";
+          parent.style.boxSizing = "border-box";
+        }
+
+        select.parentNode.insertBefore(searchWrapper, select);
+        console.log(`SwaggerNav: Row ${index} - search input added`);
+      } catch (error) {
+        console.error(`SwaggerNav: Row ${index} - ERROR:`, error);
+      }
+
+      // Store original options
+      const originalOptions = Array.from(select.options).map((opt) => ({
+        value: opt.value,
+        text: opt.text,
+      }));
+
+      // Store default selected value to restore on blur
+      let defaultSelectedValue = select.value;
+      let defaultSelectedText =
+        select.options[select.selectedIndex]?.text || "";
+
+      // Track selected item for keyboard navigation
+      let selectedIndex = -1;
+
+      // Function to update clear button visibility
+      const updateClearButton = () => {
+        if (searchInput.value.trim()) {
+          clearButton.style.display = "block";
+        } else {
+          clearButton.style.display = "none";
+        }
+      };
+
+      // Initialize search input with current selected value
+      const currentSelectedOption = select.options[select.selectedIndex];
+      if (currentSelectedOption) {
+        searchInput.value = currentSelectedOption.text;
+      }
+
+      // Initialize clear button visibility
+      updateClearButton();
+
+      // Show dropdown when focused (never auto-clear)
+      searchInput.addEventListener("focus", () => {
+        updateClearButton(); // Update clear button visibility
+
+        // Show all options (or filtered if there's text)
+        const query = searchInput.value.toLowerCase().trim();
+        if (!query) {
+          showDropdownResults(originalOptions);
+        } else {
+          const filteredOptions = originalOptions.filter((opt) =>
+            opt.text.toLowerCase().includes(query)
+          );
+          showDropdownResults(filteredOptions);
+        }
+
+        // Move cursor to end of text
+        const len = searchInput.value.length;
+        searchInput.setSelectionRange(len, len);
+      });
+
+      // On blur, just hide dropdown (keep current value)
+      searchInput.addEventListener("blur", () => {
+        setTimeout(() => {
+          // If dropdown is not visible (user didn't select anything)
+          if (
+            resultsDropdown.style.display === "none" ||
+            !searchWrapper.contains(document.activeElement)
+          ) {
+            // Just hide dropdown, don't change the value
+            resultsDropdown.style.setProperty("display", "none", "important");
+          }
+        }, 200);
+      });
+
+      // Hide dropdown when clicking outside (keep current value)
+      document.addEventListener("click", (e) => {
+        if (!searchWrapper.contains(e.target)) {
+          resultsDropdown.style.setProperty("display", "none", "important");
+          // Don't restore default - keep whatever user typed/selected
+        }
+      });
+
+      // Prevent dropdown from closing when clicking inside it
+      resultsDropdown.addEventListener("mousedown", (e) => {
+        e.preventDefault(); // Prevent blur
+      });
+
+      // Function to show dropdown with results
+      function showDropdownResults(options) {
+        resultsDropdown.innerHTML = "";
+        // No need to update colors - CSS variables handle it! ✨
+
+        if (options.length === 0) {
+          const noResult = document.createElement("div");
+          noResult.textContent = "No matches found";
+          noResult.style.cssText = `padding: 10px 12px; color: var(--sn-param-no-result); font-size: 14px; text-align: center; font-style: italic;`;
+          resultsDropdown.appendChild(noResult);
+        } else {
+          options.forEach((opt, idx) => {
+            const resultItem = document.createElement("div");
+            resultItem.textContent = opt.text;
+            const computedStyle = `padding: 10px 12px !important; cursor: pointer !important; font-size: 14px !important; color: var(--sn-param-search-text) !important; background: var(--sn-param-dropdown-bg) !important; border-bottom: 1px solid var(--sn-param-item-border) !important; transition: background 0.15s !important;`;
+            resultItem.style.cssText = computedStyle;
+
+            resultItem.addEventListener("mouseenter", () => {
+              resultItem.style.setProperty(
+                "background",
+                "var(--sn-param-item-hover)",
+                "important"
+              );
+            });
+
+            resultItem.addEventListener("mouseleave", () => {
+              resultItem.style.setProperty(
+                "background",
+                "var(--sn-param-dropdown-bg)",
+                "important"
+              );
+            });
+
+            resultItem.addEventListener("click", () => {
+              select.value = opt.value;
+              searchInput.value = opt.text;
+              resultsDropdown.style.setProperty("display", "none", "important");
+
+              // Update default selected value (this becomes the new default)
+              defaultSelectedValue = opt.value;
+              defaultSelectedText = opt.text;
+
+              updateClearButton(); // Update clear button visibility
+              select.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+
+            resultsDropdown.appendChild(resultItem);
+          });
+        }
+
+        resultsDropdown.style.setProperty("display", "block", "important");
+      }
+
+      // Clear button functionality
+      clearButton.addEventListener("mousedown", (e) => {
+        e.preventDefault(); // Prevent blur
+        e.stopPropagation(); // Prevent event bubbling
+      });
+
+      clearButton.addEventListener("mouseenter", () => {
+        clearButton.style.background = "rgba(97, 175, 254, 0.1)";
+        clearButton.style.color = "#61affe";
+      });
+
+      clearButton.addEventListener("mouseleave", () => {
+        clearButton.style.background = "none";
+        clearButton.style.color = "var(--sn-param-clear-btn)";
+      });
+
+      clearButton.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+
+        // Clear the input
+        searchInput.value = "";
+
+        updateClearButton(); // Update clear button visibility (should hide)
+
+        // Show all options after clearing
+        showDropdownResults(originalOptions);
+
+        searchInput.focus();
+      });
+
+      // Filter options as user types
+      searchInput.addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        selectedIndex = -1; // Reset selection on new input
+        updateClearButton(); // Update clear button visibility
+
+        if (!query) {
+          // Show all options when search is empty
+          showDropdownResults(originalOptions);
+          return;
+        }
+
+        // Filter options
+        const filteredOptions = originalOptions.filter((opt) =>
+          opt.text.toLowerCase().includes(query)
+        );
+
+        showDropdownResults(filteredOptions);
+      });
+
+      // Keyboard navigation
+      searchInput.addEventListener("keydown", (e) => {
+        const items = resultsDropdown.querySelectorAll(
+          "div[style*='cursor: pointer']"
+        );
+
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+          updateSelectedItem(items);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          selectedIndex = Math.max(selectedIndex - 1, -1);
+          updateSelectedItem(items);
+        } else if (
+          e.key === "Enter" &&
+          selectedIndex >= 0 &&
+          items[selectedIndex]
+        ) {
+          e.preventDefault();
+          items[selectedIndex].click();
+        } else if (e.key === "Escape") {
+          resultsDropdown.style.setProperty("display", "none", "important");
+        }
+      });
+
+      function updateSelectedItem(items) {
+        items.forEach((item, idx) => {
+          if (idx === selectedIndex) {
+            item.style.background = "#e3f2fd";
+            item.scrollIntoView({ block: "nearest" });
+          } else {
+            item.style.background = "white";
+          }
+        });
+      }
+
+      // When select changes, update search input
+      select.addEventListener("change", () => {
+        const selectedOption = select.options[select.selectedIndex];
+        if (selectedOption) {
+          searchInput.value = selectedOption.text;
+
+          // Update default selected value
+          defaultSelectedValue = selectedOption.value;
+          defaultSelectedText = selectedOption.text;
+        }
+        updateClearButton(); // Update clear button visibility
+        resultsDropdown.style.setProperty("display", "none", "important");
+      });
+
+      // Poll for select changes (Reset button doesn't trigger change event!)
+      let lastSelectedValue = select.value;
+      const selectPollInterval = setInterval(() => {
+        if (select.value !== lastSelectedValue) {
+          console.log(
+            `SwaggerNav: Row ${index} - Select value changed (polling detected - likely Reset button)`
+          );
+          lastSelectedValue = select.value;
+          const selectedOption = select.options[select.selectedIndex];
+          if (selectedOption) {
+            searchInput.value = selectedOption.text;
+            defaultSelectedValue = selectedOption.value;
+            defaultSelectedText = selectedOption.text;
+            updateClearButton();
+            resultsDropdown.style.setProperty("display", "none", "important");
+          }
+        }
+      }, 200); // Check every 200ms
+
+      // Store interval ID for cleanup if needed
+      select._swaggerNavPollInterval = selectPollInterval;
+    });
+  }
+
+  // ==============================================================================
+  // Feature 2: Form Builder for Request Body
+  // ==============================================================================
+
+  addFormBuilder(opblock) {
+    console.log("SwaggerNav: addFormBuilder called");
+
+    // Find ALL textareas - look for textareas that look like JSON request bodies
+    const allTextareas = opblock.querySelectorAll("textarea");
+    console.log(
+      `SwaggerNav: Found ${allTextareas.length} textareas in opblock`
+    );
+
+    let enhancedCount = 0;
+
+    // Process EACH textarea that looks like a request body
+    for (const textarea of allTextareas) {
+      // Skip clones that we created
+      if (textarea.dataset.swaggerNavClone === "true") {
+        console.log("SwaggerNav: Skipping clone textarea");
+        continue;
+      }
+
+      const content = textarea.value || textarea.textContent || "";
+      // Check if it looks like JSON (starts with { or [)
+      if (!content.trim().startsWith("{") && !content.trim().startsWith("[")) {
+        continue; // Not JSON, skip this textarea
+      }
+
+      // ROBUST DUPLICATE CHECK: Verify if already enhanced
+      if (textarea.dataset.swaggerNavFormBuilder === "true") {
+        // Check if wrapper is hidden AND our container exists near it
+        const textareaWrapper = textarea.parentNode;
+        const hasHiddenWrapper =
+          textareaWrapper && textareaWrapper.style.display === "none";
+
+        // Look for our container - it should be the next sibling after the hidden wrapper
+        let hasContainer = false;
+        if (textareaWrapper && textareaWrapper.nextElementSibling) {
+          hasContainer = textareaWrapper.nextElementSibling.classList.contains(
+            "swagger-nav-body-container"
+          );
+        }
+
+        if (hasHiddenWrapper && hasContainer) {
+          // Truly enhanced - wrapper hidden and container exists
+          console.log(
+            `SwaggerNav: Textarea already enhanced (verified), skipping`
+          );
+          continue;
+        } else {
+          // Flag was set but container doesn't exist - reset
+          console.log(
+            `SwaggerNav: Textarea flag set but container missing (wrapper hidden: ${hasHiddenWrapper}, container: ${hasContainer}), resetting...`
+          );
+          textarea.dataset.swaggerNavFormBuilder = "";
+        }
+      }
+
+      // Generate unique ID for this textarea if it doesn't have one
+      if (!textarea.dataset.swaggerNavTextareaId) {
+        textarea.dataset.swaggerNavTextareaId = `sn-textarea-${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+      }
+
+      console.log(
+        `SwaggerNav: Found JSON textarea ${
+          enhancedCount + 1
+        } to enhance! (ID: ${textarea.dataset.swaggerNavTextareaId})`
+      );
+      console.log(
+        "SwaggerNav: Parent element:",
+        textarea.parentNode?.tagName,
+        textarea.parentNode?.className
+      );
+
+      // Mark textarea as enhanced IMMEDIATELY to prevent duplicates
+      textarea.dataset.swaggerNavFormBuilder = "true";
+
+      // Create form builder for this textarea
+      this.createFormBuilderForTextarea(textarea, opblock);
+      enhancedCount++;
+    }
+
+    if (enhancedCount === 0) {
+      console.log("SwaggerNav: No JSON textareas found to enhance");
+    } else {
+      console.log(`SwaggerNav: Enhanced ${enhancedCount} textarea(s)`);
+    }
+  }
+
+  createFormBuilderForTextarea(textarea, opblock) {
+    const textareaId = textarea.dataset.swaggerNavTextareaId || "unknown";
+    console.log(`SwaggerNav: Creating form builder for textarea ${textareaId}`);
+
+    // Create container for side-by-side layout
+    const container = document.createElement("div");
+    container.className = "swagger-nav-body-container";
+    container.dataset.textareaId = textareaId; // Link container to textarea
+    console.log(`SwaggerNav: Created container for textarea ${textareaId}`);
+
+    // Wrap existing textarea in left panel
+    const leftPanel = document.createElement("div");
+    leftPanel.className = "swagger-nav-body-panel swagger-nav-body-json";
+
+    const jsonHeader = document.createElement("div");
+    jsonHeader.className = "swagger-nav-body-header";
+    jsonHeader.innerHTML = "<strong>📄 JSON</strong>";
+    leftPanel.appendChild(jsonHeader);
+
+    // Get reference to original textarea parent
+    const textareaWrapper = textarea.parentNode;
+    console.log("SwaggerNav: Textarea wrapper:", textareaWrapper);
+
+    // IMPORTANT: Don't move the original textarea! Clone it instead
+    // This preserves Swagger UI's original structure
+    const textareaClone = textarea.cloneNode(true);
+
+    // Mark the clone so we never try to enhance it
+    textareaClone.dataset.swaggerNavClone = "true";
+    textareaClone.classList.add("swagger-nav-textarea-clone");
+    // Ensure clone has the same ID for tracking
+    textareaClone.dataset.swaggerNavTextareaId = textareaId;
+
+    // Sync changes from clone to original
+    textareaClone.addEventListener("input", () => {
+      textarea.value = textareaClone.value;
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    // Sync changes from original to clone (in case Swagger UI updates it, like Reset button)
+    textarea.addEventListener("input", () => {
+      if (textareaClone.value !== textarea.value) {
+        textareaClone.value = textarea.value;
+        // Trigger input event on clone to rebuild form
+        textareaClone.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+
+    // Poll for value changes (Reset button doesn't trigger input event!)
+    let lastTextareaValue = textarea.value;
+    const textareaPollInterval = setInterval(() => {
+      if (textarea.value !== lastTextareaValue) {
+        console.log(
+          "SwaggerNav: Textarea value changed (polling detected - likely Reset button)"
+        );
+        lastTextareaValue = textarea.value;
+        textareaClone.value = textarea.value;
+        // Trigger input event on clone to rebuild form
+        textareaClone.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    }, 200); // Check every 200ms
+
+    // Store interval ID for cleanup if needed
+    container._textareaPollInterval = textareaPollInterval;
+
+    // Add clone to left panel
+    leftPanel.appendChild(textareaClone);
+
+    // Create right panel for form
+    const rightPanel = document.createElement("div");
+    rightPanel.className = "swagger-nav-body-panel swagger-nav-body-form";
+
+    const formHeader = document.createElement("div");
+    formHeader.className = "swagger-nav-body-header";
+    formHeader.innerHTML = "<strong>📝 Form View</strong>";
+    rightPanel.appendChild(formHeader);
+
+    const formContainer = document.createElement("div");
+    formContainer.className = "swagger-nav-form-container";
+    rightPanel.appendChild(formContainer);
+
+    // Add panels to container
+    container.appendChild(leftPanel);
+    container.appendChild(rightPanel);
+    console.log(
+      `SwaggerNav: Panels added to container for textarea ${textareaId}`
+    );
+
+    // Hide the original textarea wrapper (keep it in DOM!)
+    textareaWrapper.style.display = "none";
+
+    // Insert our container after the hidden wrapper
+    textareaWrapper.after(container);
+    console.log(
+      `SwaggerNav: Inserted container for textarea ${textareaId} after wrapper (wrapper now hidden)`
+    );
+
+    // Build form from JSON (use the clone)
+    this.buildFormFromJSON(textareaClone, formContainer);
+
+    // Debug: Count total containers in this opblock
+    const totalContainers = opblock.querySelectorAll(
+      ".swagger-nav-body-container"
+    ).length;
+    console.log(
+      `SwaggerNav: Total containers in this opblock: ${totalContainers}`
+    );
+
+    // Watch for textarea changes, but don't rebuild if form has focus
+    let textareaUpdateTimeout;
+    let isFormFocused = false;
+
+    // Track when form inputs have focus
+    formContainer.addEventListener("focusin", () => {
+      isFormFocused = true;
+      console.log("SwaggerNav: Form has focus, pausing textarea sync");
+    });
+
+    formContainer.addEventListener("focusout", () => {
+      // Small delay to check if focus moved to another form input
+      setTimeout(() => {
+        if (!formContainer.contains(document.activeElement)) {
+          isFormFocused = false;
+          console.log("SwaggerNav: Form lost focus, resuming textarea sync");
+        }
+      }, 50);
+    });
+
+    textareaClone.addEventListener("input", () => {
+      // Don't rebuild form if user is actively typing in it
+      if (isFormFocused) {
+        console.log(
+          "SwaggerNav: Skipping form rebuild - user is typing in form"
+        );
+        return;
+      }
+
+      clearTimeout(textareaUpdateTimeout);
+      textareaUpdateTimeout = setTimeout(() => {
+        this.buildFormFromJSON(textareaClone, formContainer);
+      }, 500);
+    });
+  }
+
+  buildFormFromJSON(textarea, formContainer) {
+    const isClone = textarea.dataset.swaggerNavClone === "true";
+    const textareaId = textarea.dataset.swaggerNavTextareaId || "unknown";
+    console.log(
+      `SwaggerNav: buildFormFromJSON called for ${
+        isClone ? "clone of " : ""
+      }textarea ${textareaId}`
+    );
+
+    try {
+      const jsonValue = textarea.value.trim();
+      if (!jsonValue) {
+        formContainer.innerHTML =
+          '<p class="swagger-nav-form-empty">Enter JSON to see form fields</p>';
+        return;
+      }
+
+      const data = JSON.parse(jsonValue);
+      formContainer.innerHTML = "";
+
+      // Build form fields
+      this.buildFormFields(data, formContainer, "", textarea);
+      console.log(
+        `SwaggerNav: Form built successfully for textarea ${textareaId}`
+      );
+    } catch (error) {
+      formContainer.innerHTML =
+        '<p class="swagger-nav-form-error">Invalid JSON</p>';
+      console.log(
+        `SwaggerNav: Form build error for textarea ${textareaId}:`,
+        error
+      );
+    }
+  }
+
+  buildFormFields(data, container, path, textarea) {
+    if (typeof data !== "object" || data === null) return;
+
+    if (Array.isArray(data)) {
+      // Handle empty arrays
+      if (data.length === 0) {
+        const emptyMsg = document.createElement("p");
+        emptyMsg.className = "swagger-nav-form-empty";
+        emptyMsg.textContent = "Empty array";
+        container.appendChild(emptyMsg);
+        return;
+      }
+
+      // Handle arrays
+      data.forEach((item, index) => {
+        const itemPath = path ? `${path}[${index}]` : `[${index}]`;
+
+        // Check if array item is a primitive or object
+        if (typeof item === "object" && item !== null) {
+          // Object/Array in array - create fieldset
+          const fieldset = document.createElement("div");
+          fieldset.className = "swagger-nav-form-fieldset";
+
+          const legend = document.createElement("div");
+          legend.className = "swagger-nav-form-legend";
+          legend.textContent = `Item ${index + 1}`;
+          fieldset.appendChild(legend);
+
+          this.buildFormFields(item, fieldset, itemPath, textarea);
+          container.appendChild(fieldset);
+        } else {
+          // Primitive in array - create direct input field
+          const field = document.createElement("div");
+          field.className = "swagger-nav-form-field";
+
+          const label = document.createElement("label");
+          label.className = "swagger-nav-form-label";
+          label.textContent = `Item ${index + 1}`;
+
+          let input;
+          if (typeof item === "boolean") {
+            input = document.createElement("input");
+            input.type = "checkbox";
+            input.checked = item;
+            input.className = "swagger-nav-form-checkbox";
+          } else if (typeof item === "number") {
+            input = document.createElement("input");
+            input.type = "number";
+            input.value = item;
+            input.className = "swagger-nav-form-input";
+          } else {
+            input = document.createElement("input");
+            input.type = "text";
+            input.value = item === null ? "" : String(item);
+            input.className = "swagger-nav-form-input";
+            if (item === null) {
+              input.placeholder = "null";
+              input.style.fontStyle = "italic";
+              input.style.opacity = "0.7";
+            }
+          }
+
+          // Update JSON when input changes
+          input.addEventListener("input", () => {
+            this.updateJSONFromForm(textarea, itemPath, input);
+          });
+
+          field.appendChild(label);
+          field.appendChild(input);
+          container.appendChild(field);
+        }
+      });
+    } else {
+      // Handle objects
+      const keys = Object.keys(data);
+
+      // Handle empty objects
+      if (keys.length === 0) {
+        const emptyMsg = document.createElement("p");
+        emptyMsg.className = "swagger-nav-form-empty";
+        emptyMsg.textContent = "Empty object";
+        container.appendChild(emptyMsg);
+        return;
+      }
+
+      keys.forEach((key) => {
+        const value = data[key];
+        const fieldPath = path ? `${path}.${key}` : key;
+
+        if (value !== null && typeof value === "object") {
+          // Nested object or array
+          const fieldset = document.createElement("div");
+          fieldset.className = "swagger-nav-form-fieldset";
+
+          const legend = document.createElement("div");
+          legend.className = "swagger-nav-form-legend";
+
+          // Show array indicator and add special class
+          if (Array.isArray(value)) {
+            fieldset.classList.add("swagger-nav-form-array");
+            legend.innerHTML = `📋 ${key} <span style="font-size: 10px; opacity: 0.7;">(Array with ${
+              value.length
+            } item${value.length !== 1 ? "s" : ""})</span>`;
+          } else {
+            legend.textContent = key;
+          }
+          fieldset.appendChild(legend);
+
+          this.buildFormFields(value, fieldset, fieldPath, textarea);
+          container.appendChild(fieldset);
+        } else {
+          // Primitive value - create input
+          const field = document.createElement("div");
+          field.className = "swagger-nav-form-field";
+
+          const label = document.createElement("label");
+          label.className = "swagger-nav-form-label";
+          label.textContent = key;
+
+          let input;
+          if (typeof value === "boolean") {
+            input = document.createElement("input");
+            input.type = "checkbox";
+            input.checked = value;
+            input.className = "swagger-nav-form-checkbox";
+          } else if (typeof value === "number") {
+            input = document.createElement("input");
+            input.type = "number";
+            input.value = value;
+            input.className = "swagger-nav-form-input";
+          } else {
+            input = document.createElement("input");
+            input.type = "text";
+            input.value = value === null ? "" : String(value);
+            input.className = "swagger-nav-form-input";
+            if (value === null) {
+              input.placeholder = "null";
+              input.style.fontStyle = "italic";
+              input.style.opacity = "0.7";
+            }
+          }
+
+          // Update JSON when input changes
+          input.addEventListener("input", (e) => {
+            this.updateJSONFromForm(textarea, fieldPath, input);
+          });
+
+          field.appendChild(label);
+          field.appendChild(input);
+          container.appendChild(field);
+        }
+      });
+    }
+  }
+
+  updateJSONFromForm(textarea, path, input) {
+    try {
+      const data = JSON.parse(textarea.value);
+
+      // Get value from input
+      let value;
+      if (input.type === "checkbox") {
+        value = input.checked;
+      } else if (input.type === "number") {
+        // Handle empty number inputs
+        if (input.value === "" || input.value === null) {
+          value = null;
+        } else {
+          const parsed = parseFloat(input.value);
+          value = isNaN(parsed) ? 0 : parsed;
+        }
+      } else {
+        // Handle text inputs - check for special values
+        if (input.value === "" && input.placeholder === "null") {
+          // Empty input that was originally null -> keep as null
+          value = null;
+        } else if (input.value.toLowerCase() === "null") {
+          // User typed "null" -> convert to actual null
+          value = null;
+        } else {
+          value = input.value;
+        }
+      }
+
+      // Update nested value
+      this.setNestedValue(data, path, value);
+
+      // Update textarea
+      textarea.value = JSON.stringify(data, null, 2);
+      textarea.dispatchEvent(new Event("change", { bubbles: true }));
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    } catch (error) {
+      console.error("SwaggerNav: Failed to update JSON from form", error);
+    }
+  }
+
+  setNestedValue(obj, path, value) {
+    const parts = path.split(/\.|\[|\]/).filter(Boolean);
+    let current = obj;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (!current[part]) {
+        // Determine if next part is array index or object key
+        const nextPart = parts[i + 1];
+        current[part] = /^\d+$/.test(nextPart) ? [] : {};
+      }
+      current = current[part];
+    }
+
+    current[parts[parts.length - 1]] = value;
   }
 }
 
