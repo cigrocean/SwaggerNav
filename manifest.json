@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SwaggerNav - Swagger UI Navigator",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Adds a navigation sidebar to Swagger UI pages for quick access to API endpoints and sections",
   "author": "Ocean Litmers (https://github.com/cigrocean)",
   "homepage_url": "https://github.com/cigrocean/SwaggerNav",

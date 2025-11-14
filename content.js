@@ -2,7 +2,7 @@
 // Detects Swagger UI and adds navigation sidebar
 
 // VERSION - Update this for new releases
-const SWAGGERNAV_VERSION = "1.0.4";
+const SWAGGERNAV_VERSION = "1.0.6";
 
 class SwaggerNavigator {
   constructor() {
