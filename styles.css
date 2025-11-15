@@ -1341,6 +1341,69 @@ body {
   line-height: 1.4;
 }
 
+.swagger-nav-setting-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sn-border), transparent);
+  margin: 16px 0;
+}
+
+.swagger-nav-options-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--sn-bg-tertiary);
+  border: 2px solid var(--sn-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-align: left;
+}
+
+.swagger-nav-options-link:hover {
+  background: var(--sn-bg-hover);
+  border-color: var(--sn-accent);
+  transform: translateX(2px);
+}
+
+.swagger-nav-options-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.swagger-nav-options-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.swagger-nav-options-text strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sn-text-primary);
+}
+
+.swagger-nav-options-text small {
+  font-size: 12px;
+  color: var(--sn-text-secondary);
+  line-height: 1.4;
+}
+
+.swagger-nav-options-arrow {
+  font-size: 16px;
+  color: var(--sn-accent);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.swagger-nav-options-link:hover .swagger-nav-options-arrow {
+  transform: translateX(4px);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1704,6 +1767,12 @@ body {
   color: #4a90e2;
 }
 
+@media (prefers-color-scheme: dark) {
+  .swagger-nav-body-header strong {
+    color: #90caf9;
+  }
+}
+
 .swagger-nav-body-json {
   border-color: #4a90e2;
 }
@@ -1716,6 +1785,10 @@ body {
 @media (prefers-color-scheme: dark) {
   .swagger-nav-body-json .swagger-nav-body-header {
     background: linear-gradient(135deg, #1a2d42 0%, #253548 100%);
+    color: #90caf9;
+  }
+  
+  .swagger-nav-body-json .swagger-nav-body-header strong {
     color: #90caf9;
   }
 }
@@ -1735,6 +1808,22 @@ body {
 
 .swagger-nav-body-form {
   border-color: #66bb6a;
+}
+
+.swagger-nav-body-form .swagger-nav-body-header {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  color: #2e7d32;
+}
+
+@media (prefers-color-scheme: dark) {
+  .swagger-nav-body-form .swagger-nav-body-header {
+    background: linear-gradient(135deg, #1b3a1f 0%, #2d5a33 100%);
+    color: #81c784;
+  }
+  
+  .swagger-nav-body-form .swagger-nav-body-header strong {
+    color: #81c784;
+  }
 }
 
 .swagger-nav-form-container {
@@ -1875,12 +1964,27 @@ body {
   }
 }
 
-/* Responsive: Stack panels on small screens */
-@media (max-width: 1400px) {
+/* Responsive: Stack panels on smaller screens */
+@media (max-width: 1600px) {
   .swagger-nav-body-container {
     flex-direction: column;
   }
   
+  .swagger-nav-body-panel {
+    width: 100%;
+  }
+  
+  .swagger-nav-body-json textarea {
+    height: 300px !important;
+  }
+  
+  .swagger-nav-form-container {
+    max-height: 400px;
+  }
+}
+
+/* Even smaller screens */
+@media (max-width: 1200px) {
   .swagger-nav-body-json textarea {
     height: 250px !important;
   }
@@ -1888,6 +1992,565 @@ body {
   .swagger-nav-form-container {
     max-height: 300px;
   }
+}
+
+/* =====================================================================
+   THEME CLASS OVERRIDES
+   When autoTheme is OFF, force light mode regardless of system preference
+   ===================================================================== */
+
+/* Force Light Mode when .swagger-nav-light class is present */
+.swagger-nav-sidebar.swagger-nav-light {
+  --sn-bg-primary: #f7f7f7 !important;
+  --sn-bg-secondary: #ffffff !important;
+  --sn-bg-tertiary: #ffffff !important;
+  --sn-bg-hover: #f9f9f9 !important;
+  --sn-bg-active: #f0f0f0 !important;
+  --sn-text-primary: #333333 !important;
+  --sn-text-secondary: #666666 !important;
+  --sn-text-title: #333333 !important;
+  --sn-border: #e1e1e1 !important;
+  --sn-border-light: #ddd !important;
+  --sn-shadow: rgba(0, 0, 0, 0.1) !important;
+  --sn-input-bg: #ffffff !important;
+  --sn-input-border: #ddd !important;
+  --sn-input-focus-bg: #ffffff !important;
+  --sn-scrollbar-track: #f7f7f7 !important;
+  --sn-scrollbar-thumb: #ccc !important;
+  --sn-scrollbar-thumb-hover: #999 !important;
+  --sn-accent: #61affe !important;
+  
+  /* Form Builder - Light Mode */
+  --sn-form-bg: #fafafa !important;
+  --sn-form-border: #e1e1e1 !important;
+  --sn-form-field-bg: #ffffff !important;
+  --sn-form-field-border: #e0e0e0 !important;
+  --sn-form-field-hover: #66bb6a !important;
+  --sn-form-header-bg: linear-gradient(135deg, #f7f9fc 0%, #eef2f7 100%) !important;
+  --sn-form-header-text: #333 !important;
+  --sn-form-legend-bg: #f1f8f4 !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #fafcff !important;
+  --sn-form-array-border: #90caf9 !important;
+  --sn-form-array-legend-bg: #e3f2fd !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.1) !important;
+  
+  /* Parameter Search Box - Light Mode */
+  --sn-param-search-bg: #fff !important;
+  --sn-param-search-text: #3b4151 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: white !important;
+  --sn-param-clear-btn: #999 !important;
+  --sn-param-item-border: #f0f0f0 !important;
+  --sn-param-item-hover: #f0f7ff !important;
+  --sn-param-no-result: #999 !important;
+  
+  /* Endpoint Search - Light Mode */
+  --sn-endpoint-search-bg: white !important;
+  --sn-endpoint-search-text: #3b4151 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: white !important;
+  --sn-endpoint-item-border: #f7f7f7 !important;
+  --sn-endpoint-item-hover: #f0f7ff !important;
+  --sn-endpoint-header-bg: #f7f7f7 !important;
+  --sn-endpoint-text-secondary: #999 !important;
+}
+
+/* Force Dark Mode when .swagger-nav-dark class is present */
+.swagger-nav-sidebar.swagger-nav-dark {
+  --sn-bg-primary: #1f1f1f !important;
+  --sn-bg-secondary: #2d2d2d !important;
+  --sn-bg-tertiary: #252525 !important;
+  --sn-bg-hover: #363636 !important;
+  --sn-bg-active: #3a3a3a !important;
+  --sn-text-primary: #e0e0e0 !important;
+  --sn-text-secondary: #999 !important;
+  --sn-text-title: #ffffff !important;
+  --sn-border: #404040 !important;
+  --sn-border-light: #555 !important;
+  --sn-shadow: rgba(0, 0, 0, 0.3) !important;
+  --sn-input-bg: #2d2d2d !important;
+  --sn-input-border: #404040 !important;
+  --sn-input-focus-bg: #333 !important;
+  --sn-scrollbar-track: #1f1f1f !important;
+  --sn-scrollbar-thumb: #555 !important;
+  --sn-scrollbar-thumb-hover: #666 !important;
+  --sn-accent: #61affe !important;
+  
+  /* Form Builder - Dark Mode */
+  --sn-form-bg: #252525 !important;
+  --sn-form-border: #404040 !important;
+  --sn-form-field-bg: #2d2d2d !important;
+  --sn-form-field-border: #505050 !important;
+  --sn-form-field-hover: #555 !important;
+  --sn-form-header-bg: linear-gradient(135deg, #2d2d2d 0%, #252525 100%) !important;
+  --sn-form-header-text: #e0e0e0 !important;
+  --sn-form-legend-bg: #2d2d2d !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #1a2332 !important;
+  --sn-form-array-border: #4a90e2 !important;
+  --sn-form-array-legend-bg: #253548 !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.5) !important;
+  
+  /* Parameter Search Box - Dark Mode */
+  --sn-param-search-bg: #1b1b1b !important;
+  --sn-param-search-text: #e0e0e0 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: #2a2a2a !important;
+  --sn-param-clear-btn: #aaa !important;
+  --sn-param-item-border: #3a3a3a !important;
+  --sn-param-item-hover: #3a3a3a !important;
+  --sn-param-no-result: #888 !important;
+  
+  /* Endpoint Search - Dark Mode */
+  --sn-endpoint-search-bg: #2a2a2a !important;
+  --sn-endpoint-search-text: #e0e0e0 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: #2a2a2a !important;
+  --sn-endpoint-item-border: #3a3a3a !important;
+  --sn-endpoint-item-hover: #3a3a3a !important;
+  --sn-endpoint-header-bg: #252525 !important;
+  --sn-endpoint-text-secondary: #999 !important;
+}
+
+/* =====================================================================
+   FILE UPLOAD DARK MODE SUPPORT
+   Style Swagger UI's native file inputs for dark mode
+   ===================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  /* File input styling */
+  .swagger-ui input[type="file"] {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #404040 !important;
+    border-radius: 4px !important;
+    padding: 8px !important;
+  }
+
+  /* File input button (webkit/blink) */
+  .swagger-ui input[type="file"]::-webkit-file-upload-button {
+    background-color: #61affe !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 6px 12px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    margin-right: 10px !important;
+  }
+
+  .swagger-ui input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #4990e2 !important;
+  }
+
+  /* File input button (Firefox) */
+  .swagger-ui input[type="file"]::file-selector-button {
+    background-color: #61affe !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 6px 12px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    margin-right: 10px !important;
+  }
+
+  .swagger-ui input[type="file"]::file-selector-button:hover {
+    background-color: #4990e2 !important;
+  }
+
+  /* File input focus state */
+  .swagger-ui input[type="file"]:focus {
+    outline: 2px solid #61affe !important;
+    outline-offset: 2px !important;
+  }
+
+  /* File input in parameters section */
+  .swagger-ui .opblock-body input[type="file"] {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+  }
+
+  /* File input wrapper/container */
+  .swagger-ui .file-input,
+  .swagger-ui .file-input-wrapper {
+    background-color: transparent !important;
+  }
+}
+
+/* Force dark mode file inputs when .swagger-nav-dark class is on body */
+body.swagger-nav-dark-theme .swagger-ui input[type="file"],
+.swagger-nav-dark-theme input[type="file"] {
+  background-color: #2d2d2d !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #404040 !important;
+  border-radius: 4px !important;
+  padding: 8px !important;
+}
+
+body.swagger-nav-dark-theme .swagger-ui input[type="file"]::-webkit-file-upload-button,
+.swagger-nav-dark-theme input[type="file"]::-webkit-file-upload-button {
+  background-color: #61affe !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  margin-right: 10px !important;
+}
+
+body.swagger-nav-dark-theme .swagger-ui input[type="file"]::-webkit-file-upload-button:hover,
+.swagger-nav-dark-theme input[type="file"]::-webkit-file-upload-button:hover {
+  background-color: #4990e2 !important;
+}
+
+body.swagger-nav-dark-theme .swagger-ui input[type="file"]::file-selector-button,
+.swagger-nav-dark-theme input[type="file"]::file-selector-button {
+  background-color: #61affe !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  margin-right: 10px !important;
+}
+
+body.swagger-nav-dark-theme .swagger-ui input[type="file"]::file-selector-button:hover,
+.swagger-nav-dark-theme input[type="file"]::file-selector-button:hover {
+  background-color: #4990e2 !important;
+}
+
+/* =====================================================================
+   FORCE LIGHT MODE (when autoTheme is OFF)
+   Overrides OS dark mode preference to force light theme
+   ===================================================================== */
+
+body.swagger-nav-force-light {
+  /* Force Swagger UI to use light mode */
+  background-color: #fafafa !important;
+  color: #3b4151 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui {
+  /* Reset to light mode colors */
+  filter: none !important;
+}
+
+/* Override Swagger UI dark mode styles */
+body.swagger-nav-force-light .swagger-ui .opblock {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(59, 65, 81, 0.3) !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .opblock .opblock-summary {
+  background: transparent !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .opblock-description-wrapper,
+body.swagger-nav-force-light .swagger-ui .opblock-body {
+  background-color: #ffffff !important;
+  color: #3b4151 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui input,
+body.swagger-nav-force-light .swagger-ui textarea,
+body.swagger-nav-force-light .swagger-ui select {
+  background-color: #ffffff !important;
+  color: #3b4151 !important;
+  border-color: #d9d9d9 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .btn {
+  background-color: #4990e2 !important;
+  color: #ffffff !important;
+  border-color: #4990e2 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui table thead tr th,
+body.swagger-nav-force-light .swagger-ui table thead tr td {
+  background-color: #f7f7f7 !important;
+  color: #3b4151 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .response-col_status {
+  color: #3b4151 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .response-col_description {
+  color: #3b4151 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .model-box,
+body.swagger-nav-force-light .swagger-ui .model {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #3b4151 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .prop-type {
+  color: #55a !important;
+}
+
+body.swagger-nav-force-light .swagger-ui .parameter__name,
+body.swagger-nav-force-light .swagger-ui .parameter__type {
+  color: #3b4151 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui section.models {
+  background-color: #ffffff !important;
+}
+
+/* Force light mode for file uploads */
+body.swagger-nav-force-light .swagger-ui input[type="file"] {
+  background-color: #ffffff !important;
+  color: #3b4151 !important;
+  border: 1px solid #d9d9d9 !important;
+}
+
+body.swagger-nav-force-light .swagger-ui input[type="file"]::-webkit-file-upload-button {
+  background-color: #4990e2 !important;
+  color: #ffffff !important;
+}
+
+body.swagger-nav-force-light .swagger-ui input[type="file"]::file-selector-button {
+  background-color: #4990e2 !important;
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   FORCE DARK MODE (when theme is set to "dark")
+   Applies dark theme even if OS is in light mode
+   ===================================================================== */
+
+body.swagger-nav-force-dark {
+  /* Force Swagger UI to use dark mode */
+  background-color: #1f1f1f !important;
+  color: #e0e0e0 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui {
+  filter: none !important;
+}
+
+/* Dark mode overrides for Swagger UI */
+body.swagger-nav-force-dark .swagger-ui .opblock {
+  background: rgba(50, 50, 50, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .opblock .opblock-summary {
+  background: transparent !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .opblock-description-wrapper,
+body.swagger-nav-force-dark .swagger-ui .opblock-body {
+  background-color: #2d2d2d !important;
+  color: #e0e0e0 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui input,
+body.swagger-nav-force-dark .swagger-ui textarea,
+body.swagger-nav-force-dark .swagger-ui select {
+  background-color: #2d2d2d !important;
+  color: #e0e0e0 !important;
+  border-color: #404040 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .btn {
+  background-color: #61affe !important;
+  color: #ffffff !important;
+  border-color: #61affe !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui table thead tr th,
+body.swagger-nav-force-dark .swagger-ui table thead tr td {
+  background-color: #252525 !important;
+  color: #e0e0e0 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .response-col_status {
+  color: #e0e0e0 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .response-col_description {
+  color: #e0e0e0 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .model-box,
+body.swagger-nav-force-dark .swagger-ui .model {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #e0e0e0 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .prop-type {
+  color: #90caf9 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui .parameter__name,
+body.swagger-nav-force-dark .swagger-ui .parameter__type {
+  color: #e0e0e0 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui section.models {
+  background-color: #2d2d2d !important;
+}
+
+/* Force dark mode for file uploads */
+body.swagger-nav-force-dark .swagger-ui input[type="file"] {
+  background-color: #2d2d2d !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #404040 !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui input[type="file"]::-webkit-file-upload-button {
+  background-color: #61affe !important;
+  color: #ffffff !important;
+}
+
+body.swagger-nav-force-dark .swagger-ui input[type="file"]::file-selector-button {
+  background-color: #61affe !important;
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   CUSTOM BACKGROUNDS FOR SWAGGER UI PAGE
+   Background images replace the default backgrounds
+   Elements have semi-transparent backgrounds to float on top
+   ===================================================================== */
+
+/* When custom background is active, make Swagger UI backgrounds transparent/semi-transparent */
+body.swagger-nav-bg-ocean .swagger-ui,
+body.swagger-nav-bg-tet .swagger-ui,
+body.swagger-nav-bg-christmas .swagger-ui,
+body.swagger-nav-bg-bugs .swagger-ui,
+body.swagger-nav-bg-custom .swagger-ui {
+  background-color: transparent !important;
+}
+
+/* Main containers should be transparent */
+body.swagger-nav-bg-ocean .swagger-ui .wrapper,
+body.swagger-nav-bg-tet .swagger-ui .wrapper,
+body.swagger-nav-bg-christmas .swagger-ui .wrapper,
+body.swagger-nav-bg-bugs .swagger-ui .wrapper,
+body.swagger-nav-bg-custom .swagger-ui .wrapper,
+body.swagger-nav-bg-ocean .swagger-ui > div,
+body.swagger-nav-bg-tet .swagger-ui > div,
+body.swagger-nav-bg-christmas .swagger-ui > div,
+body.swagger-nav-bg-bugs .swagger-ui > div,
+body.swagger-nav-bg-custom .swagger-ui > div {
+  background-color: transparent !important;
+}
+
+/* Info section - VERY translucent (50% opacity) */
+body.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .info,
+body.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .info,
+body.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .info,
+body.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .info,
+body.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .info {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .info,
+body.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .info,
+body.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .info,
+body.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .info,
+body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .info {
+  background-color: rgba(36, 36, 36, 0.5) !important;
+}
+
+/* Operation blocks - VERY translucent (50% opacity) */
+body.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock,
+body.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock,
+body.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock,
+body.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock,
+body.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock,
+body.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock,
+body.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock,
+body.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock,
+body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock {
+  background-color: rgba(42, 42, 42, 0.5) !important;
+}
+
+/* Operation block summaries */
+body.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock .opblock-summary {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock .opblock-summary {
+  background-color: rgba(42, 42, 42, 0.5) !important;
+}
+
+/* Operation block bodies */
+body.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-body,
+body.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock .opblock-body,
+body.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-body,
+body.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-body,
+body.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock .opblock-body {
+  background-color: rgba(250, 250, 250, 0.5) !important;
+}
+
+body.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-body,
+body.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock .opblock-body,
+body.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-body,
+body.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-body,
+body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock .opblock-body {
+  background-color: rgba(36, 36, 36, 0.5) !important;
+}
+
+/* Operation block section headers */
+body.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock .opblock-section-header {
+  background-color: rgba(245, 245, 245, 0.5) !important;
+}
+
+body.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock .opblock-section-header {
+  background-color: rgba(34, 34, 34, 0.5) !important;
+}
+
+/* Tables - VERY translucent (50% opacity) */
+body.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui table tbody tr td,
+body.swagger-nav-light.swagger-nav-bg-tet .swagger-ui table tbody tr td,
+body.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui table tbody tr td,
+body.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui table tbody tr td,
+body.swagger-nav-light.swagger-nav-bg-custom .swagger-ui table tbody tr td {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui table tbody tr td,
+body.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui table tbody tr td,
+body.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui table tbody tr td,
+body.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui table tbody tr td,
+body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui table tbody tr td {
+  background-color: rgba(36, 36, 36, 0.5) !important;
+}
+
+/* Ensure Swagger UI content stays above the background */
+.swagger-ui {
+  position: relative;
+  z-index: 1;
 }
 
 

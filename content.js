@@ -1,8 +1,7 @@
 // SwaggerNav - Content Script
 // Detects Swagger UI and adds navigation sidebar
 
-// VERSION - Update this for new releases
-const SWAGGERNAV_VERSION = "1.0.6";
+// VERSION is loaded from version.js
 
 class SwaggerNavigator {
   constructor() {
@@ -17,6 +16,7 @@ class SwaggerNavigator {
     this.settings = this.loadSettings();
     this.currentEndpointId = null; // Track currently selected endpoint
     this.activeMethodFilters = new Set(); // Track active method filters
+    this.setupStorageListener(); // Listen for settings changes from options page
   }
 
   // Load pinned endpoints from localStorage
@@ -140,35 +140,68 @@ class SwaggerNavigator {
     );
   }
 
-  // Load settings from localStorage
+  // Load settings from chrome.storage (async, but we'll use defaults initially)
   loadSettings() {
+    // Return defaults immediately (will be updated async)
+    const defaults = {
+      autoExpand: true,
+      autoTryOut: true,
+      theme: "auto", // "light", "dark", or "auto"
+      background: "default", // "default", "ocean", "tet", "christmas", "too_many_bugs"
+      enableFormView: true,
+      enableParamSearch: true,
+    };
+
+    // Load from chrome.storage asynchronously
+    chrome.storage.sync.get(defaults, (result) => {
+      this.settings = result;
+      console.log(
+        "SwaggerNav: Settings loaded from chrome.storage",
+        this.settings
+      );
+
+      // Re-apply theme and background now that settings are loaded
+      this.applyNavBarTheme();
+
+      // Refresh UI if navbar already exists
+      if (this.navBar) {
+        this.updateSettingsUI();
+      }
+    });
+
+    return defaults;
+  }
+
+  // Save settings to chrome.storage
+  saveSettings() {
     try {
-      const stored = localStorage.getItem("swagger-nav-settings");
-      const defaults = {
-        autoExpand: true,
-        autoTryOut: true,
-        autoTheme: true, // Auto-sync theme with OS
-      };
-      return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
+      chrome.storage.sync.set(this.settings, () => {
+        console.log(
+          "SwaggerNav: Settings saved to chrome.storage",
+          this.settings
+        );
+      });
     } catch (error) {
-      console.error("SwaggerNav: Error loading settings", error);
-      return {
-        autoExpand: true,
-        autoTryOut: true,
-        autoTheme: true,
-      };
+      console.error("SwaggerNav: Error saving settings", error);
     }
   }
 
-  // Save settings to localStorage
-  saveSettings() {
-    try {
-      localStorage.setItem(
-        "swagger-nav-settings",
-        JSON.stringify(this.settings)
-      );
-    } catch (error) {
-      console.error("SwaggerNav: Error saving settings", error);
+  // Update settings UI when settings change
+  updateSettingsUI() {
+    if (!this.navBar) return;
+
+    const autoExpandCheckbox = this.navBar.querySelector(
+      "#setting-auto-expand"
+    );
+    const autoTryOutCheckbox = this.navBar.querySelector(
+      "#setting-auto-try-out"
+    );
+
+    if (autoExpandCheckbox) {
+      autoExpandCheckbox.checked = this.settings.autoExpand;
+    }
+    if (autoTryOutCheckbox) {
+      autoTryOutCheckbox.checked = this.settings.autoTryOut;
     }
   }
 
@@ -317,11 +350,309 @@ class SwaggerNavigator {
         console.log(`SwaggerNav: Theme changed to ${this.theme} mode`);
         this.updateThemeIndicator();
 
-        // Apply theme to Swagger UI if auto-theme is enabled
-        if (this.settings.autoTheme) {
-          this.applySwaggerTheme();
+        // Apply theme to Swagger UI and sidebar
+        this.applySwaggerTheme();
+        this.applyNavBarTheme();
+      });
+    }
+  }
+
+  // Listen for settings changes from options page
+  setupStorageListener() {
+    if (chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === "sync") {
+          console.log("SwaggerNav: Settings changed", changes);
+
+          // Update local settings
+          for (const [key, { newValue }] of Object.entries(changes)) {
+            this.settings[key] = newValue;
+          }
+
+          // React to theme changes
+          if (changes.theme) {
+            console.log(
+              `SwaggerNav: Theme changed to ${changes.theme.newValue}`
+            );
+            // Apply new theme
+            this.applySwaggerTheme();
+            this.applyNavBarTheme();
+          }
+
+          // React to background changes
+          if (changes.background) {
+            console.log(
+              `SwaggerNav: Background changed to ${changes.background.newValue}`
+            );
+            // Apply new background
+            this.applyNavBarBackground();
+          }
+
+          // Update settings UI
+          this.updateSettingsUI();
         }
       });
+    }
+  }
+
+  // Apply theme to SwaggerNav sidebar
+  applyNavBarTheme() {
+    if (!this.navBar) return;
+
+    const themeMode = this.settings.theme || "auto";
+
+    // Remove all theme classes first
+    this.navBar.classList.remove("swagger-nav-dark", "swagger-nav-light");
+    document.body.classList.remove(
+      "swagger-nav-force-light",
+      "swagger-nav-force-dark",
+      "swagger-nav-light",
+      "swagger-nav-dark"
+    );
+
+    if (themeMode === "light") {
+      // Force light mode
+      this.navBar.classList.add("swagger-nav-light");
+      document.body.classList.add("swagger-nav-force-light");
+      document.body.classList.add("swagger-nav-light");
+    } else if (themeMode === "dark") {
+      // Force dark mode
+      this.navBar.classList.add("swagger-nav-dark");
+      document.body.classList.add("swagger-nav-force-dark");
+      document.body.classList.add("swagger-nav-dark");
+    } else {
+      // Auto mode - follow OS theme
+      if (this.theme === "dark") {
+        this.navBar.classList.add("swagger-nav-dark");
+        document.body.classList.add("swagger-nav-dark");
+      } else {
+        this.navBar.classList.add("swagger-nav-light");
+        document.body.classList.add("swagger-nav-light");
+      }
+    }
+
+    // Apply background after theme
+    this.applyNavBarBackground();
+  }
+
+  // Apply background to Swagger UI page (body element)
+  async applyNavBarBackground() {
+    if (!this.navBar) return;
+
+    const backgroundTheme = this.settings.background || "default";
+
+    // Remove all background classes from BODY (Swagger UI page)
+    document.body.classList.remove(
+      "swagger-nav-bg-ocean",
+      "swagger-nav-bg-tet",
+      "swagger-nav-bg-christmas",
+      "swagger-nav-bg-bugs",
+      "swagger-nav-bg-custom"
+    );
+
+    // Remove inline background styles
+    document.body.style.backgroundImage = "";
+    document.body.style.backgroundSize = "";
+    document.body.style.backgroundPosition = "";
+    document.body.style.backgroundRepeat = "";
+    document.body.style.backgroundAttachment = "";
+
+    // Always remove existing blur/tint style first
+    const existingBlurStyle = document.getElementById("swagger-nav-bg-blur");
+    if (existingBlurStyle) {
+      existingBlurStyle.remove();
+      console.log("SwaggerNav: Removed existing background blur/tint style");
+    }
+
+    // Handle custom background
+    if (backgroundTheme === "custom") {
+      await this.applyCustomBackground();
+      return;
+    }
+
+    // Apply background class to BODY if not default
+    if (backgroundTheme !== "default") {
+      const bgClassMap = {
+        ocean: "swagger-nav-bg-ocean",
+        tet: "swagger-nav-bg-tet",
+        christmas: "swagger-nav-bg-christmas",
+        too_many_bugs: "swagger-nav-bg-bugs",
+      };
+
+      const bgImageMap = {
+        ocean: "ocean",
+        tet: "tet",
+        christmas: "christmas",
+        too_many_bugs: "too_many_bugs",
+      };
+
+      const bgClass = bgClassMap[backgroundTheme];
+      const bgImageName = bgImageMap[backgroundTheme];
+
+      if (bgClass && bgImageName) {
+        // Apply background class to body
+        document.body.classList.add(bgClass);
+
+        // Determine which theme version to use (light or dark)
+        const themeMode = this.settings.theme || "auto";
+        let isDark = false;
+        if (themeMode === "dark") {
+          isDark = true;
+        } else if (themeMode === "light") {
+          isDark = false;
+        } else {
+          // Auto mode - follow OS
+          isDark = this.theme === "dark";
+        }
+
+        const themeVariant = isDark ? "dark" : "light";
+        const imageUrl = chrome.runtime.getURL(
+          `backgrounds/${bgImageName}_${themeVariant}.png`
+        );
+
+        // Create new style for blurred background with tinted overlay
+        const blurStyle = document.createElement("style");
+        blurStyle.id = "swagger-nav-bg-blur";
+
+        // Use the SAME isDark logic for tint color (don't check OS preference separately!)
+        const tintColor = isDark
+          ? "rgba(0, 0, 0, 0.5)"
+          : "rgba(255, 255, 255, 0.5)";
+
+        blurStyle.textContent = `
+          body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('${imageUrl}');
+            background-size: contain;
+            background-position: top center;
+            background-repeat: repeat;
+            background-attachment: fixed;
+            filter: blur(8px);
+            z-index: -10;
+          }
+          
+          body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: ${tintColor};
+            z-index: -9;
+            pointer-events: none;
+          }
+        `;
+        document.head.appendChild(blurStyle);
+
+        console.log(
+          `SwaggerNav: Applied background ${bgClass} (${themeVariant}) to Swagger UI page with tint`
+        );
+      }
+    } else {
+      console.log(
+        "SwaggerNav: Using default background (no custom background or tint)"
+      );
+    }
+
+    // Re-apply Swagger theme to update CSS based on whether custom background is active
+    // This ensures solid backgrounds are used when no custom background is set
+    this.applySwaggerTheme();
+  }
+
+  // Apply custom uploaded background
+  async applyCustomBackground() {
+    try {
+      // Load custom background from chrome.storage.local
+      const result = await chrome.storage.local.get(["customBackground"]);
+
+      if (!result.customBackground) {
+        console.log(
+          "SwaggerNav: No custom background found, falling back to default"
+        );
+        // Fall back to default if no custom background exists
+        this.settings.background = "default";
+        await chrome.storage.sync.set({ background: "default" });
+        return;
+      }
+
+      // Apply custom background class
+      document.body.classList.add("swagger-nav-bg-custom");
+
+      // Determine theme
+      const themeMode = this.settings.theme || "auto";
+      let isDark = false;
+      if (themeMode === "dark") {
+        isDark = true;
+      } else if (themeMode === "light") {
+        isDark = false;
+      } else {
+        // Auto mode - follow OS
+        isDark = this.theme === "dark";
+      }
+
+      // Create style for custom background with blur and tint
+      const blurStyle = document.createElement("style");
+      blurStyle.id = "swagger-nav-bg-blur";
+
+      const tintColor = isDark
+        ? "rgba(0, 0, 0, 0.5)"
+        : "rgba(255, 255, 255, 0.5)";
+
+      blurStyle.textContent = `
+        body::before {
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-image: url('${result.customBackground}');
+          background-size: contain;
+          background-position: top center;
+          background-repeat: repeat;
+          background-attachment: fixed;
+          filter: blur(8px);
+          z-index: -10;
+        }
+        
+        body::after {
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: ${tintColor};
+          z-index: -9;
+          pointer-events: none;
+        }
+      `;
+      document.head.appendChild(blurStyle);
+
+      console.log("SwaggerNav: Applied custom background with tint");
+
+      // Re-apply Swagger theme
+      this.applySwaggerTheme();
+    } catch (error) {
+      console.error("SwaggerNav: Error applying custom background", error);
+      // Fall back to default on error
+      this.settings.background = "default";
+      await chrome.storage.sync.set({ background: "default" });
+    }
+  }
+
+  // Remove Swagger UI theme override
+  removeSwaggerTheme() {
+    const existingStyle = document.getElementById("swagger-nav-theme-style");
+    if (existingStyle) {
+      existingStyle.remove();
+      console.log("SwaggerNav: Removed Swagger UI theme override");
     }
   }
 
@@ -354,12 +685,33 @@ class SwaggerNavigator {
       existingStyle.remove();
     }
 
-    // Only apply if auto-theme is enabled
-    if (!this.settings.autoTheme) {
-      return;
+    const themeMode = this.settings.theme || "auto";
+
+    // Determine if we should apply dark theme
+    let isDark = false;
+    if (themeMode === "dark") {
+      isDark = true;
+    } else if (themeMode === "light") {
+      isDark = false;
+    } else {
+      // Auto mode - follow OS
+      isDark = this.theme === "dark";
     }
 
-    const isDark = this.theme === "dark";
+    // Check if custom background is active
+    const hasCustomBackground =
+      this.settings.background && this.settings.background !== "default";
+
+    console.log(
+      `SwaggerNav: Applying Swagger UI theme (${
+        isDark ? "dark" : "light"
+      }) with hasCustomBackground: ${hasCustomBackground}`
+    );
+
+    // For light mode, only inject CSS if there's a custom background (to make it transparent)
+    if (!isDark && !hasCustomBackground) {
+      return;
+    }
 
     // Create style element for theme
     const style = document.createElement("style");
@@ -367,9 +719,25 @@ class SwaggerNavigator {
 
     if (isDark) {
       // Proper dark theme with color overrides
-      style.textContent = `
-        /* SwaggerNav Auto-Theme: Dark Mode */
+      // If custom background is active, use transparent backgrounds
+      const bgOverride = hasCustomBackground
+        ? `
+        /* Page-wide overrides - transparent for custom backgrounds */
+        html,
+        body {
+          background-color: transparent !important;
+        }
         
+        /* Main backgrounds - transparent for custom backgrounds */
+        .swagger-ui,
+        .swagger-ui .wrapper,
+        .swagger-ui > div,
+        .swagger-ui .wrapper > div {
+          background-color: transparent !important;
+          color: #e0e0e0 !important;
+        }
+      `
+        : `
         /* Page-wide overrides */
         html,
         body {
@@ -384,6 +752,12 @@ class SwaggerNavigator {
           background-color: #1a1a1a !important;
           color: #e0e0e0 !important;
         }
+      `;
+
+      style.textContent = `
+        /* SwaggerNav Auto-Theme: Dark Mode */
+        
+        ${bgOverride}
         
         /* Remove all white borders */
         .swagger-ui *,
@@ -393,20 +767,24 @@ class SwaggerNavigator {
         }
         
         /* Topbar / Header */
-        .swagger-ui .topbar,
-        .swagger-ui .topbar-wrapper,
-        .swagger-ui .topbar a,
-        .swagger-ui .information-container .info__extdocs,
-        .swagger-ui .information-container section {
-          background-color: #242424 !important;
-          color: #e0e0e0 !important;
-        }
-        
-        .swagger-ui .information-container,
-        .swagger-ui .scheme-container {
-          background-color: #242424 !important;
-          border-color: #3a3a3a !important;
-        }
+          .swagger-ui .topbar,
+          .swagger-ui .topbar-wrapper,
+          .swagger-ui .topbar a,
+          .swagger-ui .information-container .info__extdocs,
+          .swagger-ui .information-container section {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.99)" : "#242424"
+            } !important;
+            color: #e0e0e0 !important;
+          }
+          
+          .swagger-ui .information-container,
+          .swagger-ui .scheme-container {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.99)" : "#242424"
+            } !important;
+            border-color: #3a3a3a !important;
+          }
         
         /* All divs and sections */
         .swagger-ui div,
@@ -421,10 +799,12 @@ class SwaggerNavigator {
           background-color: #1a1a1a !important;
         }
         
-        /* Info section */
-        .swagger-ui .info {
-          background-color: #242424 !important;
-        }
+          /* Info section */
+          .swagger-ui .info {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.5)" : "#242424"
+            } !important;
+          }
         
         .swagger-ui .info .title,
         .swagger-ui .info h1,
@@ -441,25 +821,33 @@ class SwaggerNavigator {
           color: #d0d0d0 !important;
         }
         
-        /* Operation blocks */
-        .swagger-ui .opblock {
-          background-color: #2a2a2a !important;
-          border-color: #3a3a3a !important;
-        }
-        
-        .swagger-ui .opblock .opblock-summary {
-          border-color: #3a3a3a !important;
-          background-color: #2a2a2a !important;
-        }
-        
-        .swagger-ui .opblock .opblock-body {
-          background-color: #242424 !important;
-        }
-        
-        .swagger-ui .opblock .opblock-section-header {
-          background-color: #222222 !important;
-          border-color: #3a3a3a !important;
-        }
+          /* Operation blocks */
+          .swagger-ui .opblock {
+            background-color: ${
+              hasCustomBackground ? "rgba(42, 42, 42, 0.5)" : "#2a2a2a"
+            } !important;
+            border-color: #3a3a3a !important;
+          }
+          
+          .swagger-ui .opblock .opblock-summary {
+            border-color: #3a3a3a !important;
+            background-color: ${
+              hasCustomBackground ? "rgba(42, 42, 42, 0.5)" : "#2a2a2a"
+            } !important;
+          }
+          
+          .swagger-ui .opblock .opblock-body {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.5)" : "#242424"
+            } !important;
+          }
+          
+          .swagger-ui .opblock .opblock-section-header {
+            background-color: ${
+              hasCustomBackground ? "rgba(34, 34, 34, 0.5)" : "#222222"
+            } !important;
+            border-color: #3a3a3a !important;
+          }
         
         .swagger-ui .opblock-tag-section {
           background-color: transparent !important;
@@ -483,19 +871,23 @@ class SwaggerNavigator {
           color: #e0e0e0 !important;
         }
         
-        /* Tables */
-        .swagger-ui table thead tr td,
-        .swagger-ui table thead tr th {
-          background-color: #2a2a2a !important;
-          color: #e0e0e0 !important;
-          border-color: #3a3a3a !important;
-        }
-        
-        .swagger-ui table tbody tr td {
-          background-color: #242424 !important;
-          color: #c0c0c0 !important;
-          border-color: #3a3a3a !important;
-        }
+          /* Tables */
+          .swagger-ui table thead tr td,
+          .swagger-ui table thead tr th {
+            background-color: ${
+              hasCustomBackground ? "rgba(42, 42, 42, 0.5)" : "#2a2a2a"
+            } !important;
+            color: #e0e0e0 !important;
+            border-color: #3a3a3a !important;
+          }
+          
+          .swagger-ui table tbody tr td {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.5)" : "#242424"
+            } !important;
+            color: #c0c0c0 !important;
+            border-color: #3a3a3a !important;
+          }
         
         .swagger-ui .parameter__name,
         .swagger-ui .parameter__type {
@@ -507,17 +899,19 @@ class SwaggerNavigator {
         }
         
         /* Inputs and textareas */
-        .swagger-ui input[type="text"],
-        .swagger-ui input[type="email"],
-        .swagger-ui input[type="password"],
-        .swagger-ui input[type="search"],
-        .swagger-ui input[type="number"],
-        .swagger-ui textarea,
-        .swagger-ui select {
-          background-color: #2a2a2a !important;
-          color: #e0e0e0 !important;
-          border-color: #3a3a3a !important;
-        }
+          .swagger-ui input[type="text"],
+          .swagger-ui input[type="email"],
+          .swagger-ui input[type="password"],
+          .swagger-ui input[type="search"],
+          .swagger-ui input[type="number"],
+          .swagger-ui textarea,
+          .swagger-ui select {
+            background-color: ${
+              hasCustomBackground ? "rgba(42, 42, 42, 0.98)" : "#2a2a2a"
+            } !important;
+            color: #e0e0e0 !important;
+            border-color: #3a3a3a !important;
+          }
         
         .swagger-ui input[type="text"]:focus,
         .swagger-ui input[type="email"]:focus,
@@ -530,24 +924,30 @@ class SwaggerNavigator {
           background-color: #2f2f2f !important;
         }
         
-        /* Code blocks */
-        .swagger-ui pre,
-        .swagger-ui code {
-          background-color: #1e1e1e !important;
-          color: #d4d4d4 !important;
-          border-color: #3a3a3a !important;
-        }
-        
-        .swagger-ui .highlight-code pre,
-        .swagger-ui .highlight-code code {
-          background-color: #1e1e1e !important;
-        }
-        
-        /* Syntax highlighting */
-        .swagger-ui .highlight-code .hljs {
-          background-color: #1e1e1e !important;
-          color: #d4d4d4 !important;
-        }
+          /* Code blocks */
+          .swagger-ui pre,
+          .swagger-ui code {
+            background-color: ${
+              hasCustomBackground ? "rgba(30, 30, 30, 0.98)" : "#1e1e1e"
+            } !important;
+            color: #d4d4d4 !important;
+            border-color: #3a3a3a !important;
+          }
+          
+          .swagger-ui .highlight-code pre,
+          .swagger-ui .highlight-code code {
+            background-color: ${
+              hasCustomBackground ? "rgba(30, 30, 30, 0.98)" : "#1e1e1e"
+            } !important;
+          }
+          
+          /* Syntax highlighting */
+          .swagger-ui .highlight-code .hljs {
+            background-color: ${
+              hasCustomBackground ? "rgba(30, 30, 30, 0.98)" : "#1e1e1e"
+            } !important;
+            color: #d4d4d4 !important;
+          }
         
         .swagger-ui .highlight-code .hljs-string,
         .swagger-ui .highlight-code .hljs-number,
@@ -564,10 +964,12 @@ class SwaggerNavigator {
           color: #569cd6 !important;
         }
         
-        /* Response section */
-        .swagger-ui .responses-wrapper {
-          background-color: #242424 !important;
-        }
+          /* Response section */
+          .swagger-ui .responses-wrapper {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.98)" : "#242424"
+            } !important;
+          }
         
         .swagger-ui .response,
         .swagger-ui .response-col_status {
@@ -578,12 +980,14 @@ class SwaggerNavigator {
           color: #b0b0b0 !important;
         }
         
-        /* Model section */
-        .swagger-ui .model-box,
-        .swagger-ui .model {
-          background-color: #242424 !important;
-          border-color: #3a3a3a !important;
-        }
+          /* Model section */
+          .swagger-ui .model-box,
+          .swagger-ui .model {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.98)" : "#242424"
+            } !important;
+            border-color: #3a3a3a !important;
+          }
         
         .swagger-ui .model-title,
         .swagger-ui .model .property {
@@ -600,7 +1004,9 @@ class SwaggerNavigator {
         .swagger-ui .models-control,
         .swagger-ui section.models,
         .swagger-ui section.models .model-container {
-          background-color: #1a1a1a !important;
+          background-color: ${
+            hasCustomBackground ? "transparent" : "#1a1a1a"
+          } !important;
         }
         
         /* Download and version info */
@@ -630,16 +1036,20 @@ class SwaggerNavigator {
           color: #d0d0d0 !important;
         }
         
-        /* Buttons */
-        .swagger-ui .btn {
-          background-color: #3a3a3a !important;
-          color: #e0e0e0 !important;
-          border-color: #4a4a4a !important;
-        }
-        
-        .swagger-ui .btn:hover {
-          background-color: #4a4a4a !important;
-        }
+          /* Buttons */
+          .swagger-ui .btn {
+            background-color: ${
+              hasCustomBackground ? "rgba(58, 58, 58, 0.98)" : "#3a3a3a"
+            } !important;
+            color: #e0e0e0 !important;
+            border-color: #4a4a4a !important;
+          }
+          
+          .swagger-ui .btn:hover {
+            background-color: ${
+              hasCustomBackground ? "rgba(74, 74, 74, 0.99)" : "#4a4a4a"
+            } !important;
+          }
         
         .swagger-ui .btn.execute {
           background-color: #4a9eff !important;
@@ -651,33 +1061,41 @@ class SwaggerNavigator {
           background-color: #357abd !important;
         }
         
-        /* Authorization */
-        .swagger-ui .auth-wrapper,
-        .swagger-ui .auth-container {
-          background-color: #242424 !important;
-          border-color: #3a3a3a !important;
-        }
+          /* Authorization */
+          .swagger-ui .auth-wrapper,
+          .swagger-ui .auth-container {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.98)" : "#242424"
+            } !important;
+            border-color: #3a3a3a !important;
+          }
         
         .swagger-ui .auth-wrapper .authorize,
         .swagger-ui .auth-container .authorize {
           color: #e0e0e0 !important;
         }
         
-        /* Modals */
-        .swagger-ui .modal-ux {
-          background-color: rgba(0, 0, 0, 0.8) !important;
-        }
-        
-        .swagger-ui .modal-ux-content {
-          background-color: #2a2a2a !important;
-          border-color: #3a3a3a !important;
-        }
-        
-        .swagger-ui .modal-ux-header {
-          background-color: #242424 !important;
-          border-color: #3a3a3a !important;
-          color: #e0e0e0 !important;
-        }
+          /* Modals */
+          .swagger-ui .modal-ux {
+            background-color: ${
+              hasCustomBackground ? "rgba(0, 0, 0, 0.85)" : "rgba(0, 0, 0, 0.8)"
+            } !important;
+          }
+          
+          .swagger-ui .modal-ux-content {
+            background-color: ${
+              hasCustomBackground ? "rgba(42, 42, 42, 0.99)" : "#2a2a2a"
+            } !important;
+            border-color: #3a3a3a !important;
+          }
+          
+          .swagger-ui .modal-ux-header {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.99)" : "#242424"
+            } !important;
+            border-color: #3a3a3a !important;
+            color: #e0e0e0 !important;
+          }
         
         /* Markdown rendered content */
         .swagger-ui .renderedMarkdown p,
@@ -689,10 +1107,12 @@ class SwaggerNavigator {
           color: #c0c0c0 !important;
         }
         
-        .swagger-ui .renderedMarkdown code {
-          background-color: #1e1e1e !important;
-          color: #d4d4d4 !important;
-        }
+          .swagger-ui .renderedMarkdown code {
+            background-color: ${
+              hasCustomBackground ? "rgba(30, 30, 30, 0.98)" : "#1e1e1e"
+            } !important;
+            color: #d4d4d4 !important;
+          }
         
         /* Links */
         .swagger-ui a,
@@ -712,43 +1132,55 @@ class SwaggerNavigator {
           color: #e0e0e0 !important;
         }
         
-        /* Copy button */
-        .swagger-ui .copy-to-clipboard {
-          background-color: #3a3a3a !important;
-          color: #e0e0e0 !important;
-        }
-        
-        .swagger-ui .copy-to-clipboard:hover {
-          background-color: #4a4a4a !important;
-        }
+          /* Copy button */
+          .swagger-ui .copy-to-clipboard {
+            background-color: ${
+              hasCustomBackground ? "rgba(58, 58, 58, 0.98)" : "#3a3a3a"
+            } !important;
+            color: #e0e0e0 !important;
+          }
+          
+          .swagger-ui .copy-to-clipboard:hover {
+            background-color: ${
+              hasCustomBackground ? "rgba(74, 74, 74, 0.99)" : "#4a4a4a"
+            } !important;
+          }
         
         /* Servers dropdown */
         .swagger-ui .servers > label {
           color: #e0e0e0 !important;
         }
         
-        .swagger-ui .servers select {
-          background-color: #2a2a2a !important;
-          color: #e0e0e0 !important;
-          border-color: #3a3a3a !important;
-        }
+          .swagger-ui .servers select {
+            background-color: ${
+              hasCustomBackground ? "rgba(42, 42, 42, 0.98)" : "#2a2a2a"
+            } !important;
+            color: #e0e0e0 !important;
+            border-color: #3a3a3a !important;
+          }
         
-        /* Try it out section */
-        .swagger-ui .try-out__btn {
-          background-color: #3a3a3a !important;
-          color: #e0e0e0 !important;
-          border-color: #4a4a4a !important;
-        }
+          /* Try it out section */
+          .swagger-ui .try-out__btn {
+            background-color: ${
+              hasCustomBackground ? "rgba(58, 58, 58, 0.98)" : "#3a3a3a"
+            } !important;
+            color: #e0e0e0 !important;
+            border-color: #4a4a4a !important;
+          }
+          
+          .swagger-ui .try-out__btn:hover {
+            background-color: ${
+              hasCustomBackground ? "rgba(74, 74, 74, 0.99)" : "#4a4a4a"
+            } !important;
+          }
         
-        .swagger-ui .try-out__btn:hover {
-          background-color: #4a4a4a !important;
-        }
-        
-        /* Global responses and loading */
-        .swagger-ui .global-responses,
-        .swagger-ui .loading-container {
-          background-color: #242424 !important;
-        }
+          /* Global responses and loading */
+          .swagger-ui .global-responses,
+          .swagger-ui .loading-container {
+            background-color: ${
+              hasCustomBackground ? "rgba(36, 36, 36, 0.98)" : "#242424"
+            } !important;
+          }
         
         /* Catch-all for any remaining white backgrounds */
         .swagger-ui .swagger-ui > *,
@@ -758,11 +1190,32 @@ class SwaggerNavigator {
         }
       `;
     } else {
-      // Light theme (reset to default)
-      style.textContent = `
-        /* SwaggerNav Auto-Theme: Light Mode */
-        /* No overrides needed - use Swagger UI defaults */
-      `;
+      // Light theme - make transparent if custom background is active
+      if (hasCustomBackground) {
+        style.textContent = `
+          /* SwaggerNav: Light Mode with Custom Background */
+          
+          /* Page-wide overrides - transparent for custom backgrounds */
+          html,
+          body {
+            background-color: transparent !important;
+          }
+          
+          /* Main backgrounds - transparent for custom backgrounds */
+          .swagger-ui,
+          .swagger-ui .wrapper,
+          .swagger-ui > div,
+          .swagger-ui .wrapper > div {
+            background-color: transparent !important;
+          }
+        `;
+      } else {
+        // No custom background - use Swagger UI defaults
+        style.textContent = `
+          /* SwaggerNav Auto-Theme: Light Mode */
+          /* No overrides needed - use Swagger UI defaults */
+        `;
+      }
     }
 
     document.head.appendChild(style);
@@ -810,19 +1263,15 @@ class SwaggerNavigator {
         this.isSwaggerUI = this.detectSwaggerUI();
         if (this.isSwaggerUI) {
           // Apply theme immediately when detected
-          if (this.settings.autoTheme) {
-            this.applySwaggerTheme();
-          }
+          this.applySwaggerTheme();
           this.setup();
         }
       }, 2000);
       return;
     }
 
-    // Apply theme immediately for instant dark mode
-    if (this.settings.autoTheme) {
-      this.applySwaggerTheme();
-    }
+    // Apply theme immediately
+    this.applySwaggerTheme();
 
     this.setup();
   }
@@ -840,10 +1289,8 @@ class SwaggerNavigator {
       this.setupObserver();
       this.setupSwaggerUISync();
 
-      // Apply theme if auto-theme is enabled
-      if (this.settings.autoTheme) {
-        this.applySwaggerTheme();
-      }
+      // Apply theme
+      this.applySwaggerTheme();
 
       // Check for already expanded endpoints on page load
       // Longer delay to let Swagger UI process URL hash and expand endpoint
@@ -1555,16 +2002,16 @@ class SwaggerNavigator {
               </span>
             </label>
           </div>
-          <div class="swagger-nav-setting-item">
-            <label class="swagger-nav-setting-label">
-              <input type="checkbox" class="swagger-nav-setting-checkbox" id="setting-auto-theme" ${
-                this.settings.autoTheme ? "checked" : ""
-              }>
-              <span class="swagger-nav-setting-text">
-                <strong>Auto-sync Swagger UI theme</strong>
-                <small>Automatically sync Swagger UI theme with your OS dark/light mode</small>
+          <div class="swagger-nav-setting-divider"></div>
+          <div class="swagger-nav-setting-item swagger-nav-setting-link">
+            <button type="button" class="swagger-nav-options-link" id="open-options-page">
+              <span class="swagger-nav-options-icon">⚙️</span>
+              <span class="swagger-nav-options-text">
+                <strong>More Settings</strong>
+                <small>Configure Form View, JSON View, and Parameter Search</small>
               </span>
-            </label>
+              <span class="swagger-nav-options-arrow">→</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1590,6 +2037,9 @@ class SwaggerNavigator {
 
     // Add to page
     document.body.appendChild(this.navBar);
+
+    // Apply theme to navbar based on autoTheme setting
+    this.applyNavBarTheme();
 
     // Setup event listeners
     this.setupEventListeners();
@@ -1724,22 +2174,36 @@ class SwaggerNavigator {
       });
     }
 
-    const autoThemeCheckbox = this.navBar.querySelector("#setting-auto-theme");
-    if (autoThemeCheckbox) {
-      autoThemeCheckbox.addEventListener("change", (e) => {
-        this.settings.autoTheme = e.target.checked;
-        this.saveSettings();
+    // Options page link
+    const optionsPageBtn = this.navBar.querySelector("#open-options-page");
+    if (optionsPageBtn) {
+      optionsPageBtn.addEventListener("click", () => {
         console.log(
-          "SwaggerNav: Auto-theme setting changed to",
-          e.target.checked
+          "SwaggerNav: Requesting service worker to open options page"
         );
 
-        // Apply or remove theme immediately
-        if (e.target.checked) {
-          this.applySwaggerTheme();
-        } else {
-          this.removeSwaggerTheme();
-        }
+        // Send message to service worker to open options page
+        // This avoids ERR_BLOCKED_BY_CLIENT since content scripts have limited API access
+        chrome.runtime.sendMessage(
+          { action: "openOptionsPage" },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                "SwaggerNav: Error sending message to service worker",
+                chrome.runtime.lastError
+              );
+              // Fallback: try opening directly as a last resort
+              window.open(chrome.runtime.getURL("options.html"), "_blank");
+            } else if (response && response.success) {
+              console.log("SwaggerNav: Options page opened successfully");
+            } else {
+              console.error(
+                "SwaggerNav: Service worker failed to open options page",
+                response?.error
+              );
+            }
+          }
+        );
       });
     }
 
@@ -3195,11 +3659,15 @@ class SwaggerNavigator {
           select.style.display = "none";
         });
 
-        // Add searchable selects to parameter dropdowns
-        this.addSearchableSelects(opblock);
+        // Add searchable selects to parameter dropdowns (if enabled in settings)
+        if (this.settings.enableParamSearch) {
+          this.addSearchableSelects(opblock);
+        }
 
-        // Add form builder for request body
-        this.addFormBuilder(opblock);
+        // Add form builder for request body (if enabled in settings)
+        if (this.settings.enableFormView) {
+          this.addFormBuilder(opblock);
+        }
       });
     } finally {
       // Always unlock, even if there's an error
@@ -3748,6 +4216,7 @@ class SwaggerNavigator {
     rightPanel.appendChild(formContainer);
 
     // Add panels to container
+    // Always show both JSON and Form View together
     container.appendChild(leftPanel);
     container.appendChild(rightPanel);
     console.log(
@@ -4135,3 +4604,15 @@ const swaggerNav = new SwaggerNavigator();
 
 // Theme will be applied after Swagger UI detection in init()
 swaggerNav.init();
+
+// Listen for messages from options page
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "RELOAD_BACKGROUND") {
+    console.log(
+      "SwaggerNav: Received RELOAD_BACKGROUND message, reloading background..."
+    );
+    swaggerNav.applyNavBarBackground();
+    sendResponse({ success: true });
+  }
+  return true; // Keep the message channel open for async response
+});

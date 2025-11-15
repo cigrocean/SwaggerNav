@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SwaggerNav Settings</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+        padding: 40px 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 32px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .header p {
+        opacity: 0.9;
+        font-size: 14px;
+      }
+
+      .icon {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+
+      .content {
+        padding: 32px;
+      }
+
+      .section {
+        margin-bottom: 32px;
+      }
+
+      .section:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-title::before {
+        content: "";
+        width: 4px;
+        height: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+      }
+
+      .option {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+      }
+
+      .option:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+      }
+
+      .option-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .option-label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .option-emoji {
+        font-size: 20px;
+      }
+
+      .option-description {
+        font-size: 13px;
+        color: #6c757d;
+        line-height: 1.5;
+        margin-top: 4px;
+      }
+
+      /* Toggle Switch */
+      .toggle {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+      }
+
+      .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 28px;
+      }
+
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      input:checked + .toggle-slider {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+      }
+
+      /* Status message */
+      .status-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s;
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      .status-message.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+        margin: 24px 0;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 24px;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        color: #6c757d;
+        font-size: 13px;
+      }
+
+      .footer a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      /* Note box */
+      .note {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-top: 16px;
+        font-size: 13px;
+        color: #856404;
+        line-height: 1.5;
+      }
+
+      .note strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #664d03;
+      }
+
+      /* Theme Selector */
+      .theme-selector {
+        display: flex;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .theme-option {
+        flex: 1;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .theme-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .theme-option-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 12px;
+        background: #ffffff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.2s;
+      }
+
+      .theme-option:hover .theme-option-content {
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+      }
+
+      .theme-option input[type="radio"]:checked + .theme-option-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        border-width: 4px;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5),
+          0 0 0 2px rgba(102, 126, 234, 0.2);
+      }
+
+      .theme-icon {
+        font-size: 32px;
+        filter: grayscale(0.3);
+        transition: filter 0.2s;
+      }
+
+      .theme-option
+        input[type="radio"]:checked
+        + .theme-option-content
+        .theme-icon {
+        filter: grayscale(0);
+      }
+
+      .theme-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1a1a;
+        transition: color 0.2s;
+      }
+
+      .theme-option
+        input[type="radio"]:checked
+        + .theme-option-content
+        .theme-label {
+        color: #ffffff;
+      }
+
+      /* Background Selector */
+      .background-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .background-option {
+        cursor: pointer;
+        position: relative;
+      }
+
+      .background-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .background-option-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 8px;
+        background: #ffffff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.2s;
+      }
+
+      .background-option:hover .background-option-content {
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+      }
+
+      .background-option
+        input[type="radio"]:checked
+        + .background-option-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        border-width: 4px;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5),
+          0 0 0 2px rgba(102, 126, 234, 0.2);
+      }
+
+      .background-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        transition: all 0.2s;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .background-preview-default {
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+      }
+
+      /* Preview uses light version by default, shows dark version in dark mode */
+      .background-preview-ocean {
+        background-image: url("../backgrounds/ocean_light.png");
+      }
+
+      .background-preview-tet {
+        background-image: url("../backgrounds/tet_light.png");
+      }
+
+      .background-preview-christmas {
+        background-image: url("../backgrounds/christmas_light.png");
+      }
+
+      .background-preview-bugs {
+        background-image: url("../backgrounds/too_many_bugs_light.png");
+      }
+
+      .background-preview-custom {
+        background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .background-preview-custom.has-image {
+        background-size: cover;
+        background-position: center;
+      }
+
+      .background-preview-custom.has-image span {
+        display: none;
+      }
+
+      .background-option
+        input[type="radio"]:checked
+        + .background-option-content
+        .background-preview {
+        border-color: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .background-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1a1a1a;
+        transition: color 0.2s;
+        text-align: center;
+      }
+
+      .background-option
+        input[type="radio"]:checked
+        + .background-option-content
+        .background-label {
+        color: #ffffff;
+      }
+
+      /* =====================================================================
+       DARK MODE SUPPORT
+       ===================================================================== */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .container {
+          background: #1f1f1f;
+          color: #e0e0e0;
+        }
+
+        .header {
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .icon {
+          background: #2d2d2d;
+        }
+
+        .section-title {
+          color: #e0e0e0;
+        }
+
+        .section-title::before {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .option {
+          background: #2d2d2d;
+          border-color: #404040;
+        }
+
+        .option:hover {
+          border-color: #667eea;
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .option-label {
+          color: #e0e0e0;
+        }
+
+        .option-description {
+          color: #999;
+        }
+
+        .toggle-slider {
+          background-color: #404040;
+        }
+
+        .divider {
+          background: linear-gradient(90deg, transparent, #404040, transparent);
+        }
+
+        .footer {
+          background: #1a1a1a;
+          border-top-color: #404040;
+          color: #999;
+        }
+
+        .footer a {
+          color: #90caf9;
+        }
+
+        .note {
+          background: #2d2410;
+          border-left-color: #ffc107;
+          color: #f9d57b;
+        }
+
+        .note strong {
+          color: #ffb300;
+        }
+
+        .theme-option-content {
+          background: #2d2d2d;
+          border-color: #404040;
+        }
+
+        .theme-option:hover .theme-option-content {
+          border-color: #667eea;
+        }
+
+        .theme-label {
+          color: #e0e0e0;
+        }
+
+        .background-option-content {
+          background: #2d2d2d;
+          border-color: #404040;
+        }
+
+        .background-option:hover .background-option-content {
+          border-color: #667eea;
+        }
+
+        .background-label {
+          color: #e0e0e0;
+        }
+
+        .background-preview {
+          border-color: #404040;
+        }
+
+        /* In dark mode, show dark version previews */
+        .background-preview-ocean {
+          background-image: url("../backgrounds/ocean_dark.png");
+        }
+
+        .background-preview-tet {
+          background-image: url("../backgrounds/tet_dark.png");
+        }
+
+        .background-preview-christmas {
+          background-image: url("../backgrounds/christmas_dark.png");
+        }
+
+        .background-preview-bugs {
+          background-image: url("../backgrounds/too_many_bugs_dark.png");
+        }
+      }
+
+      /* Force light mode when class is present (theme = "light") */
+      body.force-light-mode {
+        background: linear-gradient(
+          135deg,
+          #667eea 0%,
+          #764ba2 100%
+        ) !important;
+      }
+
+      body.force-light-mode .container {
+        background: white !important;
+        color: #333 !important;
+      }
+
+      body.force-light-mode .option {
+        background: #f8f9fa !important;
+        border-color: #e9ecef !important;
+      }
+
+      body.force-light-mode .option:hover {
+        border-color: #667eea !important;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1) !important;
+      }
+
+      body.force-light-mode .option-label,
+      body.force-light-mode .section-title {
+        color: #1a1a1a !important;
+      }
+
+      body.force-light-mode .option-description {
+        color: #6c757d !important;
+      }
+
+      body.force-light-mode .footer {
+        background: #f8f9fa !important;
+        border-top-color: #e9ecef !important;
+        color: #6c757d !important;
+      }
+
+      body.force-light-mode .footer a {
+        color: #667eea !important;
+      }
+
+      body.force-light-mode .note {
+        background: #fff3cd !important;
+        border-left-color: #ffc107 !important;
+        color: #856404 !important;
+      }
+
+      body.force-light-mode .note strong {
+        color: #664d03 !important;
+      }
+
+      body.force-light-mode .divider {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          #e9ecef,
+          transparent
+        ) !important;
+      }
+
+      body.force-light-mode .toggle-slider {
+        background-color: #ccc !important;
+      }
+
+      body.force-light-mode .theme-option-content {
+        background: #ffffff !important;
+        border-color: #e9ecef !important;
+      }
+
+      body.force-light-mode .theme-label {
+        color: #1a1a1a !important;
+      }
+
+      body.force-light-mode .background-option-content {
+        background: #ffffff !important;
+        border-color: #e9ecef !important;
+      }
+
+      body.force-light-mode .background-label {
+        color: #1a1a1a !important;
+      }
+
+      body.force-light-mode .background-preview {
+        border-color: #e9ecef !important;
+      }
+
+      /* Force light mode previews to show light versions */
+      body.force-light-mode .background-preview-ocean {
+        background-image: url("../backgrounds/ocean_light.png") !important;
+      }
+
+      body.force-light-mode .background-preview-tet {
+        background-image: url("../backgrounds/tet_light.png") !important;
+      }
+
+      body.force-light-mode .background-preview-christmas {
+        background-image: url("../backgrounds/christmas_light.png") !important;
+      }
+
+      body.force-light-mode .background-preview-bugs {
+        background-image: url("../backgrounds/too_many_bugs_light.png") !important;
+      }
+
+      /* Force dark mode when class is present (theme = "dark") */
+      body.force-dark-mode {
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 100%
+        ) !important;
+      }
+
+      body.force-dark-mode .container {
+        background: #1f1f1f !important;
+        color: #e0e0e0 !important;
+      }
+
+      body.force-dark-mode .option {
+        background: #2d2d2d !important;
+        border-color: #404040 !important;
+      }
+
+      body.force-dark-mode .option:hover {
+        border-color: #667eea !important;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+      }
+
+      body.force-dark-mode .option-label,
+      body.force-dark-mode .section-title {
+        color: #e0e0e0 !important;
+      }
+
+      body.force-dark-mode .option-description {
+        color: #999 !important;
+      }
+
+      body.force-dark-mode .footer {
+        background: #1a1a1a !important;
+        border-top-color: #404040 !important;
+        color: #999 !important;
+      }
+
+      body.force-dark-mode .footer a {
+        color: #90caf9 !important;
+      }
+
+      body.force-dark-mode .note {
+        background: #2d2410 !important;
+        border-left-color: #ffc107 !important;
+        color: #f9d57b !important;
+      }
+
+      body.force-dark-mode .note strong {
+        color: #ffb300 !important;
+      }
+
+      body.force-dark-mode .divider {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          #404040,
+          transparent
+        ) !important;
+      }
+
+      body.force-dark-mode .toggle-slider {
+        background-color: #404040 !important;
+      }
+
+      body.force-dark-mode .theme-option-content {
+        background: #2d2d2d !important;
+        border-color: #404040 !important;
+      }
+
+      body.force-dark-mode .theme-label {
+        color: #e0e0e0 !important;
+      }
+
+      body.force-dark-mode .background-option-content {
+        background: #2d2d2d !important;
+        border-color: #404040 !important;
+      }
+
+      body.force-dark-mode .background-label {
+        color: #e0e0e0 !important;
+      }
+
+      body.force-dark-mode .background-preview {
+        border-color: #404040 !important;
+      }
+
+      /* Force dark mode previews to show dark versions */
+      body.force-dark-mode .background-preview-ocean {
+        background-image: url("../backgrounds/ocean_dark.png") !important;
+      }
+
+      body.force-dark-mode .background-preview-tet {
+        background-image: url("../backgrounds/tet_dark.png") !important;
+      }
+
+      body.force-dark-mode .background-preview-christmas {
+        background-image: url("../backgrounds/christmas_dark.png") !important;
+      }
+
+      body.force-dark-mode .background-preview-bugs {
+        background-image: url("../backgrounds/too_many_bugs_dark.png") !important;
+      }
+
+      /* Custom Background Upload Section */
+      .custom-upload-box {
+        background: #f8f9fa;
+        border: 2px dashed #667eea;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .custom-upload-info {
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #6c757d;
+      }
+
+      .custom-upload-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .custom-upload-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
+
+      .custom-upload-status {
+        margin-top: 12px;
+        font-size: 13px;
+        color: #6c757d;
+      }
+
+      .custom-manager-box {
+        margin-top: 12px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .custom-manager-content {
+        margin-bottom: 12px;
+      }
+
+      .custom-manager-title {
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+      }
+
+      .custom-manager-info {
+        font-size: 13px;
+        color: #6c757d;
+      }
+
+      .custom-delete-button {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
+        display: inline-block;
+      }
+
+      .custom-delete-button:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+      }
+
+      /* Dark mode for custom upload section */
+      @media (prefers-color-scheme: dark) {
+        .custom-upload-box {
+          background: #2d2d2d;
+          border-color: #667eea;
+        }
+
+        .custom-upload-info {
+          color: #999;
+        }
+
+        .custom-manager-box {
+          background: #2d2d2d;
+        }
+
+        .custom-manager-title {
+          color: #e0e0e0;
+        }
+
+        .custom-manager-info {
+          color: #999;
+        }
+      }
+
+      /* Force light mode for custom upload section */
+      body.force-light-mode .custom-upload-box {
+        background: #f8f9fa !important;
+        border-color: #667eea !important;
+      }
+
+      body.force-light-mode .custom-upload-info {
+        color: #6c757d !important;
+      }
+
+      body.force-light-mode .custom-manager-box {
+        background: #f8f9fa !important;
+      }
+
+      body.force-light-mode .custom-manager-title {
+        color: #1a1a1a !important;
+      }
+
+      body.force-light-mode .custom-manager-info {
+        color: #6c757d !important;
+      }
+
+      /* Force dark mode for custom upload section */
+      body.force-dark-mode .custom-upload-box {
+        background: #2d2d2d !important;
+        border-color: #667eea !important;
+      }
+
+      body.force-dark-mode .custom-upload-info {
+        color: #999 !important;
+      }
+
+      body.force-dark-mode .custom-manager-box {
+        background: #2d2d2d !important;
+      }
+
+      body.force-dark-mode .custom-manager-title {
+        color: #e0e0e0 !important;
+      }
+
+      body.force-dark-mode .custom-manager-info {
+        color: #999 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>
+          <span class="icon">🧭</span>
+          SwaggerNav Settings
+        </h1>
+        <p>Customize your Swagger UI experience</p>
+      </div>
+
+      <div class="content">
+        <!-- Auto Actions Section -->
+        <div class="section">
+          <div class="section-title">⚡ Auto Actions</div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">🔓</span>
+                Auto Try It Out
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="autoTryOut" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="option-description">
+              Automatically click "Try it out" when navigating to an endpoint
+            </div>
+          </div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">📂</span>
+                Auto Expand
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="autoExpand" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="option-description">
+              Automatically expand collapsed endpoints when clicking them
+            </div>
+          </div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">🎨</span>
+                Theme
+              </div>
+            </div>
+            <div class="option-description" style="margin-bottom: 12px">
+              Choose the color theme for SwaggerNav and Swagger UI
+            </div>
+            <div class="theme-selector">
+              <label class="theme-option">
+                <input
+                  type="radio"
+                  name="theme"
+                  value="light"
+                  id="theme-light"
+                />
+                <span class="theme-option-content">
+                  <span class="theme-icon">☀️</span>
+                  <span class="theme-label">Light</span>
+                </span>
+              </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="dark" id="theme-dark" />
+                <span class="theme-option-content">
+                  <span class="theme-icon">🌙</span>
+                  <span class="theme-label">Dark</span>
+                </span>
+              </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="auto" id="theme-auto" />
+                <span class="theme-option-content">
+                  <span class="theme-icon">🔄</span>
+                  <span class="theme-label">Follow OS</span>
+                </span>
+              </label>
+            </div>
+            <div class="note">
+              <strong>⚠️ Important:</strong>
+              For the best experience, please disable any browser dark mode
+              extensions (like "Dark Reader") as they may conflict with
+              SwaggerNav's theme system.
+            </div>
+          </div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">🎨</span>
+                Background
+              </div>
+            </div>
+            <div class="option-description" style="margin-bottom: 12px">
+              Choose a decorative background for the sidebar (adapts to
+              light/dark theme automatically)
+            </div>
+            <div class="background-selector">
+              <label class="background-option">
+                <input
+                  type="radio"
+                  name="background"
+                  value="default"
+                  id="background-default"
+                />
+                <span class="background-option-content">
+                  <span
+                    class="background-preview background-preview-default"
+                  ></span>
+                  <span class="background-label">Default</span>
+                </span>
+              </label>
+              <label class="background-option">
+                <input
+                  type="radio"
+                  name="background"
+                  value="ocean"
+                  id="background-ocean"
+                />
+                <span class="background-option-content">
+                  <span
+                    class="background-preview background-preview-ocean"
+                  ></span>
+                  <span class="background-label">Ocean</span>
+                </span>
+              </label>
+              <label class="background-option">
+                <input
+                  type="radio"
+                  name="background"
+                  value="tet"
+                  id="background-tet"
+                />
+                <span class="background-option-content">
+                  <span
+                    class="background-preview background-preview-tet"
+                  ></span>
+                  <span class="background-label">Tet Holiday</span>
+                </span>
+              </label>
+              <label class="background-option">
+                <input
+                  type="radio"
+                  name="background"
+                  value="christmas"
+                  id="background-christmas"
+                />
+                <span class="background-option-content">
+                  <span
+                    class="background-preview background-preview-christmas"
+                  ></span>
+                  <span class="background-label">Christmas</span>
+                </span>
+              </label>
+              <label class="background-option">
+                <input
+                  type="radio"
+                  name="background"
+                  value="too_many_bugs"
+                  id="background-too_many_bugs"
+                />
+                <span class="background-option-content">
+                  <span
+                    class="background-preview background-preview-bugs"
+                  ></span>
+                  <span class="background-label">Too Many Bugs!</span>
+                </span>
+              </label>
+              <label class="background-option">
+                <input
+                  type="radio"
+                  name="background"
+                  value="custom"
+                  id="background-custom"
+                />
+                <span class="background-option-content">
+                  <span
+                    class="background-preview background-preview-custom"
+                    id="customBackgroundPreview"
+                  >
+                    <span style="font-size: 32px">📸</span>
+                  </span>
+                  <span class="background-label">Custom</span>
+                </span>
+              </label>
+            </div>
+            <div
+              id="customBackgroundUploader"
+              style="display: none; margin-top: 16px"
+            >
+              <div class="custom-upload-box">
+                <div class="custom-upload-info">
+                  <strong>Upload your custom background</strong><br />
+                  Maximum file size: 5MB | Supported formats: PNG, JPG, WebP
+                </div>
+                <input
+                  type="file"
+                  id="customBackgroundInput"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  style="display: none"
+                />
+                <button id="uploadButton" class="custom-upload-button">
+                  Choose Image
+                </button>
+                <div id="uploadStatus" class="custom-upload-status"></div>
+              </div>
+              <div
+                id="customBackgroundManager"
+                class="custom-manager-box"
+                style="display: none"
+              >
+                <div class="custom-manager-content">
+                  <div class="custom-manager-title">
+                    ✅ Custom background uploaded
+                  </div>
+                  <div
+                    id="customBackgroundInfo"
+                    class="custom-manager-info"
+                  ></div>
+                </div>
+                <button
+                  id="deleteCustomBackground"
+                  class="custom-delete-button"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Enhanced Features Section -->
+        <div class="section">
+          <div class="section-title">✨ Enhanced Features</div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">📝</span>
+                JSON & Form View
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="enableFormView" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="option-description">
+              Show a visual form builder alongside JSON editor for request
+              bodies. Makes it easier to edit complex JSON structures with both
+              views side-by-side.
+            </div>
+          </div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">🔍</span>
+                Parameter Search Box
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="enableParamSearch" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="option-description">
+              Add searchable dropdowns for parameter select fields. Makes it
+              easier to find options in long lists.
+            </div>
+          </div>
+
+          <div class="note">
+            <strong>💡 Pro Tip:</strong>
+            All settings are saved automatically and apply immediately. Reload
+            the Swagger UI page to see changes take effect.
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        Made with 💜 by SwaggerNav |
+        <a href="https://github.com/cigrocean/SwaggerNav" target="_blank"
+          >GitHub</a
+        >
+        | Version <span id="version-number"></span>
+      </div>
+    </div>
+
+    <div class="status-message" id="statusMessage">✓ Settings saved!</div>
+
+    <script src="version.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
