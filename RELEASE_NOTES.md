@@ -1,6 +1,6 @@
 # SwaggerNav v1.0.8 Release Notes
 
-**Previous Version:** 1.0.6
+**Previous Version:** 1.0.7
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
