@@ -328,7 +328,17 @@ SOFTWARE.
 
 ## Changelog
 
-### Version 1.0.7 (Latest)
+### Version 1.0.8 (Latest)
+
+**Liquid Glass & UI Refinements:**
+- ✨ New optional **Liquid Glass** mode for Swagger UI and the sidebar, layered on top of your existing backgrounds
+- 🌗 Full light/dark support for Liquid Glass, including buttons, dropdowns, and collapsible sections
+- 🧊 JSON / code blocks keep their solid dark background for maximum readability (no glass there)
+- 🎚️ Liquid Glass is **OFF by default** and can be enabled from the options page
+
+---
+
+### Version 1.0.7
 
 **Version Management System:**
 - ✨ Centralized version configuration - `version.js` is now the single source of truth

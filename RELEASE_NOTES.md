@@ -1,4 +1,4 @@
-# SwaggerNav v1.0.7 Release Notes
+# SwaggerNav v1.0.8 Release Notes
 
 **Previous Version:** 1.0.6
 
@@ -6,12 +6,19 @@
 
 ---
 
-## 🎉 What's New in v1.0.7
+## 🎉 What's New in v1.0.8
 
-### **Improvements:**
+### **New: Liquid Glass (Optional)**
 
-- 🔧 **Better Version Management** - The extension now displays its version more reliably in the options page
-- ✨ **Code Quality** - Internal improvements for better maintainability and future updates
+- ✨ Added an optional **Liquid Glass** mode that applies iOS-style glassmorphism on top of your Swagger background
+- 🌙 Tuned for both light and dark themes, including dropdowns, collapsible sections, and the SwaggerNav sidebar
+- 🧊 Response JSON/code blocks now **keep their solid dark background** for perfect readability (no glass overlay)
+- 🎛️ Liquid Glass is **OFF by default** and can be toggled in the options page under "Enhanced Features"
+
+### **Fixes & Polish**
+
+- 🎨 Adjusted button labels (Try it out / Cancel / Execute) for better contrast on Liquid Glass
+- 🔍 Improved parameter search dropdown layering so it floats correctly above glass panels
 
 ---
 

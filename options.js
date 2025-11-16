@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   background: "default", // "default", "ocean", "tet", "christmas", "too_many_bugs"
   enableFormView: true,
   enableParamSearch: true,
+  liquidGlass: false, // iOS 26-style liquid glass effect
 };
 
 // Load settings on page load
@@ -59,6 +60,7 @@ async function loadSettings() {
     document.getElementById("enableFormView").checked = result.enableFormView;
     document.getElementById("enableParamSearch").checked =
       result.enableParamSearch;
+    document.getElementById("liquidGlass").checked = result.liquidGlass;
 
     // Apply theme radio selection
     const themeValue = result.theme || "auto";
@@ -83,6 +85,9 @@ async function loadSettings() {
 
     // Apply theme to options page
     applyOptionsPageTheme(result.theme || "auto");
+
+    // Apply liquid glass to options page
+    applyLiquidGlassToOptions(result.liquidGlass || false);
 
     console.log("SwaggerNav: Settings loaded", result);
   } catch (error) {
@@ -110,10 +115,14 @@ async function saveSettings() {
       background: background,
       enableFormView: document.getElementById("enableFormView").checked,
       enableParamSearch: document.getElementById("enableParamSearch").checked,
+      liquidGlass: document.getElementById("liquidGlass").checked,
     };
 
     // Apply theme when theme changes
     applyOptionsPageTheme(theme);
+
+    // Apply liquid glass when it changes
+    applyLiquidGlassToOptions(settings.liquidGlass);
 
     await chrome.storage.sync.set(settings);
 
@@ -149,6 +158,17 @@ function applyOptionsPageTheme(theme) {
     document.body.classList.add("force-dark-mode");
   }
   // If theme === "auto", no class needed - follows OS preference via @media
+}
+
+// Apply liquid glass effect to options page
+function applyLiquidGlassToOptions(enabled) {
+  if (enabled) {
+    document.body.classList.add("liquid-glass-enabled");
+    console.log("SwaggerNav: Liquid glass enabled on options page");
+  } else {
+    document.body.classList.remove("liquid-glass-enabled");
+    console.log("SwaggerNav: Liquid glass disabled on options page");
+  }
 }
 
 // ==============================================================================

@@ -2057,7 +2057,7 @@ body {
   --sn-endpoint-text-secondary: #999 !important;
 }
 
-/* Force Dark Mode when .swagger-nav-dark class is present */
+/* Force Dark Mode when .swagger-nav-dark class is present (sidebar) */
 .swagger-nav-sidebar.swagger-nav-dark {
   --sn-bg-primary: #1f1f1f !important;
   --sn-bg-secondary: #2d2d2d !important;
@@ -2113,6 +2113,44 @@ body {
   --sn-endpoint-item-hover: #3a3a3a !important;
   --sn-endpoint-header-bg: #252525 !important;
   --sn-endpoint-text-secondary: #999 !important;
+}
+
+/* Ensure parameter search variables follow explicit dark theme on main page */
+body.swagger-nav-dark,
+body.swagger-nav-force-dark {
+  --sn-param-search-bg: #1b1b1b !important;
+  --sn-param-search-text: #e0e0e0 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: #2a2a2a !important;
+  --sn-param-clear-btn: #aaa !important;
+  --sn-param-item-border: #3a3a3a !important;
+  --sn-param-item-hover: #3a3a3a !important;
+  --sn-param-no-result: #888 !important;
+  --sn-endpoint-search-bg: #2a2a2a !important;
+  --sn-endpoint-search-text: #e0e0e0 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: #2a2a2a !important;
+  --sn-endpoint-item-border: #3a3a3a !important;
+  --sn-endpoint-item-hover: #3a3a3a !important;
+}
+
+/* Ensure parameter search variables follow explicit light theme on main page */
+body.swagger-nav-light,
+body.swagger-nav-force-light {
+  --sn-param-search-bg: #fff !important;
+  --sn-param-search-text: #3b4151 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: #ffffff !important;
+  --sn-param-clear-btn: #999 !important;
+  --sn-param-item-border: #f0f0f0 !important;
+  --sn-param-item-hover: #f0f7ff !important;
+  --sn-param-no-result: #999 !important;
+  --sn-endpoint-search-bg: #ffffff !important;
+  --sn-endpoint-search-text: #3b4151 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: #ffffff !important;
+  --sn-endpoint-item-border: #f7f7f7 !important;
+  --sn-endpoint-item-hover: #f0f7ff !important;
 }
 
 /* =====================================================================
@@ -2553,4 +2591,1098 @@ body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui table tbody tr td {
   z-index: 1;
 }
 
+/* =====================================================================
+   LIQUID GLASS EFFECT (iOS 26 Style)
+   Advanced glassmorphism with backdrop blur, saturation, and reflections
+   ===================================================================== */
+
+/* SVG Filter for Liquid Distortion Effect */
+#swagger-nav-liquid-filter {
+  position: absolute;
+  width: 0;
+  height: 0;
+  z-index: -1;
+}
+
+/* Liquid Glass CSS Variables */
+:root {
+  --liquid-glass-color: #bbbbbc;
+  --liquid-light: #fff;
+  --liquid-dark: #000;
+  --liquid-reflex-dark: 1;
+  --liquid-reflex-light: 1;
+  --liquid-saturation: 150%;
+  --liquid-blur: 8px;
+}
+
+/* Dark mode liquid glass variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --liquid-glass-color: #bbbbbc;
+    --liquid-light: #fff;
+    --liquid-dark: #000;
+    --liquid-reflex-dark: 2;
+    --liquid-reflex-light: 0.3;
+    --liquid-saturation: 150%;
+  }
+}
+
+/* Force light mode liquid glass */
+body.swagger-nav-force-light {
+  --liquid-glass-color: #bbbbbc;
+  --liquid-light: #fff;
+  --liquid-dark: #000;
+  --liquid-reflex-dark: 1;
+  --liquid-reflex-light: 1;
+  --liquid-saturation: 150%;
+}
+
+/* Force dark mode liquid glass */
+body.swagger-nav-force-dark {
+  --liquid-glass-color: #bbbbbc;
+  --liquid-light: #fff;
+  --liquid-dark: #000;
+  --liquid-reflex-dark: 2;
+  --liquid-reflex-light: 0.3;
+  --liquid-saturation: 150%;
+}
+
+/* Liquid glass doesn't add its own background - it uses whatever background is already set */
+/* The transparent elements with backdrop blur will show the existing background beautifully */
+
+/* Make Swagger UI containers transparent to show the user's selected background */
+body.swagger-nav-liquid-glass .swagger-ui {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+body.swagger-nav-liquid-glass .swagger-ui .wrapper,
+body.swagger-nav-liquid-glass .swagger-ui .wrapper > div,
+body.swagger-nav-liquid-glass .swagger-ui > div,
+body.swagger-nav-liquid-glass .swagger-ui .swagger-container,
+body.swagger-nav-liquid-glass .swagger-ui .main,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-tag-section,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-tag,
+body.swagger-nav-liquid-glass .swagger-ui .scheme-container,
+body.swagger-nav-liquid-glass .swagger-ui .col-12,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-tag-section > h3,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-tag {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Override any default white backgrounds */
+body.swagger-nav-liquid-glass .swagger-ui .opblock-summary-get,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-summary-post,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-summary-put,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-summary-delete,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-summary-patch,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-summary-options,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-summary-head {
+  background: transparent !important;
+}
+
+/* Make topbar semi-transparent with liquid glass - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .topbar,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .topbar,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .topbar-wrapper,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .topbar-wrapper,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .information-container,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .information-container,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .scheme-container,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .scheme-container {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 10%), transparent),
+    0px 4px 12px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 8%), transparent) !important;
+}
+
+/* Make topbar semi-transparent with liquid glass - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .topbar,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .topbar,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .topbar-wrapper,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .topbar-wrapper,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .information-container,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .information-container,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .scheme-container,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .scheme-container {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 10%), transparent),
+    0px 4px 12px 0px rgba(0, 0, 0, 0.3) !important;
+}
+
+
+/* Apply liquid glass effect to Swagger UI elements - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock .opblock-section-header {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 
+    /* Outer border highlight */
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 10%), transparent),
+    /* Top-left highlight */
+    inset 1.8px 3px 0px -2px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 90%), transparent),
+    /* Bottom-right highlight */
+    inset -2px -2px 0px -2px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 80%), transparent),
+    /* Bottom inner glow */
+    inset -3px -8px 1px -6px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 60%), transparent),
+    /* Inner dark border */
+    inset -0.3px -1px 4px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 12%), transparent),
+    /* Top-right dark shadow */
+    inset -1.5px 2.5px 0px -2px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 20%), transparent),
+    /* Top inner shadow */
+    inset 0px 3px 4px -2px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 20%), transparent),
+    /* Bottom-left shadow */
+    inset 2px -6.5px 1px -4px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 10%), transparent),
+    /* Outer shadow (close) */
+    0px 1px 5px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 10%), transparent),
+    /* Outer shadow (far) */
+    0px 6px 16px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 8%), transparent) !important;
+  transition: background-color 400ms cubic-bezier(1, 0, 0.4, 1), box-shadow 400ms cubic-bezier(1, 0, 0.4, 1) !important;
+}
+
+/* Apply liquid glass effect to Swagger UI elements - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock .opblock-section-header {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 
+    /* Outer border highlight */
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 10%), transparent),
+    /* Top-left highlight */
+    inset 1.8px 3px 0px -2px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 90%), transparent),
+    /* Bottom-right highlight */
+    inset -2px -2px 0px -2px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 80%), transparent),
+    /* Bottom inner glow */
+    inset -3px -8px 1px -6px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 60%), transparent),
+    /* Inner dark border */
+    inset -0.3px -1px 4px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 12%), transparent),
+    /* Top-right dark shadow */
+    inset -1.5px 2.5px 0px -2px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 20%), transparent),
+    /* Top inner shadow */
+    inset 0px 3px 4px -2px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 20%), transparent),
+    /* Bottom-left shadow */
+    inset 2px -6.5px 1px -4px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 10%), transparent),
+    /* Outer shadow (close) */
+    0px 1px 5px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 10%), transparent),
+    /* Outer shadow (far) */
+    0px 6px 16px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 8%), transparent) !important;
+  transition: background-color 400ms cubic-bezier(1, 0, 0.4, 1), box-shadow 400ms cubic-bezier(1, 0, 0.4, 1) !important;
+}
+
+/* Enhanced liquid glass for main info section */
+body.swagger-nav-liquid-glass .swagger-ui .info {
+  padding: 24px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Liquid glass for operation blocks */
+body.swagger-nav-liquid-glass .swagger-ui .opblock {
+  margin-bottom: 16px !important;
+  border: none !important;
+}
+
+/* Liquid glass for operation summaries */
+body.swagger-nav-liquid-glass .swagger-ui .opblock .opblock-summary {
+  padding: 16px !important;
+}
+
+/* Liquid glass for operation bodies */
+body.swagger-nav-liquid-glass .swagger-ui .opblock .opblock-body {
+  padding: 20px !important;
+}
+
+/* Liquid glass for section headers */
+body.swagger-nav-liquid-glass .swagger-ui .opblock .opblock-section-header {
+  padding: 12px 16px !important;
+  margin: 0 0 12px 0 !important;
+}
+
+/* Liquid glass for input fields - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="text"],
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="password"],
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="email"],
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="number"],
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui textarea,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui select,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="text"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="password"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="email"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="number"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui textarea,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui select {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(4px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 8%), transparent),
+    inset 1px 2px 0px -1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 60%), transparent),
+    inset -1px -1px 0px -1px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 15%), transparent),
+    0px 2px 8px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 6%), transparent) !important;
+  transition: background-color 200ms, box-shadow 200ms !important;
+}
+
+/* Liquid glass for input fields - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="text"],
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="password"],
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="email"],
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="number"],
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui textarea,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui select,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="text"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="password"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="email"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="number"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui textarea,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui select {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(4px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 1px 2px 0px -1px rgba(255, 255, 255, 0.1),
+    inset -1px -1px 0px -1px rgba(0, 0, 0, 0.3),
+    0px 2px 8px 0px rgba(0, 0, 0, 0.25) !important;
+  transition: background-color 200ms, box-shadow 200ms !important;
+}
+
+/* Liquid glass focus state for inputs - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="text"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="password"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="email"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui input[type="number"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui textarea:focus,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui select:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="text"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="password"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="email"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui input[type="number"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui textarea:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui select:focus {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 
+    inset 0 0 0 2px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 20%), transparent),
+    inset 2px 3px 0px -1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 80%), transparent),
+    inset -1px -2px 0px -1px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 20%), transparent),
+    0px 4px 12px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 10%), transparent) !important;
+}
+
+/* Liquid glass focus state for inputs - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="text"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="password"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="email"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui input[type="number"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui textarea:focus,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui select:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="text"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="password"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="email"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui input[type="number"]:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui textarea:focus,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui select:focus {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    inset 0 0 0 2px rgba(255, 255, 255, 0.15),
+    inset 2px 3px 0px -1px rgba(255, 255, 255, 0.12),
+    inset -1px -2px 0px -1px rgba(0, 0, 0, 0.4),
+    0px 4px 12px 0px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Liquid glass for select options - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui select option,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui select option {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  color: #3b4151 !important;
+}
+
+/* Liquid glass for select options - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui select option,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui select option {
+  background-color: rgba(30, 30, 30, 0.95) !important;
+  color: #e0e0e0 !important;
+}
+
+/* Liquid glass for select option hover - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui select option:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui select option:hover {
+  background-color: rgba(97, 175, 254, 0.2) !important;
+}
+
+/* Liquid glass for select option hover - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui select option:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui select option:hover {
+  background-color: rgba(97, 175, 254, 0.3) !important;
+}
+
+/* Liquid glass for select option checked/selected - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui select option:checked,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui select option:checked {
+  background-color: rgba(97, 175, 254, 0.3) !important;
+  color: #000 !important;
+}
+
+/* Liquid glass for select option checked/selected - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui select option:checked,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui select option:checked {
+  background-color: rgba(97, 175, 254, 0.4) !important;
+  color: #fff !important;
+}
+
+/* Liquid glass for buttons - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui button,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .btn,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui button,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .btn {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 12%), transparent),
+    inset 1.5px 2px 0px -1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 70%), transparent),
+    inset -1px -1.5px 0px -1px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 18%), transparent),
+    0px 2px 6px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 8%), transparent) !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Liquid glass for buttons - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui button,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .btn,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui button,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .btn {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 1.5px 2px 0px -1px rgba(255, 255, 255, 0.12),
+    inset -1px -1.5px 0px -1px rgba(0, 0, 0, 0.4),
+    0px 2px 6px 0px rgba(0, 0, 0, 0.3) !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Liquid glass button hover - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui button:hover,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .btn:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui button:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .btn:hover {
+  background-color: rgba(255, 255, 255, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 20%), transparent),
+    inset 2px 3px 0px -1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 85%), transparent),
+    inset -1px -2px 0px -1px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 22%), transparent),
+    0px 4px 10px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 12%), transparent) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Liquid glass button hover - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui button:hover,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .btn:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui button:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .btn:hover {
+  background-color: rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15),
+    inset 2px 3px 0px -1px rgba(255, 255, 255, 0.18),
+    inset -1px -2px 0px -1px rgba(0, 0, 0, 0.5),
+    0px 4px 10px 0px rgba(0, 0, 0, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Stronger styling for Execute button on light liquid glass (readability first) */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .btn.execute,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-control__btn {
+  background-color: rgba(73, 204, 144, 0.9) !important; /* Swagger green, almost solid */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(30, 120, 80, 0.95) !important;
+  /* Dark label text for better legibility on bright button */
+  color: #052e16 !important;
+  text-shadow: none !important;
+  box-shadow:
+    0 6px 14px rgba(73, 204, 144, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .btn.execute:hover,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-control__btn:hover {
+  background-color: rgba(55, 184, 124, 0.95) !important;
+  box-shadow:
+    0 8px 18px rgba(73, 204, 144, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.3) inset !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Light liquid glass: only adjust label colors for Cancel/Try it out (keep button style subtle) */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .btn.cancel {
+  color: #b91c1c !important; /* red label */
+  text-shadow: none !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .btn.cancel:hover {
+  color: #991b1b !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .try-out__btn {
+  color: #111827 !important; /* dark neutral text */
+  text-shadow: none !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .try-out__btn:hover {
+  color: #020617 !important;
+}
+
+/* Liquid glass for tables - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui table,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui table {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  /* allow floating dropdowns like parameter search to overflow */
+  overflow: visible !important;
+}
+
+/* Liquid glass for tables - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui table,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui table {
+  background-color: rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  /* allow floating dropdowns like parameter search to overflow */
+  overflow: visible !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui table thead tr th,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui table thead tr td,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui table thead tr th,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui table thead tr td {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui table thead tr th,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui table thead tr td,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui table thead tr th,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui table thead tr td {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui table tbody tr td {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui table tbody tr td {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Liquid glass for models section - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui section.models,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui section.models {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  padding: 20px !important;
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-light) calc(var(--liquid-reflex-light) * 10%), transparent),
+    0px 4px 12px 0px color-mix(in srgb, var(--liquid-dark) calc(var(--liquid-reflex-dark) * 8%), transparent) !important;
+}
+
+/* Liquid glass for models section - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui section.models,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui section.models {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 20px !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0px 4px 12px 0px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Liquid glass for model boxes - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .model-box,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .model,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .model-box,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .model {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Liquid glass for model boxes - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .model-box,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .model,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .model-box,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .model {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* NOTE: .responses-inner keeps Swagger's default styling even in liquid glass */
+
+/* Liquid glass for parameters section - Light mode (slightly dimmer for readability) */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .parameters,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .parameters {
+  background-color: rgba(255, 255, 255, 0.33) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+}
+
+/* Liquid glass for parameters section - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .parameters,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .parameters {
+  background-color: rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Liquid glass for request body - Light mode (slightly dimmer for readability) */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .request-body,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .request-body {
+  background-color: rgba(255, 255, 255, 0.33) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+}
+
+/* Liquid glass for request body - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .request-body,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .request-body {
+  background-color: rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Liquid glass for execute wrapper - Light mode (slightly dimmer for readability) */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .execute-wrapper,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .execute-wrapper {
+  background-color: rgba(255, 255, 255, 0.33) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+}
+
+/* Liquid glass for execute wrapper - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .execute-wrapper,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .execute-wrapper {
+  background-color: rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* NOTE: .responses-wrapper keeps Swagger's default styling even in liquid glass */
+
+/* NOTE: response-col_* cells keep Swagger's default styling even in liquid glass */
+
+/* Liquid glass for parameter row - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .parameters-col_description,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .parameters-col_description {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  color: #1f2933 !important;
+}
+
+/* Liquid glass for parameter row - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .parameters-col_description,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .parameters-col_description {
+  background-color: rgba(0, 0, 0, 0.22) !important;
+}
+
+/* COMPREHENSIVE: Liquid glass for ALL div elements inside opblock-body - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-body > div,
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-body div[class*="wrapper"],
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-body div[class*="section"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-body > div,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-body div[class*="wrapper"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-body div[class*="section"] {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* COMPREHENSIVE: Liquid glass for ALL div elements inside opblock-body - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-body > div,
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-body div[class*="wrapper"],
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-body div[class*="section"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-body > div,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-body div[class*="wrapper"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-body div[class*="section"] {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+}
+
+/* COMPREHENSIVE: Liquid glass for ALL inner content - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-body *[class*="inner"],
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-body *[class*="content"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-body *[class*="inner"],
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-body *[class*="content"] {
+  background-color: rgba(0, 0, 0, 0.22) !important;
+}
+
+/* COMPREHENSIVE: Liquid glass for ALL inner content - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-body *[class*="inner"],
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-body *[class*="content"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-body *[class*="inner"],
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-body *[class*="content"] {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ULTIMATE OVERRIDE: Liquid glass for EVERYTHING inside opblock when expanded - Dark mode
+   (EXCEPT code/JSON blocks, which should keep their original backgrounds) */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock.is-open .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock.is-open .opblock-body {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock.is-open .opblock-body *:not(pre):not(code):not(.microlight):not(.hljs),
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock.is-open .opblock-body *:not(pre):not(code):not(.microlight):not(.hljs) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* ULTIMATE OVERRIDE: Liquid glass for EVERYTHING inside opblock when expanded - Light mode
+   (EXCEPT code/JSON blocks, which should keep their original backgrounds) */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock.is-open .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock.is-open .opblock-body {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock.is-open .opblock-body *:not(pre):not(code):not(.microlight):not(.hljs),
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock.is-open .opblock-body *:not(pre):not(code):not(.microlight):not(.hljs) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* =====================================================================
+   LIQUID GLASS FOR SWAGGERNAV SIDEBAR
+   ===================================================================== */
+
+/* Liquid glass for navbar container - Light mode (match main liquid glass cards) */
+body.swagger-nav-liquid-glass.swagger-nav-light #swagger-nav,
+body.swagger-nav-liquid-glass.swagger-nav-force-light #swagger-nav {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 12px 40px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Liquid glass for navbar container - Dark mode (match main liquid glass cards) */
+body.swagger-nav-liquid-glass.swagger-nav-dark #swagger-nav,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark #swagger-nav {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(var(--liquid-saturation)) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 12px 40px rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Liquid glass for navbar header - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-header,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-header {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Liquid glass for navbar header - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-header,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-header {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Liquid glass for search box - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-search,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-search {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Liquid glass for search box - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-search,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-search {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Liquid glass for search input - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-search-input,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-search-input {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Liquid glass for search input - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-search-input,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-search-input {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Liquid glass for section headers - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-section-header {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Liquid glass for section headers - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-section-header {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Liquid glass for endpoint items - Light mode (match main cards) */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-item,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-item {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Liquid glass for endpoint items - Dark mode (match main cards) */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-item,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-item {
+  background-color: rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(var(--liquid-saturation)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Liquid glass for endpoint items hover - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-item:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.35) !important;
+  border: 1px solid rgba(97, 175, 254, 0.3) !important;
+}
+
+/* Liquid glass for endpoint items hover - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-item:hover,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-item:hover {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(97, 175, 254, 0.3) !important;
+}
+
+/* Liquid glass for pinned items - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-pinned-item,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-pinned-item {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  border: 1px solid rgba(252, 161, 48, 0.3) !important;
+}
+
+/* Liquid glass for pinned items - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-pinned-item,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-pinned-item {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  border: 1px solid rgba(252, 161, 48, 0.3) !important;
+}
+
+/* Liquid glass for footer - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-nav-footer,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-nav-footer {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Liquid glass for footer - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-nav-footer,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-nav-footer {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Smooth transitions for liquid glass */
+body.swagger-nav-liquid-glass .swagger-ui * {
+  transition-property: background-color, backdrop-filter, box-shadow !important;
+  transition-duration: 400ms !important;
+  transition-timing-function: cubic-bezier(1, 0, 0.4, 1) !important;
+}
+
+/* Preserve method colors with liquid glass overlay */
+body.swagger-nav-liquid-glass .swagger-ui .opblock-get,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-post,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-put,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-delete,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-patch,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-options,
+body.swagger-nav-liquid-glass .swagger-ui .opblock-head {
+  position: relative !important;
+}
+
+/* Add subtle color tint to liquid glass based on HTTP method - Light mode */
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-get,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-get {
+  background-color: rgba(97, 175, 254, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-post,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-post {
+  background-color: rgba(73, 204, 144, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-put,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-put {
+  background-color: rgba(252, 161, 48, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-delete,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-delete {
+  background-color: rgba(249, 62, 62, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light .swagger-ui .opblock-patch,
+body.swagger-nav-liquid-glass.swagger-nav-force-light .swagger-ui .opblock-patch {
+  background-color: rgba(80, 227, 194, 0.25) !important;
+}
+
+/* Add subtle color tint to liquid glass based on HTTP method - Dark mode */
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-get,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-get {
+  background-color: rgba(61, 135, 214, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-post,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-post {
+  background-color: rgba(43, 154, 104, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-put,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-put {
+  background-color: rgba(212, 121, 8, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-delete,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-delete {
+  background-color: rgba(209, 22, 22, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark .swagger-ui .opblock-patch,
+body.swagger-nav-liquid-glass.swagger-nav-force-dark .swagger-ui .opblock-patch {
+  background-color: rgba(40, 187, 154, 0.35) !important;
+}
+
+/* Animation for liquid glass activation */
+@keyframes liquidGlassActivate {
+  0% {
+    backdrop-filter: blur(0px) saturate(100%);
+    -webkit-backdrop-filter: blur(0px) saturate(100%);
+  }
+  100% {
+    backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation));
+    -webkit-backdrop-filter: blur(var(--liquid-blur)) saturate(var(--liquid-saturation));
+  }
+}
+
+body.swagger-nav-liquid-glass .swagger-ui .opblock,
+body.swagger-nav-liquid-glass .swagger-ui .info {
+  animation: liquidGlassActivate 600ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* =====================================================================
+   LIQUID GLASS OVERRIDE FOR ALL BACKGROUNDS - HIGHEST SPECIFICITY
+   These rules override the ocean/tet/christmas/bugs background styles
+   ===================================================================== */
+
+/* Override background styles for LIGHT mode + all backgrounds */
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .info {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Override background styles for DARK mode + all backgrounds */
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .info,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .info {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock .opblock-summary {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-summary,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock .opblock-summary {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock .opblock-body {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-body,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock .opblock-body {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-tet .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-custom .swagger-ui .opblock .opblock-section-header {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui .opblock .opblock-section-header,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui .opblock .opblock-section-header {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-ocean .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-tet .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-christmas .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-bugs .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-light.swagger-nav-bg-custom .swagger-ui table tbody tr td {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-ocean .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-tet .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-christmas .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-bugs .swagger-ui table tbody tr td,
+body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui table tbody tr td {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+}
 

@@ -150,6 +150,7 @@ class SwaggerNavigator {
       background: "default", // "default", "ocean", "tet", "christmas", "too_many_bugs"
       enableFormView: true,
       enableParamSearch: true,
+      liquidGlass: false, // iOS 26-style liquid glass effect
     };
 
     // Load from chrome.storage asynchronously
@@ -162,6 +163,9 @@ class SwaggerNavigator {
 
       // Re-apply theme and background now that settings are loaded
       this.applyNavBarTheme();
+
+      // Apply liquid glass effect if enabled
+      this.applyLiquidGlass();
 
       // Refresh UI if navbar already exists
       if (this.navBar) {
@@ -386,6 +390,17 @@ class SwaggerNavigator {
             );
             // Apply new background
             this.applyNavBarBackground();
+          }
+
+          // React to liquid glass changes
+          if (changes.liquidGlass) {
+            console.log(
+              `SwaggerNav: Liquid Glass ${
+                changes.liquidGlass.newValue ? "enabled" : "disabled"
+              }`
+            );
+            // Apply or remove liquid glass effect
+            this.applyLiquidGlass();
           }
 
           // Update settings UI
@@ -1233,6 +1248,29 @@ class SwaggerNavigator {
     }
   }
 
+  // Apply or remove Liquid Glass effect
+  applyLiquidGlass() {
+    // Only apply on Swagger UI pages
+    if (!this.isSwaggerUI) {
+      console.log("SwaggerNav: Skipping liquid glass - not a Swagger UI page");
+      return;
+    }
+
+    const liquidGlassEnabled = this.settings.liquidGlass || false;
+
+    if (liquidGlassEnabled) {
+      // Add liquid glass class to body - keeps existing background underneath
+      document.body.classList.add("swagger-nav-liquid-glass");
+      console.log(
+        "SwaggerNav: Liquid Glass effect enabled on top of existing background"
+      );
+    } else {
+      // Remove liquid glass class from body
+      document.body.classList.remove("swagger-nav-liquid-glass");
+      console.log("SwaggerNav: Liquid Glass effect disabled");
+    }
+  }
+
   // Check if current page is Swagger UI
   detectSwaggerUI() {
     const indicators = [
@@ -1291,6 +1329,9 @@ class SwaggerNavigator {
 
       // Apply theme
       this.applySwaggerTheme();
+
+      // Apply liquid glass effect if enabled
+      this.applyLiquidGlass();
 
       // Check for already expanded endpoints on page load
       // Longer delay to let Swagger UI process URL hash and expand endpoint
@@ -3741,7 +3782,7 @@ class SwaggerNavigator {
       // Create wrapper for search input to ensure proper layout
       const searchWrapper = document.createElement("div");
       searchWrapper.style.cssText =
-        "width: 100% !important; max-width: 100% !important; margin-bottom: 6px; display: block !important; position: relative !important; box-sizing: border-box !important;";
+        "width: 100% !important; max-width: 100% !important; margin-bottom: 6px; display: block !important; position: relative !important; box-sizing: border-box !important; z-index: 10000 !important;";
 
       // Create search input with CSS variables (auto-adapts to theme!)
       const searchInput = document.createElement("input");
@@ -3758,14 +3799,16 @@ class SwaggerNavigator {
       clearButton.title = "Clear search";
       clearButton.style.cssText = `display: none; position: absolute !important; right: 10px !important; top: 50% !important; transform: translateY(-50%) !important; width: 24px !important; height: 24px !important; background: none !important; border: none !important; color: var(--sn-param-clear-btn) !important; font-size: 20px !important; line-height: 1 !important; cursor: pointer !important; border-radius: 4px !important; transition: all 0.2s !important; padding: 0 !important; z-index: 10 !important; margin: 0 !important; text-align: center !important; vertical-align: middle !important;`;
 
-      // Create results dropdown with CSS variables
+      // Create results dropdown with CSS variables (rendered in body to escape glass stacking contexts)
       const resultsDropdown = document.createElement("div");
       resultsDropdown.className = "swagger-nav-search-results";
-      resultsDropdown.style.cssText = `display: none !important; position: absolute !important; width: 100% !important; max-height: 250px !important; overflow-y: auto !important; background: var(--sn-param-dropdown-bg) !important; border: 2px solid var(--sn-param-search-border) !important; border-radius: 4px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; z-index: 999 !important; margin-top: 2px !important; left: 0 !important; top: 100% !important; box-sizing: border-box !important;`;
+      // Absolute overlay with extreme z-index so it always floats above Liquid Glass,
+      // but scrolls with the page (top/left updated using scroll offsets)
+      resultsDropdown.style.cssText = `display: none !important; position: absolute !important; max-height: 250px !important; overflow-y: auto !important; background: var(--sn-param-dropdown-bg) !important; border: 2px solid var(--sn-param-search-border) !important; border-radius: 4px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.35) !important; z-index: 2147483647 !important; box-sizing: border-box !important;`;
 
       searchWrapper.appendChild(searchInput);
       searchWrapper.appendChild(clearButton);
-      searchWrapper.appendChild(resultsDropdown);
+      document.body.appendChild(resultsDropdown);
 
       // CSS variables auto-adapt to theme changes - no JavaScript needed! ✨
 
@@ -3837,23 +3880,19 @@ class SwaggerNavigator {
         searchInput.setSelectionRange(len, len);
       });
 
-      // On blur, just hide dropdown (keep current value)
+      // On blur, do NOT immediately hide dropdown.
+      // Visibility is controlled by click handlers so it doesn't flicker/disappear unexpectedly.
       searchInput.addEventListener("blur", () => {
-        setTimeout(() => {
-          // If dropdown is not visible (user didn't select anything)
-          if (
-            resultsDropdown.style.display === "none" ||
-            !searchWrapper.contains(document.activeElement)
-          ) {
-            // Just hide dropdown, don't change the value
-            resultsDropdown.style.setProperty("display", "none", "important");
-          }
-        }, 200);
+        // no-op on purpose
       });
 
       // Hide dropdown when clicking outside (keep current value)
       document.addEventListener("click", (e) => {
-        if (!searchWrapper.contains(e.target)) {
+        // Treat clicks inside the dropdown as "inside" so it doesn't immediately close
+        if (
+          !searchWrapper.contains(e.target) &&
+          !resultsDropdown.contains(e.target)
+        ) {
           resultsDropdown.style.setProperty("display", "none", "important");
           // Don't restore default - keep whatever user typed/selected
         }
@@ -3869,6 +3908,31 @@ class SwaggerNavigator {
         resultsDropdown.innerHTML = "";
         // No need to update colors - CSS variables handle it! ✨
 
+        // Position dropdown under the input using viewport coordinates.
+        // Position dropdown under the input using viewport coordinates + scroll offsets.
+        const rect = searchInput.getBoundingClientRect();
+        const scrollY =
+          window.scrollY || document.documentElement.scrollTop || 0;
+        const scrollX =
+          window.scrollX || document.documentElement.scrollLeft || 0;
+
+        resultsDropdown.style.setProperty(
+          "width",
+          `${rect.width}px`,
+          "important"
+        );
+        resultsDropdown.style.setProperty(
+          "left",
+          `${rect.left + scrollX}px`,
+          "important"
+        );
+        resultsDropdown.style.setProperty(
+          "top",
+          `${rect.bottom + 2 + scrollY}px`,
+          "important"
+        );
+        resultsDropdown.style.setProperty("display", "block", "important");
+
         if (options.length === 0) {
           const noResult = document.createElement("div");
           noResult.textContent = "No matches found";
@@ -3878,7 +3942,7 @@ class SwaggerNavigator {
           options.forEach((opt, idx) => {
             const resultItem = document.createElement("div");
             resultItem.textContent = opt.text;
-            const computedStyle = `padding: 10px 12px !important; cursor: pointer !important; font-size: 14px !important; color: var(--sn-param-search-text) !important; background: var(--sn-param-dropdown-bg) !important; border-bottom: 1px solid var(--sn-param-item-border) !important; transition: background 0.15s !important;`;
+            const computedStyle = `padding: 10px 12px !important; cursor: pointer !important; font-size: 14px !important; font-family: inherit !important; color: var(--sn-param-search-text) !important; background: var(--sn-param-dropdown-bg) !important; border-bottom: 1px solid var(--sn-param-item-border) !important; transition: background 0.15s !important;`;
             resultItem.style.cssText = computedStyle;
 
             resultItem.addEventListener("mouseenter", () => {

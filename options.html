@@ -917,6 +917,297 @@
       body.force-dark-mode .custom-manager-info {
         color: #999 !important;
       }
+
+      /* =====================================================================
+         LIQUID GLASS EFFECT FOR OPTIONS PAGE
+         ===================================================================== */
+
+      /* Liquid glass for body background */
+      body.liquid-glass-enabled {
+        background: linear-gradient(
+          135deg,
+          #667eea 0%,
+          #764ba2 100%
+        ) !important;
+        position: relative;
+      }
+
+      body.liquid-glass-enabled.force-dark-mode {
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 100%
+        ) !important;
+      }
+
+      /* Auto theme: dark OS + liquid glass should also use dark background when theme = auto */
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) {
+          background: linear-gradient(
+            135deg,
+            #1a1a2e 0%,
+            #16213e 100%
+          ) !important;
+        }
+      }
+
+      /* Liquid glass for container - Light mode (slightly denser for readability) */
+      body.liquid-glass-enabled:not(.force-dark-mode) .container {
+        background-color: rgba(255, 255, 255, 0.45) !important;
+        backdrop-filter: blur(26px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(26px) saturate(180%) !important;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4),
+          0 20px 60px rgba(0, 0, 0, 0.35),
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.6) !important;
+      }
+
+      /* Liquid glass for container - Dark mode: keep original dark color, just add glass */
+      body.liquid-glass-enabled.force-dark-mode .container {
+        background-color: #1f1f1f !important; /* original dark container */
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .container {
+          background-color: #1f1f1f !important; /* original dark container */
+          backdrop-filter: blur(20px) saturate(160%) !important;
+          -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+        }
+      }
+
+      /* Liquid glass for header - Light mode */
+      body.liquid-glass-enabled .header {
+        background: rgba(255, 255, 255, 0.25) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+      }
+
+      /* Liquid glass for header - Dark mode */
+      body.liquid-glass-enabled.force-dark-mode .header {
+        background: rgba(0, 0, 0, 0.35) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .header {
+          background: rgba(0, 0, 0, 0.35) !important;
+          backdrop-filter: blur(20px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+      }
+
+      /* Liquid glass for options - Light mode */
+      body.liquid-glass-enabled:not(.force-dark-mode) .option {
+        background: rgba(255, 255, 255, 0.4) !important;
+        backdrop-filter: blur(18px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12),
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.5) !important;
+      }
+
+      /* Liquid glass for options - Dark mode: keep original dark card color, add blur */
+      body.liquid-glass-enabled.force-dark-mode .option {
+        background: #2d2d2d !important; /* original dark option */
+        backdrop-filter: blur(14px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+        border: 2px solid #404040 !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .option {
+          background: #2d2d2d !important; /* original dark option */
+          backdrop-filter: blur(14px) saturate(160%) !important;
+          -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+          border: 2px solid #404040 !important;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
+        }
+      }
+
+      /* Liquid glass for options hover */
+      body.liquid-glass-enabled .option:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(102, 126, 234, 0.5) !important;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2),
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.4) !important;
+      }
+
+      body.liquid-glass-enabled.force-dark-mode .option:hover {
+        background: #333333 !important;
+        border-color: #667eea !important;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3),
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.12) !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .option:hover {
+          background: #333333 !important;
+          border-color: #667eea !important;
+          box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.12) !important;
+        }
+      }
+
+      /* Liquid glass for theme/background option cards - Light mode */
+      body.liquid-glass-enabled:not(.force-dark-mode) .theme-option-content,
+      body.liquid-glass-enabled:not(.force-dark-mode)
+        .background-option-content {
+        background: rgba(255, 255, 255, 0.42) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.45) !important;
+      }
+
+      /* Liquid glass for theme/background option cards - Dark mode: keep original colors */
+      body.liquid-glass-enabled.force-dark-mode .theme-option-content,
+      body.liquid-glass-enabled.force-dark-mode .background-option-content {
+        background: #2d2d2d !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 2px solid #404040 !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .theme-option-content,
+        body.liquid-glass-enabled:not(.force-light-mode)
+          .background-option-content {
+          background: #2d2d2d !important;
+          backdrop-filter: blur(10px) !important;
+          -webkit-backdrop-filter: blur(10px) !important;
+          border: 2px solid #404040 !important;
+        }
+      }
+
+      /* Liquid glass for footer - Light mode */
+      body.liquid-glass-enabled:not(.force-dark-mode) .footer {
+        background: rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.25) !important;
+      }
+
+      /* Liquid glass for footer - Dark mode: keep original dark color, add blur */
+      body.liquid-glass-enabled.force-dark-mode .footer {
+        background: #1a1a1a !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-top-color: #404040 !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .footer {
+          background: #1a1a1a !important;
+          backdrop-filter: blur(12px) !important;
+          -webkit-backdrop-filter: blur(12px) !important;
+          border-top-color: #404040 !important;
+        }
+      }
+
+      /* Liquid glass for custom upload boxes - Light mode */
+      body.liquid-glass-enabled:not(.force-dark-mode) .custom-upload-box,
+      body.liquid-glass-enabled:not(.force-dark-mode) .custom-manager-box {
+        background: rgba(255, 255, 255, 0.42) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border: 2px dashed rgba(102, 126, 234, 0.7) !important;
+      }
+
+      /* Liquid glass for custom upload boxes - Dark mode: keep original dark colors */
+      body.liquid-glass-enabled.force-dark-mode .custom-upload-box,
+      body.liquid-glass-enabled.force-dark-mode .custom-manager-box {
+        background: #2d2d2d !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 2px dashed #667eea !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .custom-upload-box,
+        body.liquid-glass-enabled:not(.force-light-mode) .custom-manager-box {
+          background: #2d2d2d !important;
+          backdrop-filter: blur(10px) !important;
+          -webkit-backdrop-filter: blur(10px) !important;
+          border: 2px dashed #667eea !important;
+        }
+      }
+
+      /* Liquid glass for note boxes - Light mode */
+      body.liquid-glass-enabled .note {
+        background: rgba(255, 243, 205, 0.5) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-left: 4px solid #ffc107 !important;
+      }
+
+      /* Liquid glass for note boxes - Dark mode */
+      body.liquid-glass-enabled.force-dark-mode .note {
+        background: rgba(45, 36, 16, 0.7) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-left: 4px solid #ffc107 !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .note {
+          background: rgba(45, 36, 16, 0.7) !important;
+          backdrop-filter: blur(12px) !important;
+          -webkit-backdrop-filter: blur(12px) !important;
+          border-left: 4px solid #ffc107 !important;
+        }
+      }
+
+      /* Text colors for dark-mode liquid glass */
+      body.liquid-glass-enabled.force-dark-mode .section-title,
+      body.liquid-glass-enabled.force-dark-mode .option-label,
+      body.liquid-glass-enabled.force-dark-mode .option-description,
+      body.liquid-glass-enabled.force-dark-mode .footer,
+      body.liquid-glass-enabled.force-dark-mode .footer a,
+      body.liquid-glass-enabled.force-dark-mode .background-label,
+      body.liquid-glass-enabled.force-dark-mode .theme-label,
+      body.liquid-glass-enabled.force-dark-mode .custom-upload-info,
+      body.liquid-glass-enabled.force-dark-mode .custom-manager-title,
+      body.liquid-glass-enabled.force-dark-mode .custom-manager-info,
+      body.liquid-glass-enabled.force-dark-mode .note,
+      body.liquid-glass-enabled.force-dark-mode .note strong {
+        color: #e0e0e0 !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body.liquid-glass-enabled:not(.force-light-mode) .section-title,
+        body.liquid-glass-enabled:not(.force-light-mode) .option-label,
+        body.liquid-glass-enabled:not(.force-light-mode) .option-description,
+        body.liquid-glass-enabled:not(.force-light-mode) .footer,
+        body.liquid-glass-enabled:not(.force-light-mode) .footer a,
+        body.liquid-glass-enabled:not(.force-light-mode) .background-label,
+        body.liquid-glass-enabled:not(.force-light-mode) .theme-label,
+        body.liquid-glass-enabled:not(.force-light-mode) .custom-upload-info,
+        body.liquid-glass-enabled:not(.force-light-mode) .custom-manager-title,
+        body.liquid-glass-enabled:not(.force-light-mode) .custom-manager-info,
+        body.liquid-glass-enabled:not(.force-light-mode) .note,
+        body.liquid-glass-enabled:not(.force-light-mode) .note strong {
+          color: #e0e0e0 !important;
+        }
+      }
+
+      /* Smooth transitions for liquid glass */
+      body.liquid-glass-enabled * {
+        transition: background-color 400ms cubic-bezier(1, 0, 0.4, 1),
+          backdrop-filter 400ms cubic-bezier(1, 0, 0.4, 1),
+          border-color 400ms cubic-bezier(1, 0, 0.4, 1),
+          box-shadow 400ms cubic-bezier(1, 0, 0.4, 1) !important;
+      }
     </style>
   </head>
   <body>
@@ -1195,6 +1486,26 @@
             <div class="option-description">
               Add searchable dropdowns for parameter select fields. Makes it
               easier to find options in long lists.
+            </div>
+          </div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">✨</span>
+                Liquid Glass Effect
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="liquidGlass" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="option-description">
+              Apply iOS 26-style Liquid Glass effect on top of your selected
+              background. Features advanced glassmorphism, backdrop blur, and
+              reflections that make UI elements transparent and glassy,
+              beautifully showing your background through frosted glass
+              surfaces.
             </div>
           </div>
 
