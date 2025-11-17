@@ -328,7 +328,17 @@ SOFTWARE.
 
 ## Changelog
 
-### Version 1.0.9 (Latest)
+### Version 1.1.0 (Latest)
+
+**Preserve Swagger UI Default Styling:**
+- 🎨 **Swagger UI remains unchanged in default mode** - Extension no longer modifies Swagger UI's native styling when using default theme (auto theme, default background, no liquid glass)
+- 🔧 Removed file input style overrides that were affecting Swagger UI even in default mode
+- ✨ Extension features (sidebar, parameter search) continue to work perfectly while preserving Swagger UI's original appearance
+- 🎯 Only explicit theme choices (light/dark) or custom backgrounds will modify Swagger UI styling
+
+----
+
+### Version 1.0.9
 
 **Hotfix: Responsive Layout & Auto-Scroll:**
 - 🔧 Fixed responsive layout - Main page now properly shrinks to fit viewport when sidebar is visible (no horizontal scrolling)

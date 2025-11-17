@@ -1,12 +1,27 @@
-# SwaggerNav v1.0.9 Release Notes
+# SwaggerNav v1.1.0 Release Notes
 
-**Previous Version:** 1.0.8
+**Previous Version:** 1.0.9
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.0.9
+## 🎉 What's New in v1.1.0
+
+### **Preserve Swagger UI Default Styling**
+
+- 🎨 **Swagger UI remains unchanged in default mode** - Extension no longer modifies Swagger UI's native styling when using default theme (auto theme, default background, no liquid glass)
+- 🔧 Removed file input style overrides that were affecting Swagger UI even in default mode
+- ✨ Extension features (sidebar, parameter search) continue to work perfectly while preserving Swagger UI's original appearance
+- 🎯 Only explicit theme choices (light/dark) or custom backgrounds will modify Swagger UI styling
+
+### **Why This Matters**
+
+When SwaggerNav is installed with default settings, Swagger UI now looks exactly as it would without the extension. The extension adds its navigation sidebar and enhanced features without altering Swagger UI's native appearance, ensuring a seamless experience that respects the original design.
+
+---
+
+## 🎉 Previous Release: v1.0.9
 
 ### **Hotfix: Responsive Layout & Auto-Scroll**
 
@@ -68,24 +83,9 @@
 
 ---
 
-## 🔄 Upgrading from Previous Version
-
-If you're upgrading from version 1.0.6:
-
-1. **Remove the old version** (optional but recommended):
-
-   - Go to `chrome://extensions/`
-   - Click "Remove" on the old SwaggerNav extension
-
-2. **Follow the installation instructions above** to install v1.0.7
-
-3. **Your settings will be preserved** - All your preferences, pinned endpoints, and custom backgrounds are saved in Chrome's storage and will automatically be restored!
-
----
-
 ## 🎨 Complete Feature List
 
-SwaggerNav v1.0.7 includes all features from previous versions:
+SwaggerNav v1.1.0 includes all features from previous versions:
 
 ### 🧭 **Smart Navigation**
 
