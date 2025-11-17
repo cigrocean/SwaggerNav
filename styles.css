@@ -1904,6 +1904,21 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
   }
 }
 
+/* Override header colors when light theme is forced */
+body.swagger-nav-light .swagger-nav-body-json .swagger-nav-body-header,
+body.swagger-nav-force-light .swagger-nav-body-json .swagger-nav-body-header {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+  color: #1565c0 !important;
+}
+
+body.swagger-nav-light .swagger-nav-body-json .swagger-nav-body-header strong,
+body.swagger-nav-force-light
+  .swagger-nav-body-json
+  .swagger-nav-body-header
+  strong {
+  color: #1565c0 !important;
+}
+
 .swagger-nav-body-json textarea {
   border: none !important;
   border-radius: 0 !important;
@@ -1935,6 +1950,21 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
   .swagger-nav-body-form .swagger-nav-body-header strong {
     color: #81c784;
   }
+}
+
+/* Override header colors when light theme is forced */
+body.swagger-nav-light .swagger-nav-body-form .swagger-nav-body-header,
+body.swagger-nav-force-light .swagger-nav-body-form .swagger-nav-body-header {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+  color: #2e7d32 !important;
+}
+
+body.swagger-nav-light .swagger-nav-body-form .swagger-nav-body-header strong,
+body.swagger-nav-force-light
+  .swagger-nav-body-form
+  .swagger-nav-body-header
+  strong {
+  color: #2e7d32 !important;
 }
 
 .swagger-nav-form-container {
@@ -2234,9 +2264,29 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
   --sn-endpoint-text-secondary: #999 !important;
 }
 
-/* Ensure parameter search variables follow explicit dark theme on main page */
-body.swagger-nav-dark,
+/* Swagger UI theme rules (swagger-nav-force-*) - these apply to Swagger UI main page */
 body.swagger-nav-force-dark {
+  /* Form Builder - Dark Mode */
+  --sn-form-bg: #252525 !important;
+  --sn-form-border: #404040 !important;
+  --sn-form-field-bg: #2d2d2d !important;
+  --sn-form-field-border: #505050 !important;
+  --sn-form-field-hover: #555 !important;
+  --sn-form-header-bg: linear-gradient(
+    135deg,
+    #2d2d2d 0%,
+    #252525 100%
+  ) !important;
+  --sn-form-header-text: #e0e0e0 !important;
+  --sn-form-legend-bg: #2d2d2d !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #1a2332 !important;
+  --sn-form-array-border: #4a90e2 !important;
+  --sn-form-array-legend-bg: #253548 !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.5) !important;
+
+  /* Parameter Search Box - Dark Mode */
   --sn-param-search-bg: #1b1b1b !important;
   --sn-param-search-text: #e0e0e0 !important;
   --sn-param-search-border: #61affe !important;
@@ -2253,9 +2303,34 @@ body.swagger-nav-force-dark {
   --sn-endpoint-item-hover: #3a3a3a !important;
 }
 
-/* Ensure parameter search variables follow explicit light theme on main page */
-body.swagger-nav-light,
 body.swagger-nav-force-light {
+  /* Input fields - Light Mode */
+  --sn-input-bg: #ffffff !important;
+  --sn-input-border: #ddd !important;
+  --sn-input-focus-bg: #ffffff !important;
+  --sn-text-primary: #333333 !important;
+
+  /* Form Builder - Light Mode */
+  --sn-form-bg: #fafafa !important;
+  --sn-form-border: #e1e1e1 !important;
+  --sn-form-field-bg: #ffffff !important;
+  --sn-form-field-border: #e0e0e0 !important;
+  --sn-form-field-hover: #66bb6a !important;
+  --sn-form-header-bg: linear-gradient(
+    135deg,
+    #f7f9fc 0%,
+    #eef2f7 100%
+  ) !important;
+  --sn-form-header-text: #333 !important;
+  --sn-form-legend-bg: #f1f8f4 !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #fafcff !important;
+  --sn-form-array-border: #90caf9 !important;
+  --sn-form-array-legend-bg: #e3f2fd !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.1) !important;
+
+  /* Parameter Search Box - Light Mode */
   --sn-param-search-bg: #fff !important;
   --sn-param-search-text: #3b4151 !important;
   --sn-param-search-border: #61affe !important;
@@ -2270,6 +2345,275 @@ body.swagger-nav-force-light {
   --sn-endpoint-dropdown-bg: #ffffff !important;
   --sn-endpoint-item-border: #f7f7f7 !important;
   --sn-endpoint-item-hover: #f0f7ff !important;
+}
+
+/* Extension theme rules (swagger-nav-light/dark) - these ALWAYS override Swagger UI theme rules */
+/* These come AFTER Swagger UI theme rules to ensure extension features always use extension theme */
+body.swagger-nav-dark {
+  /* Form Builder - Dark Mode */
+  --sn-form-bg: #252525 !important;
+  --sn-form-border: #404040 !important;
+  --sn-form-field-bg: #2d2d2d !important;
+  --sn-form-field-border: #505050 !important;
+  --sn-form-field-hover: #555 !important;
+  --sn-form-header-bg: linear-gradient(
+    135deg,
+    #2d2d2d 0%,
+    #252525 100%
+  ) !important;
+  --sn-form-header-text: #e0e0e0 !important;
+  --sn-form-legend-bg: #2d2d2d !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #1a2332 !important;
+  --sn-form-array-border: #4a90e2 !important;
+  --sn-form-array-legend-bg: #253548 !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.5) !important;
+
+  /* Parameter Search Box - Dark Mode */
+  --sn-param-search-bg: #1b1b1b !important;
+  --sn-param-search-text: #e0e0e0 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: #2a2a2a !important;
+  --sn-param-clear-btn: #aaa !important;
+  --sn-param-item-border: #3a3a3a !important;
+  --sn-param-item-hover: #3a3a3a !important;
+  --sn-param-no-result: #888 !important;
+  --sn-endpoint-search-bg: #2a2a2a !important;
+  --sn-endpoint-search-text: #e0e0e0 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: #2a2a2a !important;
+  --sn-endpoint-item-border: #3a3a3a !important;
+  --sn-endpoint-item-hover: #3a3a3a !important;
+
+  /* Input fields - Dark Mode */
+  --sn-input-bg: #2d2d2d !important;
+  --sn-input-border: #404040 !important;
+  --sn-input-focus-bg: #333 !important;
+  --sn-text-primary: #e0e0e0 !important;
+}
+
+body.swagger-nav-light {
+  /* Input fields - Light Mode */
+  --sn-input-bg: #ffffff !important;
+  --sn-input-border: #ddd !important;
+  --sn-input-focus-bg: #ffffff !important;
+  --sn-text-primary: #333333 !important;
+
+  /* Form Builder - Light Mode */
+  --sn-form-bg: #fafafa !important;
+  --sn-form-border: #e1e1e1 !important;
+  --sn-form-field-bg: #ffffff !important;
+  --sn-form-field-border: #e0e0e0 !important;
+  --sn-form-field-hover: #66bb6a !important;
+  --sn-form-header-bg: linear-gradient(
+    135deg,
+    #f7f9fc 0%,
+    #eef2f7 100%
+  ) !important;
+  --sn-form-header-text: #333 !important;
+  --sn-form-legend-bg: #f1f8f4 !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #fafcff !important;
+  --sn-form-array-border: #90caf9 !important;
+  --sn-form-array-legend-bg: #e3f2fd !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.1) !important;
+
+  /* Parameter Search Box - Light Mode */
+  --sn-param-search-bg: #fff !important;
+  --sn-param-search-text: #3b4151 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: #ffffff !important;
+  --sn-param-clear-btn: #999 !important;
+  --sn-param-item-border: #f0f0f0 !important;
+  --sn-param-item-hover: #f0f7ff !important;
+  --sn-param-no-result: #999 !important;
+  --sn-endpoint-search-bg: #ffffff !important;
+  --sn-endpoint-search-text: #3b4151 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: #ffffff !important;
+  --sn-endpoint-item-border: #f7f7f7 !important;
+  --sn-endpoint-item-hover: #f0f7ff !important;
+}
+
+/* When system is light and user chooses light, use media query values (same as "follow system") */
+/* Use !important to override the body class values */
+/* Extension theme should take precedence even when Swagger UI theme is different */
+@media (prefers-color-scheme: light) {
+  body.swagger-nav-light {
+    /* Use same values as @media (prefers-color-scheme: light) :root */
+    --sn-input-bg: #ffffff !important;
+    --sn-input-border: #ddd !important;
+    --sn-input-focus-bg: #ffffff !important;
+    --sn-text-primary: #333333 !important;
+    --sn-form-bg: #fafafa !important;
+    --sn-form-border: #e1e1e1 !important;
+    --sn-form-field-bg: #ffffff !important;
+    --sn-form-field-border: #e0e0e0 !important;
+    --sn-form-field-hover: #66bb6a !important;
+    --sn-form-header-bg: linear-gradient(
+      135deg,
+      #f7f9fc 0%,
+      #eef2f7 100%
+    ) !important;
+    --sn-form-header-text: #333 !important;
+    --sn-form-legend-bg: #f1f8f4 !important;
+    --sn-form-legend-border: #66bb6a !important;
+    --sn-form-legend-text: #66bb6a !important;
+    --sn-form-array-bg: #fafcff !important;
+    --sn-form-array-border: #90caf9 !important;
+    --sn-form-array-legend-bg: #e3f2fd !important;
+    --sn-form-shadow: rgba(0, 0, 0, 0.1) !important;
+    --sn-param-search-bg: #fff !important;
+    --sn-param-search-text: #3b4151 !important;
+    --sn-param-search-border: #61affe !important;
+    --sn-param-dropdown-bg: white !important;
+    --sn-param-clear-btn: #999 !important;
+    --sn-param-item-border: #f0f0f0 !important;
+    --sn-param-item-hover: #f0f7ff !important;
+    --sn-param-no-result: #999 !important;
+    --sn-endpoint-search-bg: white !important;
+    --sn-endpoint-search-text: #3b4151 !important;
+    --sn-endpoint-search-border: #61affe !important;
+    --sn-endpoint-dropdown-bg: white !important;
+    --sn-endpoint-item-border: #f7f7f7 !important;
+    --sn-endpoint-item-hover: #f0f7ff !important;
+  }
+}
+
+/* When system is dark and user chooses dark, use :root defaults (same as "follow system") */
+/* Use !important to override the body class values */
+/* Extension theme should take precedence even when Swagger UI theme is different */
+@media (prefers-color-scheme: dark) {
+  body.swagger-nav-dark {
+    /* Use same values as :root (dark defaults) */
+    --sn-input-bg: #2d2d2d !important;
+    --sn-input-border: #404040 !important;
+    --sn-input-focus-bg: #333 !important;
+    --sn-text-primary: #e0e0e0 !important;
+    --sn-form-bg: #252525 !important;
+    --sn-form-border: #404040 !important;
+    --sn-form-field-bg: #2d2d2d !important;
+    --sn-form-field-border: #505050 !important;
+    --sn-form-field-hover: #555 !important;
+    --sn-form-header-bg: linear-gradient(
+      135deg,
+      #2d2d2d 0%,
+      #252525 100%
+    ) !important;
+    --sn-form-header-text: #e0e0e0 !important;
+    --sn-form-legend-bg: #2d2d2d !important;
+    --sn-form-legend-border: #66bb6a !important;
+    --sn-form-legend-text: #66bb6a !important;
+    --sn-form-array-bg: #1a2332 !important;
+    --sn-form-array-border: #4a90e2 !important;
+    --sn-form-array-legend-bg: #253548 !important;
+    --sn-form-shadow: rgba(0, 0, 0, 0.5) !important;
+    --sn-param-search-bg: #1b1b1b !important;
+    --sn-param-search-text: #e0e0e0 !important;
+    --sn-param-search-border: #61affe !important;
+    --sn-param-dropdown-bg: #2a2a2a !important;
+    --sn-param-clear-btn: #aaa !important;
+    --sn-param-item-border: #3a3a3a !important;
+    --sn-param-item-hover: #3a3a3a !important;
+    --sn-param-no-result: #888 !important;
+    --sn-endpoint-search-bg: #2a2a2a !important;
+    --sn-endpoint-search-text: #e0e0e0 !important;
+    --sn-endpoint-search-border: #61affe !important;
+    --sn-endpoint-dropdown-bg: #2a2a2a !important;
+    --sn-endpoint-item-border: #3a3a3a !important;
+    --sn-endpoint-item-hover: #3a3a3a !important;
+  }
+}
+
+/* CRITICAL: Extension theme rules must come AFTER all media queries and Swagger UI theme rules */
+/* These rules ensure extension features always use the extension theme, regardless of Swagger UI theme */
+/* When Swagger UI is light but extension theme is dark, these rules force dark mode for extension features */
+/* When Swagger UI is dark but extension theme is light, these rules force light mode for extension features */
+/* Higher specificity ensures these override Swagger UI theme rules even when both classes are present */
+body.swagger-nav-light,
+body.swagger-nav-light.swagger-nav-force-light,
+body.swagger-nav-light.swagger-nav-force-dark {
+  /* Force light mode for extension features - override any media query, :root defaults, or Swagger UI theme */
+  --sn-input-bg: #ffffff !important;
+  --sn-input-border: #ddd !important;
+  --sn-input-focus-bg: #ffffff !important;
+  --sn-text-primary: #333333 !important;
+  --sn-form-bg: #fafafa !important;
+  --sn-form-border: #e1e1e1 !important;
+  --sn-form-field-bg: #ffffff !important;
+  --sn-form-field-border: #e0e0e0 !important;
+  --sn-form-field-hover: #66bb6a !important;
+  --sn-form-header-bg: linear-gradient(
+    135deg,
+    #f7f9fc 0%,
+    #eef2f7 100%
+  ) !important;
+  --sn-form-header-text: #333 !important;
+  --sn-form-legend-bg: #f1f8f4 !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #fafcff !important;
+  --sn-form-array-border: #90caf9 !important;
+  --sn-form-array-legend-bg: #e3f2fd !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.1) !important;
+  --sn-param-search-bg: #fff !important;
+  --sn-param-search-text: #3b4151 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: #ffffff !important;
+  --sn-param-clear-btn: #999 !important;
+  --sn-param-item-border: #f0f0f0 !important;
+  --sn-param-item-hover: #f0f7ff !important;
+  --sn-param-no-result: #999 !important;
+  --sn-endpoint-search-bg: #ffffff !important;
+  --sn-endpoint-search-text: #3b4151 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: #ffffff !important;
+  --sn-endpoint-item-border: #f7f7f7 !important;
+  --sn-endpoint-item-hover: #f0f7ff !important;
+}
+
+body.swagger-nav-dark,
+body.swagger-nav-dark.swagger-nav-force-light,
+body.swagger-nav-dark.swagger-nav-force-dark {
+  /* Force dark mode for extension features - override any media query, :root defaults, or Swagger UI theme */
+  --sn-input-bg: #2d2d2d !important;
+  --sn-input-border: #404040 !important;
+  --sn-input-focus-bg: #333 !important;
+  --sn-text-primary: #e0e0e0 !important;
+  --sn-form-bg: #252525 !important;
+  --sn-form-border: #404040 !important;
+  --sn-form-field-bg: #2d2d2d !important;
+  --sn-form-field-border: #505050 !important;
+  --sn-form-field-hover: #555 !important;
+  --sn-form-header-bg: linear-gradient(
+    135deg,
+    #2d2d2d 0%,
+    #252525 100%
+  ) !important;
+  --sn-form-header-text: #e0e0e0 !important;
+  --sn-form-legend-bg: #2d2d2d !important;
+  --sn-form-legend-border: #66bb6a !important;
+  --sn-form-legend-text: #66bb6a !important;
+  --sn-form-array-bg: #1a2332 !important;
+  --sn-form-array-border: #4a90e2 !important;
+  --sn-form-array-legend-bg: #253548 !important;
+  --sn-form-shadow: rgba(0, 0, 0, 0.5) !important;
+  --sn-param-search-bg: #1b1b1b !important;
+  --sn-param-search-text: #e0e0e0 !important;
+  --sn-param-search-border: #61affe !important;
+  --sn-param-dropdown-bg: #2a2a2a !important;
+  --sn-param-clear-btn: #aaa !important;
+  --sn-param-item-border: #3a3a3a !important;
+  --sn-param-item-hover: #3a3a3a !important;
+  --sn-param-no-result: #888 !important;
+  --sn-endpoint-search-bg: #2a2a2a !important;
+  --sn-endpoint-search-text: #e0e0e0 !important;
+  --sn-endpoint-search-border: #61affe !important;
+  --sn-endpoint-dropdown-bg: #2a2a2a !important;
+  --sn-endpoint-item-border: #3a3a3a !important;
+  --sn-endpoint-item-hover: #3a3a3a !important;
 }
 
 /* =====================================================================
@@ -2370,6 +2714,13 @@ body.swagger-nav-force-light .swagger-ui select {
   border-color: #d9d9d9 !important;
 }
 
+/* JSON View textarea in forced light theme */
+body.swagger-nav-force-light .swagger-nav-body-json textarea {
+  background-color: #ffffff !important;
+  color: #3b4151 !important;
+  border-color: #d9d9d9 !important;
+}
+
 body.swagger-nav-force-light .swagger-ui .btn {
   background-color: #4990e2 !important;
   color: #ffffff !important;
@@ -2464,6 +2815,13 @@ body.swagger-nav-force-dark .swagger-ui .opblock-body {
 body.swagger-nav-force-dark .swagger-ui input,
 body.swagger-nav-force-dark .swagger-ui textarea,
 body.swagger-nav-force-dark .swagger-ui select {
+  background-color: #2d2d2d !important;
+  color: #e0e0e0 !important;
+  border-color: #404040 !important;
+}
+
+/* JSON View textarea in forced dark theme */
+body.swagger-nav-force-dark .swagger-nav-body-json textarea {
   background-color: #2d2d2d !important;
   color: #e0e0e0 !important;
   border-color: #404040 !important;
@@ -4412,4 +4770,143 @@ body.swagger-nav-liquid-glass.swagger-nav-dark.swagger-nav-bg-custom
   tr
   td {
   background-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+/* =====================================================================
+   NETWORK ERROR POPUP
+   Shows when server is dead or internet is disconnected
+   ===================================================================== */
+
+.swagger-nav-error-popup {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  z-index: 100000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  max-width: 500px;
+  width: calc(100% - 40px);
+}
+
+.swagger-nav-error-popup.active {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.swagger-nav-error-popup-content {
+  background: var(--sn-bg-secondary);
+  border: 2px solid #ff6b6b;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+.swagger-nav-error-popup-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.swagger-nav-error-popup-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.swagger-nav-error-popup-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sn-text-title);
+  margin-bottom: 4px;
+}
+
+.swagger-nav-error-popup-message {
+  font-size: 14px;
+  color: var(--sn-text-secondary);
+  line-height: 1.4;
+}
+
+.swagger-nav-error-popup-reload {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swagger-nav-error-popup-reload:hover {
+  background: #ff5252;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+/* Recovery state (server is back) - green styling */
+.swagger-nav-error-popup.recovery .swagger-nav-error-popup-content {
+  border-color: #4caf50;
+  background: var(--sn-bg-secondary);
+}
+
+.swagger-nav-error-popup.recovery .swagger-nav-error-popup-reload {
+  background: #4caf50;
+}
+
+.swagger-nav-error-popup.recovery .swagger-nav-error-popup-reload:hover {
+  background: #45a049;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.swagger-nav-error-popup-reload:active {
+  transform: scale(0.98);
+}
+
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+  .swagger-nav-error-popup-content {
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .swagger-nav-error-popup-content {
+    background: #2d2d2d;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .swagger-nav-error-popup {
+    top: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .swagger-nav-error-popup-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .swagger-nav-error-popup-reload {
+    width: 100%;
+    justify-content: center;
+  }
 }

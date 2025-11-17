@@ -4,7 +4,8 @@
 const DEFAULT_SETTINGS = {
   autoTryOut: true,
   autoExpand: true,
-  theme: "auto", // "light", "dark", or "auto"
+  swaggerUITheme: "auto", // "light", "dark", or "auto"
+  extensionTheme: "auto", // "light", "dark", or "auto"
   background: "default", // "default", "ocean", "tet", "christmas", "too_many_bugs"
   enableFormView: true,
   enableParamSearch: true,
@@ -28,8 +29,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Add change listeners to theme radio buttons
-  const themeRadios = document.querySelectorAll('input[name="theme"]');
-  themeRadios.forEach((radio) => {
+  const swaggerUIThemeRadios = document.querySelectorAll('input[name="swaggerUITheme"]');
+  swaggerUIThemeRadios.forEach((radio) => {
+    radio.addEventListener("change", saveSettings);
+  });
+
+  const extensionThemeRadios = document.querySelectorAll('input[name="extensionTheme"]');
+  extensionThemeRadios.forEach((radio) => {
     radio.addEventListener("change", saveSettings);
   });
 
@@ -54,6 +60,18 @@ async function loadSettings() {
   try {
     const result = await chrome.storage.sync.get(DEFAULT_SETTINGS);
 
+    // Backward compatibility: migrate old "theme" setting to both new settings
+    if (result.theme && !result.swaggerUITheme && !result.extensionTheme) {
+      result.swaggerUITheme = result.theme;
+      result.extensionTheme = result.theme;
+      // Save migrated settings
+      await chrome.storage.sync.set({
+        swaggerUITheme: result.theme,
+        extensionTheme: result.theme,
+      });
+      console.log("SwaggerNav: Migrated theme setting to swaggerUITheme and extensionTheme");
+    }
+
     // Apply settings to UI
     document.getElementById("autoTryOut").checked = result.autoTryOut;
     document.getElementById("autoExpand").checked = result.autoExpand;
@@ -62,11 +80,18 @@ async function loadSettings() {
       result.enableParamSearch;
     document.getElementById("liquidGlass").checked = result.liquidGlass;
 
-    // Apply theme radio selection
-    const themeValue = result.theme || "auto";
-    const themeRadio = document.getElementById(`theme-${themeValue}`);
-    if (themeRadio) {
-      themeRadio.checked = true;
+    // Apply Swagger UI theme radio selection
+    const swaggerUIThemeValue = result.swaggerUITheme || "auto";
+    const swaggerUIThemeRadio = document.getElementById(`swaggerUITheme-${swaggerUIThemeValue}`);
+    if (swaggerUIThemeRadio) {
+      swaggerUIThemeRadio.checked = true;
+    }
+
+    // Apply Extension theme radio selection
+    const extensionThemeValue = result.extensionTheme || "auto";
+    const extensionThemeRadio = document.getElementById(`extensionTheme-${extensionThemeValue}`);
+    if (extensionThemeRadio) {
+      extensionThemeRadio.checked = true;
     }
 
     // Apply background radio selection
@@ -83,8 +108,8 @@ async function loadSettings() {
       toggleCustomBackgroundUploader(true);
     }
 
-    // Apply theme to options page
-    applyOptionsPageTheme(result.theme || "auto");
+    // Apply theme to options page (use extension theme for options page)
+    applyOptionsPageTheme(extensionThemeValue);
 
     // Apply liquid glass to options page
     applyLiquidGlassToOptions(result.liquidGlass || false);
@@ -98,9 +123,13 @@ async function loadSettings() {
 // Save settings to chrome.storage
 async function saveSettings() {
   try {
-    // Get theme from radio buttons
-    const themeRadio = document.querySelector('input[name="theme"]:checked');
-    const theme = themeRadio ? themeRadio.value : "auto";
+    // Get Swagger UI theme from radio buttons
+    const swaggerUIThemeRadio = document.querySelector('input[name="swaggerUITheme"]:checked');
+    const swaggerUITheme = swaggerUIThemeRadio ? swaggerUIThemeRadio.value : "auto";
+
+    // Get Extension theme from radio buttons
+    const extensionThemeRadio = document.querySelector('input[name="extensionTheme"]:checked');
+    const extensionTheme = extensionThemeRadio ? extensionThemeRadio.value : "auto";
 
     // Get background from radio buttons
     const backgroundRadio = document.querySelector(
@@ -111,15 +140,16 @@ async function saveSettings() {
     const settings = {
       autoTryOut: document.getElementById("autoTryOut").checked,
       autoExpand: document.getElementById("autoExpand").checked,
-      theme: theme,
+      swaggerUITheme: swaggerUITheme,
+      extensionTheme: extensionTheme,
       background: background,
       enableFormView: document.getElementById("enableFormView").checked,
       enableParamSearch: document.getElementById("enableParamSearch").checked,
       liquidGlass: document.getElementById("liquidGlass").checked,
     };
 
-    // Apply theme when theme changes
-    applyOptionsPageTheme(theme);
+    // Apply theme when extension theme changes (options page uses extension theme)
+    applyOptionsPageTheme(extensionTheme);
 
     // Apply liquid glass when it changes
     applyLiquidGlassToOptions(settings.liquidGlass);

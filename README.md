@@ -41,6 +41,12 @@ A Chrome extension that supercharges Swagger UI with a powerful navigation sideb
 - 💾 **Persistent Settings** - Your preferences are saved and synced
 - 🎨 **Adaptive UI** - Options page follows your theme preference
 
+### 🔔 **Network Monitoring**
+- 🌐 **Connection Error Detection** - Automatically detects when the server is down or internet is disconnected
+- 🔄 **Auto Health Checks** - Periodic health checks every 30 seconds to monitor server status
+- ⚠️ **Error Popup** - Shows a popup with reload button when connection issues are detected
+- 🎯 **Smart Detection** - Monitors both network connectivity and API server health
+
 ## Screenshots
 
 ![SwaggerNav Screenshot](https://github.com/user-attachments/assets/f9ceec9f-e031-493a-a3ad-fc61b07b4ff3)
@@ -328,7 +334,24 @@ SOFTWARE.
 
 ## Changelog
 
-### Version 1.1.1 (Latest)
+### Version 1.1.2 (Latest)
+
+**Network Error Detection & Monitoring:**
+- 🔔 **Connection error popup** - Shows a popup notification when the server is down or internet is disconnected, with a reload button for quick recovery
+- 🌐 **Automatic health checks** - Performs periodic health checks every 30 seconds to monitor server status, even when the page is idle
+- ⚠️ **Smart error detection** - Monitors both network connectivity (online/offline events) and API server health (intercepts fetch/XHR calls)
+- 🎯 **Accurate error detection** - Only shows errors for actual server failures (5xx errors), not client errors (4xx) or timeouts, preventing false positives
+- 🔄 **Auto-recovery detection** - Automatically detects when server is back online and shows recovery popup with reload button
+- 🚫 **Swagger UI only** - Network monitoring only runs on Swagger UI pages, not on other websites
+
+**Theme & Performance Improvements:**
+- 🎨 **Theme isolation** - Themes and CSS classes are only applied on Swagger UI pages, preventing any styling from affecting other websites
+- 🔇 **Silent on other pages** - Console logs only appear on Swagger UI pages, keeping other pages' console clean
+- ⚡ **Optimized performance** - All extension features (themes, backgrounds, liquid glass) check page type before executing, reducing overhead on non-Swagger pages
+
+-----
+
+### Version 1.1.1
 
 **Liquid Glass & Settings Improvements:**
 - ✨ **Liquid Glass toggle now applies immediately** - Changes take effect instantly when toggling Liquid Glass in options page

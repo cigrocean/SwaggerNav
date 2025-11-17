@@ -1,12 +1,41 @@
-# SwaggerNav v1.1.1 Release Notes
+# SwaggerNav v1.1.2 Release Notes
 
-**Previous Version:** 1.1.0
+**Previous Version:** 1.1.1
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.1
+## 🎉 What's New in v1.1.2
+
+### **Network Error Detection & Monitoring**
+
+- 🔔 **Connection error popup** - Shows a popup notification when the server is down or internet is disconnected, with a reload button for quick recovery
+- 🌐 **Automatic health checks** - Performs periodic health checks every 30 seconds to monitor server status, even when the page is idle
+- ⚠️ **Smart error detection** - Monitors both network connectivity (online/offline events) and API server health (intercepts fetch/XHR calls)
+- 🎯 **Accurate error detection** - Only shows errors for actual server failures (5xx errors), not client errors (4xx) or timeouts, preventing false positives
+- 🔄 **Auto-recovery detection** - Automatically detects when server is back online and shows recovery popup with reload button
+- 🚫 **Swagger UI only** - Network monitoring only runs on Swagger UI pages, not on other websites
+
+### **Theme & Performance Improvements**
+
+- 🎨 **Theme isolation** - Themes and CSS classes are only applied on Swagger UI pages, preventing any styling from affecting other websites
+- 🔇 **Silent on other pages** - Console logs only appear on Swagger UI pages, keeping other pages' console clean
+- ⚡ **Optimized performance** - All extension features (themes, backgrounds, liquid glass) check page type before executing, reducing overhead on non-Swagger pages
+
+### **Technical Improvements**
+
+- Added `setupNetworkErrorDetection()` to listen for browser online/offline events
+- Added `setupNetworkErrorInterception()` to intercept `fetch` and `XMLHttpRequest` calls to detect server errors (5xx) and network failures
+- Implemented `performHealthCheck()` that only checks web server connectivity and relies on intercepted API calls for actual failures
+- Added `isSwaggerUIPage()` helper function for consistent page detection
+- Created conditional logging functions (`swaggerNavLog`, `swaggerNavError`, `swaggerNavWarn`) that only log on Swagger UI pages
+- Added early returns in all theme functions to prevent execution on non-Swagger pages
+- Health checks run every 30 seconds after initial 10-second delay, only on Swagger UI pages
+
+---
+
+## 🎉 Previous Release: v1.1.1
 
 ### **Liquid Glass & Settings Improvements**
 
@@ -103,7 +132,7 @@ When SwaggerNav is installed with default settings, Swagger UI now looks exactly
 
 ## 🎨 Complete Feature List
 
-SwaggerNav v1.1.1 includes all features from previous versions:
+SwaggerNav v1.1.2 includes all features from previous versions:
 
 ### 🧭 **Smart Navigation**
 

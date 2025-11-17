@@ -3,6 +3,43 @@
 
 // VERSION is loaded from version.js
 
+// Helper function to check if current page is Swagger UI
+function isSwaggerUIPage() {
+  return !!(
+    document.querySelector('.swagger-ui') ||
+    document.querySelector('#swagger-ui') ||
+    document.querySelector('[data-testid="swagger-ui"]') ||
+    document.querySelector('.opblock') ||
+    document.querySelector('.swagger-container') ||
+    window.ui ||
+    window.swaggerUi
+  );
+}
+
+// Conditional logging - only log on Swagger UI pages
+function swaggerNavLog(...args) {
+  if (isSwaggerUIPage()) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+
+// Conditional error logging - only log on Swagger UI pages
+function swaggerNavError(...args) {
+  if (isSwaggerUIPage()) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
+  }
+}
+
+// Conditional warning logging - only log on Swagger UI pages
+function swaggerNavWarn(...args) {
+  if (isSwaggerUIPage()) {
+    // eslint-disable-next-line no-console
+    swaggerNavWarn(...args);
+  }
+}
+
 class SwaggerNavigator {
   constructor() {
     this.navBar = null;
@@ -17,6 +54,11 @@ class SwaggerNavigator {
     this.currentEndpointId = null; // Track currently selected endpoint
     this.activeMethodFilters = new Set(); // Track active method filters
     this.setupStorageListener(); // Listen for settings changes from options page
+    this.errorPopup = null; // Network error popup
+    this.isOffline = false; // Track offline status
+    this.healthCheckInterval = null; // Health check interval ID
+    this.lastHealthCheckSuccess = true; // Track last health check result
+    // Don't setup network error detection here - will be called in setup() after Swagger UI is detected
   }
 
   // Load pinned endpoints from localStorage
@@ -25,7 +67,7 @@ class SwaggerNavigator {
       const stored = localStorage.getItem("swagger-nav-pinned");
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
-      console.error("SwaggerNav: Error loading pinned endpoints", error);
+      swaggerNavError("SwaggerNav: Error loading pinned endpoints", error);
       return [];
     }
   }
@@ -38,7 +80,7 @@ class SwaggerNavigator {
         JSON.stringify(this.pinnedEndpoints)
       );
     } catch (error) {
-      console.error("SwaggerNav: Error saving pinned endpoints", error);
+      swaggerNavError("SwaggerNav: Error saving pinned endpoints", error);
     }
   }
 
@@ -48,7 +90,7 @@ class SwaggerNavigator {
       const stored = localStorage.getItem("swagger-nav-sidebar-hidden");
       return stored === "true"; // Returns true if hidden, false otherwise
     } catch (error) {
-      console.error("SwaggerNav: Error loading sidebar state", error);
+      swaggerNavError("SwaggerNav: Error loading sidebar state", error);
       return false; // Default to visible
     }
   }
@@ -58,7 +100,7 @@ class SwaggerNavigator {
     try {
       localStorage.setItem("swagger-nav-sidebar-hidden", isHidden.toString());
     } catch (error) {
-      console.error("SwaggerNav: Error saving sidebar state", error);
+      swaggerNavError("SwaggerNav: Error saving sidebar state", error);
     }
   }
 
@@ -67,13 +109,13 @@ class SwaggerNavigator {
     try {
       const stored = localStorage.getItem("swagger-nav-search-history");
       const history = stored ? JSON.parse(stored) : [];
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Loaded ${history.length} items from search history:`,
         history
       );
       return history;
     } catch (error) {
-      console.error("SwaggerNav: Error loading search history", error);
+      swaggerNavError("SwaggerNav: Error loading search history", error);
       return [];
     }
   }
@@ -87,7 +129,7 @@ class SwaggerNavigator {
         JSON.stringify(historyToSave)
       );
     } catch (error) {
-      console.error("SwaggerNav: Error saving search history", error);
+      swaggerNavError("SwaggerNav: Error saving search history", error);
     }
   }
 
@@ -112,7 +154,7 @@ class SwaggerNavigator {
     }
 
     this.saveSearchHistory();
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: ${
         wasExisting ? "Moved" : "Added"
       } "${trimmedQuery}" to search history. Total: ${
@@ -125,7 +167,7 @@ class SwaggerNavigator {
   removeFromSearchHistory(query) {
     this.searchHistory = this.searchHistory.filter((item) => item !== query);
     this.saveSearchHistory();
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Removed "${query}" from search history. Remaining: ${this.searchHistory.length} items`
     );
   }
@@ -135,7 +177,7 @@ class SwaggerNavigator {
     const count = this.searchHistory.length;
     this.searchHistory = [];
     this.saveSearchHistory();
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Cleared all search history (${count} items removed)`
     );
   }
@@ -146,7 +188,8 @@ class SwaggerNavigator {
     const defaults = {
       autoExpand: true,
       autoTryOut: true,
-      theme: "auto", // "light", "dark", or "auto"
+      swaggerUITheme: "auto", // "light", "dark", or "auto"
+      extensionTheme: "auto", // "light", "dark", or "auto"
       background: "default", // "default", "ocean", "tet", "christmas", "too_many_bugs"
       enableFormView: true,
       enableParamSearch: true,
@@ -155,17 +198,33 @@ class SwaggerNavigator {
 
     // Load from chrome.storage asynchronously
     chrome.storage.sync.get(defaults, (result) => {
+      // Backward compatibility: migrate old "theme" setting to both new settings
+      if (result.theme && !result.swaggerUITheme && !result.extensionTheme) {
+        result.swaggerUITheme = result.theme;
+        result.extensionTheme = result.theme;
+        // Save migrated settings
+        chrome.storage.sync.set({
+          swaggerUITheme: result.theme,
+          extensionTheme: result.theme,
+        }, () => {
+          swaggerNavLog("SwaggerNav: Migrated theme setting to swaggerUITheme and extensionTheme");
+        });
+      }
+
       this.settings = result;
-      console.log(
+      swaggerNavLog(
         "SwaggerNav: Settings loaded from chrome.storage",
         this.settings
       );
 
-      // Re-apply theme and background now that settings are loaded
-      this.applyNavBarTheme();
-
-      // Apply liquid glass effect if enabled
-      this.applyLiquidGlass();
+      // Re-apply themes and background now that settings are loaded
+      // Only apply on Swagger UI pages
+      if (isSwaggerUIPage()) {
+        this.applySwaggerUITheme();
+        this.applyNavBarTheme();
+        // Apply liquid glass effect if enabled
+        this.applyLiquidGlass();
+      }
 
       // Refresh UI if navbar already exists
       if (this.navBar) {
@@ -180,13 +239,13 @@ class SwaggerNavigator {
   saveSettings() {
     try {
       chrome.storage.sync.set(this.settings, () => {
-        console.log(
+        swaggerNavLog(
           "SwaggerNav: Settings saved to chrome.storage",
           this.settings
         );
       });
     } catch (error) {
-      console.error("SwaggerNav: Error saving settings", error);
+      swaggerNavError("SwaggerNav: Error saving settings", error);
     }
   }
 
@@ -229,7 +288,7 @@ class SwaggerNavigator {
       }
     });
 
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Saved scroll: ${savedScrollTop}px, search: "${currentSearchQuery}", expanded sections:`,
       expandedSections
     );
@@ -237,11 +296,11 @@ class SwaggerNavigator {
     if (index >= 0) {
       // Unpin
       this.pinnedEndpoints.splice(index, 1);
-      console.log(`SwaggerNav: Unpinned ${method} ${path}`);
+      swaggerNavLog(`SwaggerNav: Unpinned ${method} ${path}`);
     } else {
       // Pin
       this.pinnedEndpoints.push({ method, path, endpointId, tag });
-      console.log(`SwaggerNav: Pinned ${method} ${path} from ${tag}`);
+      swaggerNavLog(`SwaggerNav: Pinned ${method} ${path} from ${tag}`);
     }
 
     this.savePinnedEndpoints();
@@ -289,7 +348,7 @@ class SwaggerNavigator {
         if (newSearchInput && currentSearchQuery) {
           newSearchInput.value = currentSearchQuery;
           this.filterEndpoints(currentSearchQuery);
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Restored search query: "${currentSearchQuery}"`
           );
         }
@@ -297,7 +356,7 @@ class SwaggerNavigator {
         // Restore scroll position
         if (newContentArea) {
           newContentArea.scrollTop = savedScrollTop;
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Restored ${expandedSections.length} sections and scroll to ${savedScrollTop}px`
           );
         }
@@ -312,7 +371,7 @@ class SwaggerNavigator {
     const count = this.pinnedEndpoints.length;
     this.pinnedEndpoints = [];
     this.savePinnedEndpoints();
-    console.log(`SwaggerNav: Unpinned all ${count} endpoints`);
+    swaggerNavLog(`SwaggerNav: Unpinned all ${count} endpoints`);
     this.refreshNavBar();
   }
 
@@ -337,8 +396,13 @@ class SwaggerNavigator {
     if (window.matchMedia) {
       const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
       darkModeQuery.addEventListener("change", (e) => {
+        // Only apply theme changes on Swagger UI pages
+        if (!isSwaggerUIPage()) {
+          return;
+        }
+        
         this.theme = e.matches ? "dark" : "light";
-        console.log(`SwaggerNav: Theme changed to ${this.theme} mode`);
+        swaggerNavLog(`SwaggerNav: Theme changed to ${this.theme} mode`);
         this.updateThemeIndicator();
 
         // Apply theme to Swagger UI and sidebar
@@ -353,35 +417,65 @@ class SwaggerNavigator {
     if (chrome.storage && chrome.storage.onChanged) {
       chrome.storage.onChanged.addListener((changes, areaName) => {
         if (areaName === "sync") {
-          console.log("SwaggerNav: Settings changed", changes);
+          // Only apply theme changes on Swagger UI pages
+          if (!isSwaggerUIPage()) {
+            // Still update local settings, but don't apply themes
+            for (const [key, { newValue }] of Object.entries(changes)) {
+              this.settings[key] = newValue;
+            }
+            return;
+          }
+          
+          swaggerNavLog("SwaggerNav: Settings changed", changes);
 
           // Update local settings
           for (const [key, { newValue }] of Object.entries(changes)) {
             this.settings[key] = newValue;
           }
 
-          // React to theme changes
-          if (changes.theme) {
-            console.log(
-              `SwaggerNav: Theme changed to ${changes.theme.newValue}`
+          // React to theme changes - apply immediately
+          if (changes.swaggerUITheme) {
+            swaggerNavLog(
+              `SwaggerNav: Swagger UI theme changed to ${changes.swaggerUITheme.newValue}`
             );
-            // Apply new theme
+            // Apply new Swagger UI theme
+            this.applySwaggerUITheme();
+            this.applySwaggerTheme();
+            // Extension features and backgrounds follow Swagger UI theme, so update them too
+            this.applyNavBarTheme();
+            this.applyNavBarBackground();
+          }
+          if (changes.extensionTheme) {
+            swaggerNavLog(
+              `SwaggerNav: Extension theme changed to ${changes.extensionTheme.newValue}`
+            );
+            // Apply new extension theme (affects sidebar only)
+            this.applyNavBarTheme();
+          }
+          // Backward compatibility: handle old "theme" setting
+          if (changes.theme && !changes.swaggerUITheme && !changes.extensionTheme) {
+            swaggerNavLog(
+              `SwaggerNav: Theme changed to ${changes.theme.newValue} (migrating to separate themes)`
+            );
+            // Apply to both
+            this.applySwaggerUITheme();
             this.applySwaggerTheme();
             this.applyNavBarTheme();
+            this.applyNavBarBackground();
           }
 
           // React to background changes
           if (changes.background) {
-            console.log(
+            swaggerNavLog(
               `SwaggerNav: Background changed to ${changes.background.newValue}`
             );
-            // Apply new background
+            // Apply new background (uses Swagger UI theme for variant selection)
             this.applyNavBarBackground();
           }
 
           // React to liquid glass changes
           if (changes.liquidGlass) {
-            console.log(
+            swaggerNavLog(
               `SwaggerNav: Liquid Glass ${
                 changes.liquidGlass.newValue ? "enabled" : "disabled"
               }`
@@ -389,6 +483,7 @@ class SwaggerNavigator {
             // Apply or remove liquid glass effect
             this.applyLiquidGlass();
             // Also update theme classes since liquid glass CSS requires theme classes on body
+            this.applySwaggerUITheme();
             this.applyNavBarTheme();
           }
 
@@ -399,11 +494,14 @@ class SwaggerNavigator {
     }
   }
 
-  // Apply theme to SwaggerNav sidebar
-  applyNavBarTheme() {
-    if (!this.navBar) return;
-
-    const themeMode = this.settings.theme || "auto";
+  // Apply theme to Swagger UI main page (body classes for Swagger UI styling)
+  applySwaggerUITheme() {
+    // CRITICAL: Only apply theme on Swagger UI pages
+    if (!isSwaggerUIPage()) {
+      return;
+    }
+    
+    const swaggerUITheme = this.settings.swaggerUITheme || this.settings.theme || "auto";
     const backgroundTheme = this.settings.background || "default";
     const liquidGlassEnabled = this.settings.liquidGlass || false;
 
@@ -412,44 +510,92 @@ class SwaggerNavigator {
     // NOTE: If liquid glass is enabled, we need theme classes on body for liquid glass CSS to work
     const shouldModifySwaggerUI = backgroundTheme !== "default" || liquidGlassEnabled;
 
-    // Remove all theme classes first
-    this.navBar.classList.remove("swagger-nav-dark", "swagger-nav-light");
+    // Remove Swagger UI theme classes from body
     document.body.classList.remove(
       "swagger-nav-force-light",
-      "swagger-nav-force-dark",
-      "swagger-nav-light",
-      "swagger-nav-dark"
+      "swagger-nav-force-dark"
     );
 
-    if (themeMode === "light") {
-      // Force light mode for sidebar
-      this.navBar.classList.add("swagger-nav-light");
+    if (swaggerUITheme === "light") {
       // Only add force classes to body if we should modify Swagger UI
       if (shouldModifySwaggerUI) {
         document.body.classList.add("swagger-nav-force-light");
-        document.body.classList.add("swagger-nav-light");
       }
-    } else if (themeMode === "dark") {
-      // Force dark mode for sidebar
-      this.navBar.classList.add("swagger-nav-dark");
+    } else if (swaggerUITheme === "dark") {
       // Only add force classes to body if we should modify Swagger UI
       if (shouldModifySwaggerUI) {
         document.body.classList.add("swagger-nav-force-dark");
-        document.body.classList.add("swagger-nav-dark");
       }
     } else {
       // Auto mode - follow OS theme
-      if (this.theme === "dark") {
-        this.navBar.classList.add("swagger-nav-dark");
-        // Only add theme class to body if we should modify Swagger UI
-        if (shouldModifySwaggerUI) {
-          document.body.classList.add("swagger-nav-dark");
+      // Only add theme class to body if we should modify Swagger UI
+      if (shouldModifySwaggerUI) {
+        if (this.theme === "dark") {
+          document.body.classList.add("swagger-nav-force-dark");
+        } else {
+          document.body.classList.add("swagger-nav-force-light");
         }
+      }
+    }
+  }
+
+  // Apply theme to extension (sidebar and extension features like JSON/Form View, param search)
+  applyNavBarTheme() {
+    // CRITICAL: Only apply theme on Swagger UI pages
+    if (!isSwaggerUIPage()) {
+      return;
+    }
+    
+    const extensionTheme = this.settings.extensionTheme || this.settings.theme || "auto";
+    const swaggerUITheme = this.settings.swaggerUITheme || this.settings.theme || "auto";
+    const backgroundTheme = this.settings.background || "default";
+    const liquidGlassEnabled = this.settings.liquidGlass || false;
+
+    // Remove extension theme classes from body first (for extension features like JSON/Form View, param search)
+    document.body.classList.remove("swagger-nav-light", "swagger-nav-dark");
+
+    // Extension features (JSON View, Form View, param search) ALWAYS follow Swagger UI theme, not extension theme
+    // This ensures they match the main Swagger UI page appearance
+    // Only add theme classes if we need to style extension features (when background is not default or liquid glass is enabled)
+    // OR if Swagger UI theme is explicitly set (not auto)
+    const needsExtensionFeatureStyling = backgroundTheme !== "default" || liquidGlassEnabled || swaggerUITheme !== "auto";
+    
+    if (needsExtensionFeatureStyling) {
+      if (swaggerUITheme === "light") {
+        document.body.classList.add("swagger-nav-light");
+        swaggerNavLog("SwaggerNav: Applied light theme to extension features (following Swagger UI light)");
+      } else if (swaggerUITheme === "dark") {
+        document.body.classList.add("swagger-nav-dark");
+        swaggerNavLog("SwaggerNav: Applied dark theme to extension features (following Swagger UI dark)");
       } else {
-        this.navBar.classList.add("swagger-nav-light");
-        // Only add theme class to body if we should modify Swagger UI
-        if (shouldModifySwaggerUI) {
+        // Swagger UI in auto mode - follow system theme
+        if (this.theme === "dark") {
+          document.body.classList.add("swagger-nav-dark");
+          swaggerNavLog("SwaggerNav: Applied dark theme to extension features (Swagger UI auto, system is dark)");
+        } else {
           document.body.classList.add("swagger-nav-light");
+          swaggerNavLog("SwaggerNav: Applied light theme to extension features (Swagger UI auto, system is light)");
+        }
+      }
+    } else {
+      swaggerNavLog("SwaggerNav: No extension feature styling needed (Swagger UI default, no background, no liquid glass)");
+    }
+
+    // Apply theme to sidebar if it exists
+    if (this.navBar) {
+      // Remove all theme classes from sidebar
+      this.navBar.classList.remove("swagger-nav-dark", "swagger-nav-light");
+
+      if (extensionTheme === "light") {
+        this.navBar.classList.add("swagger-nav-light");
+      } else if (extensionTheme === "dark") {
+        this.navBar.classList.add("swagger-nav-dark");
+      } else {
+        // Auto mode - follow OS theme
+        if (this.theme === "dark") {
+          this.navBar.classList.add("swagger-nav-dark");
+        } else {
+          this.navBar.classList.add("swagger-nav-light");
         }
       }
     }
@@ -460,6 +606,11 @@ class SwaggerNavigator {
 
   // Apply background to Swagger UI page (body element)
   async applyNavBarBackground() {
+    // CRITICAL: Only apply background on Swagger UI pages
+    if (!isSwaggerUIPage()) {
+      return;
+    }
+    
     if (!this.navBar) return;
 
     const backgroundTheme = this.settings.background || "default";
@@ -484,7 +635,7 @@ class SwaggerNavigator {
     const existingBlurStyle = document.getElementById("swagger-nav-bg-blur");
     if (existingBlurStyle) {
       existingBlurStyle.remove();
-      console.log("SwaggerNav: Removed existing background blur/tint style");
+      swaggerNavLog("SwaggerNav: Removed existing background blur/tint style");
     }
 
     // Handle custom background
@@ -516,12 +667,12 @@ class SwaggerNavigator {
         // Apply background class to body
         document.body.classList.add(bgClass);
 
-        // Determine which theme version to use (light or dark)
-        const themeMode = this.settings.theme || "auto";
+        // Determine which theme version to use (light or dark) - use Swagger UI theme for backgrounds
+        const swaggerUITheme = this.settings.swaggerUITheme || this.settings.theme || "auto";
         let isDark = false;
-        if (themeMode === "dark") {
+        if (swaggerUITheme === "dark") {
           isDark = true;
-        } else if (themeMode === "light") {
+        } else if (swaggerUITheme === "light") {
           isDark = false;
         } else {
           // Auto mode - follow OS
@@ -573,12 +724,12 @@ class SwaggerNavigator {
         `;
         document.head.appendChild(blurStyle);
 
-        console.log(
+        swaggerNavLog(
           `SwaggerNav: Applied background ${bgClass} (${themeVariant}) to Swagger UI page with tint`
         );
       }
     } else {
-      console.log(
+      swaggerNavLog(
         "SwaggerNav: Using default background (no custom background or tint)"
       );
     }
@@ -595,7 +746,7 @@ class SwaggerNavigator {
       const result = await chrome.storage.local.get(["customBackground"]);
 
       if (!result.customBackground) {
-        console.log(
+        swaggerNavLog(
           "SwaggerNav: No custom background found, falling back to default"
         );
         // Fall back to default if no custom background exists
@@ -607,12 +758,12 @@ class SwaggerNavigator {
       // Apply custom background class
       document.body.classList.add("swagger-nav-bg-custom");
 
-      // Determine theme
-      const themeMode = this.settings.theme || "auto";
+      // Determine theme - use Swagger UI theme for backgrounds
+      const swaggerUITheme = this.settings.swaggerUITheme || this.settings.theme || "auto";
       let isDark = false;
-      if (themeMode === "dark") {
+      if (swaggerUITheme === "dark") {
         isDark = true;
-      } else if (themeMode === "light") {
+      } else if (swaggerUITheme === "light") {
         isDark = false;
       } else {
         // Auto mode - follow OS
@@ -658,12 +809,12 @@ class SwaggerNavigator {
       `;
       document.head.appendChild(blurStyle);
 
-      console.log("SwaggerNav: Applied custom background with tint");
+      swaggerNavLog("SwaggerNav: Applied custom background with tint");
 
       // Re-apply Swagger theme
       this.applySwaggerTheme();
     } catch (error) {
-      console.error("SwaggerNav: Error applying custom background", error);
+      swaggerNavError("SwaggerNav: Error applying custom background", error);
       // Fall back to default on error
       this.settings.background = "default";
       await chrome.storage.sync.set({ background: "default" });
@@ -675,7 +826,7 @@ class SwaggerNavigator {
     const existingStyle = document.getElementById("swagger-nav-theme-style");
     if (existingStyle) {
       existingStyle.remove();
-      console.log("SwaggerNav: Removed Swagger UI theme override");
+      swaggerNavLog("SwaggerNav: Removed Swagger UI theme override");
     }
   }
 
@@ -697,8 +848,7 @@ class SwaggerNavigator {
   // Apply theme to Swagger UI page (Proper Dark Mode)
   applySwaggerTheme() {
     // CRITICAL: Only apply theme on Swagger UI pages
-    if (!this.isSwaggerUI) {
-      console.log("SwaggerNav: Skipping theme - not a Swagger UI page");
+    if (!isSwaggerUIPage()) {
       return;
     }
 
@@ -708,7 +858,7 @@ class SwaggerNavigator {
       existingStyle.remove();
     }
 
-    const themeMode = this.settings.theme || "auto";
+    const themeMode = this.settings.swaggerUITheme || this.settings.theme || "auto";
 
     // Determine if we should apply dark theme
     let isDark = false;
@@ -725,7 +875,7 @@ class SwaggerNavigator {
     const hasCustomBackground =
       this.settings.background && this.settings.background !== "default";
 
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Applying Swagger UI theme (${
         isDark ? "dark" : "light"
       }) with hasCustomBackground: ${hasCustomBackground}`
@@ -1242,7 +1392,7 @@ class SwaggerNavigator {
     }
 
     document.head.appendChild(style);
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Applied ${isDark ? "dark" : "light"} theme to Swagger UI`
     );
   }
@@ -1252,15 +1402,14 @@ class SwaggerNavigator {
     const existingStyle = document.getElementById("swagger-nav-theme-style");
     if (existingStyle) {
       existingStyle.remove();
-      console.log("SwaggerNav: Removed theme styling from Swagger UI");
+      swaggerNavLog("SwaggerNav: Removed theme styling from Swagger UI");
     }
   }
 
   // Apply or remove Liquid Glass effect
   applyLiquidGlass() {
     // Only apply on Swagger UI pages
-    if (!this.isSwaggerUI) {
-      console.log("SwaggerNav: Skipping liquid glass - not a Swagger UI page");
+    if (!isSwaggerUIPage()) {
       return;
     }
 
@@ -1269,13 +1418,13 @@ class SwaggerNavigator {
     if (liquidGlassEnabled) {
       // Add liquid glass class to body - keeps existing background underneath
       document.body.classList.add("swagger-nav-liquid-glass");
-      console.log(
+      swaggerNavLog(
         "SwaggerNav: Liquid Glass effect enabled on top of existing background"
       );
     } else {
       // Remove liquid glass class from body
       document.body.classList.remove("swagger-nav-liquid-glass");
-      console.log("SwaggerNav: Liquid Glass effect disabled");
+      swaggerNavLog("SwaggerNav: Liquid Glass effect disabled");
     }
   }
 
@@ -1304,13 +1453,24 @@ class SwaggerNavigator {
     this.isSwaggerUI = this.detectSwaggerUI();
 
     if (!this.isSwaggerUI) {
-      // Not a Swagger UI page, check again after a delay (for SPAs)
+      // Not a Swagger UI page - restore original functions if interceptors were installed
+      this.restoreOriginalFunctions();
+      // Stop any health checks
+      this.stopHealthCheck();
+      // Hide any error popups
+      this.hideErrorPopup();
+      
+      // Check again after a delay (for SPAs)
       setTimeout(() => {
         this.isSwaggerUI = this.detectSwaggerUI();
         if (this.isSwaggerUI) {
           // Apply theme immediately when detected
           this.applySwaggerTheme();
           this.setup();
+        } else {
+          // Still not Swagger UI - make sure everything is cleaned up
+          this.restoreOriginalFunctions();
+          this.stopHealthCheck();
         }
       }, 2000);
       return;
@@ -1324,7 +1484,7 @@ class SwaggerNavigator {
 
   // Setup the navigation
   setup() {
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Initializing with ${this.theme} mode (OS preference)`
     );
 
@@ -1334,9 +1494,32 @@ class SwaggerNavigator {
       this.createNavBar();
       this.setupObserver();
       this.setupSwaggerUISync();
+      
+      // Double-check we're still on Swagger UI page before setting up network monitoring
+      const isSwaggerUIPage = !!(
+        document.querySelector('.swagger-ui') ||
+        document.querySelector('#swagger-ui') ||
+        document.querySelector('[data-testid="swagger-ui"]') ||
+        document.querySelector('.opblock') ||
+        document.querySelector('.swagger-container') ||
+        window.ui ||
+        window.swaggerUi
+      );
+      
+      if (isSwaggerUIPage) {
+        this.setupNetworkErrorDetection(); // Setup network error detection (online/offline events)
+        this.setupNetworkErrorInterception(); // Intercept API calls to detect server errors
+        this.startHealthCheck(); // Start periodic health checks
+      } else {
+        // Not Swagger UI - restore functions and stop everything
+        this.restoreOriginalFunctions();
+        this.stopHealthCheck();
+      }
 
-      // Apply theme
+      // Apply themes
+      this.applySwaggerUITheme();
       this.applySwaggerTheme();
+      this.applyNavBarTheme();
 
       // Apply liquid glass effect if enabled
       this.applyLiquidGlass();
@@ -1430,7 +1613,7 @@ class SwaggerNavigator {
     const opblocks = document.querySelectorAll(".opblock");
 
     if (opblocks.length === 0) {
-      console.log("SwaggerNav: No operations found yet");
+      swaggerNavLog("SwaggerNav: No operations found yet");
       return;
     }
 
@@ -1487,7 +1670,7 @@ class SwaggerNavigator {
         }
         tagGroups[tag].push(endpoint);
       } catch (error) {
-        console.error("SwaggerNav: Error parsing endpoint", error);
+        swaggerNavError("SwaggerNav: Error parsing endpoint", error);
       }
     });
 
@@ -1497,14 +1680,14 @@ class SwaggerNavigator {
       endpoints,
     }));
 
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Found ${opblocks.length} endpoints in ${this.endpoints.length} tags`
     );
   }
 
   // Refresh the navigation bar
   refreshNavBar() {
-    console.log("SwaggerNav: Refreshing navigation bar");
+    swaggerNavLog("SwaggerNav: Refreshing navigation bar");
     this.createNavBar();
   }
 
@@ -1718,7 +1901,7 @@ class SwaggerNavigator {
     this.removeFloatingShowButton();
 
     if (this.endpoints.length === 0) {
-      console.log("SwaggerNav: No endpoints to display");
+      swaggerNavLog("SwaggerNav: No endpoints to display");
       return;
     }
 
@@ -2130,7 +2313,7 @@ class SwaggerNavigator {
       this.createFloatingShowButton();
     }
 
-    console.log("SwaggerNav: Navigation bar created");
+    swaggerNavLog("SwaggerNav: Navigation bar created");
   }
 
   // Setup event listeners
@@ -2187,7 +2370,7 @@ class SwaggerNavigator {
     const syncBtn = this.navBar.querySelector(".swagger-nav-sync-btn");
     if (syncBtn) {
       syncBtn.addEventListener("click", () => {
-        console.log("SwaggerNav: Manual sync triggered");
+        swaggerNavLog("SwaggerNav: Manual sync triggered");
         this.syncToCurrentSwaggerState();
       });
     }
@@ -2196,7 +2379,7 @@ class SwaggerNavigator {
     const settingsBtn = this.navBar.querySelector(".swagger-nav-settings-btn");
     if (settingsBtn) {
       settingsBtn.addEventListener("click", () => {
-        console.log(
+        swaggerNavLog(
           "SwaggerNav: Requesting service worker to open options page"
         );
 
@@ -2206,16 +2389,16 @@ class SwaggerNavigator {
           { action: "openOptionsPage" },
           (response) => {
             if (chrome.runtime.lastError) {
-              console.error(
+              swaggerNavError(
                 "SwaggerNav: Error sending message to service worker",
                 chrome.runtime.lastError
               );
               // Fallback: try opening directly as a last resort
               window.open(chrome.runtime.getURL("options.html"), "_blank");
             } else if (response && response.success) {
-              console.log("SwaggerNav: Options page opened successfully");
+              swaggerNavLog("SwaggerNav: Options page opened successfully");
             } else {
-              console.error(
+              swaggerNavError(
                 "SwaggerNav: Service worker failed to open options page",
                 response?.error
               );
@@ -2231,8 +2414,8 @@ class SwaggerNavigator {
       ".swagger-nav-search-clear"
     );
 
-    console.log(`SwaggerNav: Found searchInput:`, !!searchInput);
-    console.log(
+    swaggerNavLog(`SwaggerNav: Found searchInput:`, !!searchInput);
+    swaggerNavLog(
       `SwaggerNav: Found searchClearBtn:`,
       !!searchClearBtn,
       searchClearBtn
@@ -2398,11 +2581,11 @@ class SwaggerNavigator {
 
   // Setup enhanced search with dropdown functionality
   setupEnhancedSearch(searchInput, searchClearBtn) {
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: setupEnhancedSearch - clearBtn exists:`,
       !!searchClearBtn
     );
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: setupEnhancedSearch - clearBtn element:`,
       searchClearBtn
     );
@@ -2476,12 +2659,12 @@ class SwaggerNavigator {
 
       const lowerQuery = query.toLowerCase().trim();
 
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Enhanced dropdown - search history items: ${
           this.searchHistory?.length || 0
         }`
       );
-      console.log(`SwaggerNav: Enhanced dropdown - query: "${query}"`);
+      swaggerNavLog(`SwaggerNav: Enhanced dropdown - query: "${query}"`);
 
       // Section 1: Search History (if query is empty or matches history)
       if (this.searchHistory && this.searchHistory.length > 0) {
@@ -2662,11 +2845,11 @@ class SwaggerNavigator {
       if (searchClearBtn) {
         const shouldShow = searchInput.value ? "flex" : "none";
         searchClearBtn.style.display = shouldShow;
-        console.log(
+        swaggerNavLog(
           `SwaggerNav: Clear button visibility - input: "${searchInput.value}", display: ${shouldShow}`
         );
       } else {
-        console.log(`SwaggerNav: Clear button not found!`);
+        swaggerNavLog(`SwaggerNav: Clear button not found!`);
       }
     };
 
@@ -2688,7 +2871,7 @@ class SwaggerNavigator {
       if (query.trim().length > 0) {
         searchTimeout = setTimeout(() => {
           this.addToSearchHistory(query);
-          console.log(`SwaggerNav: Auto-saved search "${query}" to history`);
+          swaggerNavLog(`SwaggerNav: Auto-saved search "${query}" to history`);
           // Refresh dropdown to show updated history
           if (enhancedDropdown.style.display === "block") {
             showEnhancedDropdown(searchInput.value);
@@ -2791,10 +2974,10 @@ class SwaggerNavigator {
       this.filterEndpoints(searchInput.value);
     }
 
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Enhanced search setup complete. Initial value: "${searchInput.value}", Clear btn visible: ${searchClearBtn?.style.display}`
     );
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Search history loaded with ${
         this.searchHistory?.length || 0
       } items:`,
@@ -2991,30 +3174,30 @@ class SwaggerNavigator {
 
   // Scroll to specific endpoint with eye-catching animation
   scrollToEndpoint(endpointId) {
-    console.log(`SwaggerNav: scrollToEndpoint called with ID: ${endpointId}`);
+    swaggerNavLog(`SwaggerNav: scrollToEndpoint called with ID: ${endpointId}`);
 
     const attemptScroll = (retryCount = 0) => {
       const element = document.getElementById(endpointId);
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Element found (attempt ${retryCount + 1}):`,
         element
       );
 
       if (!element) {
         if (retryCount < 3) {
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Element not found yet, retrying in 500ms...`
           );
           setTimeout(() => attemptScroll(retryCount + 1), 500);
         } else {
-          console.warn(
+          swaggerNavWarn(
             `SwaggerNav: Could not find element ${endpointId} after 3 attempts`
           );
         }
         return;
       }
 
-      console.log(`SwaggerNav: Navigating to endpoint ${endpointId}`);
+      swaggerNavLog(`SwaggerNav: Navigating to endpoint ${endpointId}`);
 
       // Ensure responsive constraints are applied before scrolling
       if (this.navBar && !this.navBar.classList.contains('hidden')) {
@@ -3034,7 +3217,7 @@ class SwaggerNavigator {
           behavior: "smooth",
         });
 
-        console.log(
+        swaggerNavLog(
           `SwaggerNav: Scrolled to endpoint with ${offset}px offset for visibility`
         );
       }, 100);
@@ -3047,7 +3230,7 @@ class SwaggerNavigator {
           const ariaExpanded = element
             .querySelector("[aria-expanded]")
             ?.getAttribute("aria-expanded");
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Endpoint ${endpointId} is currently ${
               isOpen ? "open" : "closed"
             } (aria-expanded: ${ariaExpanded})`
@@ -3069,18 +3252,18 @@ class SwaggerNavigator {
             }
           }
 
-          console.log(`SwaggerNav: Clickable element:`, clickableElement);
-          console.log(
+          swaggerNavLog(`SwaggerNav: Clickable element:`, clickableElement);
+          swaggerNavLog(
             `SwaggerNav: Clickable element tagName:`,
             clickableElement?.tagName
           );
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Clickable element aria-expanded:`,
             clickableElement?.getAttribute("aria-expanded")
           );
 
           if (clickableElement && !isOpen) {
-            console.log(
+            swaggerNavLog(
               `SwaggerNav: Found clickable element, expanding endpoint`
             );
             // Use MouseEvent for more reliable clicking
@@ -3092,13 +3275,13 @@ class SwaggerNavigator {
             });
             clickableElement.dispatchEvent(mouseEvent);
 
-            console.log(
+            swaggerNavLog(
               `SwaggerNav: Dispatched click event to expand endpoint ${endpointId}`
             );
 
             // After expansion animation completes, re-scroll to ensure visibility
             setTimeout(() => {
-              console.log(
+              swaggerNavLog(
                 `SwaggerNav: Re-scrolling to endpoint ${endpointId} after expansion`
               );
               const elementRect = element.getBoundingClientRect();
@@ -3108,7 +3291,7 @@ class SwaggerNavigator {
                 top: absoluteElementTop - offset,
                 behavior: "smooth",
               });
-              console.log(
+              swaggerNavLog(
                 `SwaggerNav: Re-scrolled to maintain ${offset}px offset after expansion`
               );
             }, 600); // Wait for expansion animation to complete
@@ -3124,12 +3307,12 @@ class SwaggerNavigator {
             setTimeout(() => {
               const newAriaExpanded =
                 clickableElement.getAttribute("aria-expanded");
-              console.log(
+              swaggerNavLog(
                 `SwaggerNav: After click, aria-expanded is now: ${newAriaExpanded}`
               );
             }, 200);
           } else if (isOpen) {
-            console.log(`SwaggerNav: Endpoint ${endpointId} already open`);
+            swaggerNavLog(`SwaggerNav: Endpoint ${endpointId} already open`);
             // If already open and autoTryOut is enabled, try clicking the button
             if (this.settings.autoTryOut) {
               setTimeout(() => {
@@ -3137,7 +3320,7 @@ class SwaggerNavigator {
               }, 300);
             }
           } else {
-            console.warn(
+            swaggerNavWarn(
               `SwaggerNav: Could not find clickable element for endpoint ${endpointId}`
             );
           }
@@ -3193,7 +3376,7 @@ class SwaggerNavigator {
 
   // Click "Try it out" button after endpoint is expanded
   clickTryItOut(endpointElement, endpointId) {
-    console.log(`SwaggerNav: Looking for "Try it out" button in ${endpointId}`);
+    swaggerNavLog(`SwaggerNav: Looking for "Try it out" button in ${endpointId}`);
 
     // Find the "Try it out" button within the expanded endpoint
     const tryItOutBtn = endpointElement.querySelector(".btn.try-out__btn");
@@ -3201,20 +3384,20 @@ class SwaggerNavigator {
     if (tryItOutBtn) {
       // Check if button text says "Try it out" (not "Cancel" which means it's already activated)
       const buttonText = tryItOutBtn.textContent.trim();
-      console.log(`SwaggerNav: Found button with text: "${buttonText}"`);
+      swaggerNavLog(`SwaggerNav: Found button with text: "${buttonText}"`);
 
       if (buttonText.toLowerCase().includes("try it out")) {
-        console.log(
+        swaggerNavLog(
           `SwaggerNav: Clicking "Try it out" button for ${endpointId}`
         );
         tryItOutBtn.click();
       } else {
-        console.log(
+        swaggerNavLog(
           `SwaggerNav: Button already activated (shows "${buttonText}")`
         );
       }
     } else {
-      console.log(`SwaggerNav: "Try it out" button not found in ${endpointId}`);
+      swaggerNavLog(`SwaggerNav: "Try it out" button not found in ${endpointId}`);
     }
   }
 
@@ -3233,7 +3416,7 @@ class SwaggerNavigator {
       });
 
       if (hasRelevantChanges) {
-        console.log("SwaggerNav: Detected changes, refreshing...");
+        swaggerNavLog("SwaggerNav: Detected changes, refreshing...");
         // Debounce the refresh
         clearTimeout(this.refreshTimeout);
         this.refreshTimeout = setTimeout(() => {
@@ -3283,7 +3466,7 @@ class SwaggerNavigator {
       }, 100);
     });
 
-    console.log("SwaggerNav: Swagger UI sync enabled");
+    swaggerNavLog("SwaggerNav: Swagger UI sync enabled");
   }
 
   // Check and sync to current Swagger UI state on initial load
@@ -3295,7 +3478,7 @@ class SwaggerNavigator {
         // Try to find expanded endpoint in Swagger UI
         const expandedOpblock = document.querySelector(".opblock.is-open");
         if (expandedOpblock && expandedOpblock.id) {
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Initial sync to expanded endpoint: ${expandedOpblock.id}`
           );
           this.syncToSwaggerUI(expandedOpblock.id);
@@ -3319,7 +3502,7 @@ class SwaggerNavigator {
           const opblocks = document.querySelectorAll(".opblock");
           for (const opblock of opblocks) {
             if (opblock.id && hash.includes(opblock.id)) {
-              console.log(
+              swaggerNavLog(
                 `SwaggerNav: Initial sync to hash endpoint: ${opblock.id}`
               );
               this.syncToSwaggerUI(opblock.id);
@@ -3341,7 +3524,7 @@ class SwaggerNavigator {
       // Fallback: check if any endpoint is already expanded (without hash)
       const expandedOpblock = document.querySelector(".opblock.is-open");
       if (expandedOpblock && expandedOpblock.id) {
-        console.log(
+        swaggerNavLog(
           `SwaggerNav: Initial sync to expanded endpoint: ${expandedOpblock.id}`
         );
         this.syncToSwaggerUI(expandedOpblock.id);
@@ -3437,7 +3620,7 @@ class SwaggerNavigator {
         targetItem.classList.remove("active-nav");
       }, 2500);
 
-      console.log(`SwaggerNav: Synced to endpoint ${endpointId}`);
+      swaggerNavLog(`SwaggerNav: Synced to endpoint ${endpointId}`);
     }
   }
 
@@ -3473,7 +3656,7 @@ class SwaggerNavigator {
           this.showCopyFeedback(button, true);
         })
         .catch((err) => {
-          console.error("SwaggerNav: Failed to copy", err);
+          swaggerNavError("SwaggerNav: Failed to copy", err);
           this.fallbackCopy(text, button);
         });
     } else {
@@ -3495,7 +3678,7 @@ class SwaggerNavigator {
       const successful = document.execCommand("copy");
       this.showCopyFeedback(button, successful);
     } catch (err) {
-      console.error("SwaggerNav: Fallback copy failed", err);
+      swaggerNavError("SwaggerNav: Fallback copy failed", err);
       this.showCopyFeedback(button, false);
     }
 
@@ -3537,7 +3720,7 @@ class SwaggerNavigator {
   // ==============================================================================
 
   setupParameterEnhancements() {
-    console.log("SwaggerNav: Setting up parameter enhancements...");
+    swaggerNavLog("SwaggerNav: Setting up parameter enhancements...");
 
     // Setup mutation observer to watch for "Try it out" mode
     this.paramEnhancementObserver = new MutationObserver(() => {
@@ -3572,19 +3755,19 @@ class SwaggerNavigator {
   enhanceParameters() {
     // Prevent re-entrance (don't process if already processing)
     if (this.isEnhancing) {
-      console.log(
+      swaggerNavLog(
         "SwaggerNav: Already enhancing, skipping to prevent duplicates"
       );
       return;
     }
 
     this.isEnhancing = true;
-    console.log("SwaggerNav: Starting enhancement (locked)");
+    swaggerNavLog("SwaggerNav: Starting enhancement (locked)");
 
     // CRITICAL: Disconnect observer while we modify DOM to prevent infinite loop!
     if (this.paramEnhancementObserver) {
       this.paramEnhancementObserver.disconnect();
-      console.log("SwaggerNav: Observer DISCONNECTED");
+      swaggerNavLog("SwaggerNav: Observer DISCONNECTED");
     }
 
     try {
@@ -3592,7 +3775,7 @@ class SwaggerNavigator {
       const opblocks = document.querySelectorAll(
         ".swagger-ui .opblock.is-open"
       );
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: enhanceParameters - found ${opblocks.length} open opblocks`
       );
 
@@ -3602,7 +3785,7 @@ class SwaggerNavigator {
         const isTryItOutActive = !!cancelButton;
 
         if (!isTryItOutActive) {
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Opblock ${index} - not in "Try it out" mode, hiding enhancements`
           );
 
@@ -3622,7 +3805,7 @@ class SwaggerNavigator {
             ".swagger-nav-body-container"
           );
           formContainers.forEach((container) => {
-            console.log(
+            swaggerNavLog(
               "SwaggerNav: Removing form builder container and restoring wrapper"
             );
             // Clean up polling interval
@@ -3634,7 +3817,7 @@ class SwaggerNavigator {
             if (hiddenWrapper && hiddenWrapper.style.display === "none") {
               // Unhide the original wrapper
               hiddenWrapper.style.display = "";
-              console.log("SwaggerNav: Restored original wrapper visibility");
+              swaggerNavLog("SwaggerNav: Restored original wrapper visibility");
             }
             // Remove our container
             container.remove();
@@ -3659,7 +3842,7 @@ class SwaggerNavigator {
           return;
         }
 
-        console.log(
+        swaggerNavLog(
           `SwaggerNav: Opblock ${index} - in "Try it out" mode, enhancing...`
         );
 
@@ -3708,7 +3891,7 @@ class SwaggerNavigator {
     } finally {
       // Always unlock, even if there's an error
       this.isEnhancing = false;
-      console.log("SwaggerNav: Enhancement complete (unlocked)");
+      swaggerNavLog("SwaggerNav: Enhancement complete (unlocked)");
 
       // CRITICAL: Reconnect observer after we're done modifying DOM
       if (this.paramEnhancementObserver) {
@@ -3720,7 +3903,7 @@ class SwaggerNavigator {
             attributes: true,
             attributeFilter: ["class"],
           });
-          console.log("SwaggerNav: Observer RECONNECTED");
+          swaggerNavLog("SwaggerNav: Observer RECONNECTED");
         }
       }
     }
@@ -3732,19 +3915,19 @@ class SwaggerNavigator {
 
   addSearchableSelects(opblock) {
     const paramRows = opblock.querySelectorAll(".parameters tbody tr");
-    console.log(`SwaggerNav: Found ${paramRows.length} parameter rows`);
+    swaggerNavLog(`SwaggerNav: Found ${paramRows.length} parameter rows`);
 
     paramRows.forEach((row, index) => {
       const select = row.querySelector("select");
       if (!select) {
-        console.log(`SwaggerNav: Row ${index} - no select found`);
+        swaggerNavLog(`SwaggerNav: Row ${index} - no select found`);
         return;
       }
 
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Row ${index} - found select with ${select.options.length} options`
       );
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Row ${index} - select parent:`,
         select.parentNode?.tagName,
         select.parentNode?.className
@@ -3755,13 +3938,13 @@ class SwaggerNavigator {
         // Verify the search wrapper actually exists in DOM
         const existingWrapper = row.querySelector(".swagger-nav-select-search");
         if (existingWrapper) {
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Row ${index} - already enhanced and wrapper exists`
           );
           return;
         } else {
           // Wrapper was removed (endpoint was collapsed/reopened), reset flag
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Row ${index} - was marked as enhanced but wrapper is missing, resetting...`
           );
           select.dataset.swaggerNavSearchable = "";
@@ -3818,9 +4001,9 @@ class SwaggerNavigator {
         }
 
         select.parentNode.insertBefore(searchWrapper, select);
-        console.log(`SwaggerNav: Row ${index} - search input added`);
+        swaggerNavLog(`SwaggerNav: Row ${index} - search input added`);
       } catch (error) {
-        console.error(`SwaggerNav: Row ${index} - ERROR:`, error);
+        swaggerNavError(`SwaggerNav: Row ${index} - ERROR:`, error);
       }
 
       // Store original options
@@ -4081,7 +4264,7 @@ class SwaggerNavigator {
       let lastSelectedValue = select.value;
       const selectPollInterval = setInterval(() => {
         if (select.value !== lastSelectedValue) {
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Row ${index} - Select value changed (polling detected - likely Reset button)`
           );
           lastSelectedValue = select.value;
@@ -4106,11 +4289,11 @@ class SwaggerNavigator {
   // ==============================================================================
 
   addFormBuilder(opblock) {
-    console.log("SwaggerNav: addFormBuilder called");
+    swaggerNavLog("SwaggerNav: addFormBuilder called");
 
     // Find ALL textareas - look for textareas that look like JSON request bodies
     const allTextareas = opblock.querySelectorAll("textarea");
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Found ${allTextareas.length} textareas in opblock`
     );
 
@@ -4120,7 +4303,7 @@ class SwaggerNavigator {
     for (const textarea of allTextareas) {
       // Skip clones that we created
       if (textarea.dataset.swaggerNavClone === "true") {
-        console.log("SwaggerNav: Skipping clone textarea");
+        swaggerNavLog("SwaggerNav: Skipping clone textarea");
         continue;
       }
 
@@ -4147,13 +4330,13 @@ class SwaggerNavigator {
 
         if (hasHiddenWrapper && hasContainer) {
           // Truly enhanced - wrapper hidden and container exists
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Textarea already enhanced (verified), skipping`
           );
           continue;
         } else {
           // Flag was set but container doesn't exist - reset
-          console.log(
+          swaggerNavLog(
             `SwaggerNav: Textarea flag set but container missing (wrapper hidden: ${hasHiddenWrapper}, container: ${hasContainer}), resetting...`
           );
           textarea.dataset.swaggerNavFormBuilder = "";
@@ -4167,12 +4350,12 @@ class SwaggerNavigator {
           .substr(2, 9)}`;
       }
 
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Found JSON textarea ${
           enhancedCount + 1
         } to enhance! (ID: ${textarea.dataset.swaggerNavTextareaId})`
       );
-      console.log(
+      swaggerNavLog(
         "SwaggerNav: Parent element:",
         textarea.parentNode?.tagName,
         textarea.parentNode?.className
@@ -4187,21 +4370,21 @@ class SwaggerNavigator {
     }
 
     if (enhancedCount === 0) {
-      console.log("SwaggerNav: No JSON textareas found to enhance");
+      swaggerNavLog("SwaggerNav: No JSON textareas found to enhance");
     } else {
-      console.log(`SwaggerNav: Enhanced ${enhancedCount} textarea(s)`);
+      swaggerNavLog(`SwaggerNav: Enhanced ${enhancedCount} textarea(s)`);
     }
   }
 
   createFormBuilderForTextarea(textarea, opblock) {
     const textareaId = textarea.dataset.swaggerNavTextareaId || "unknown";
-    console.log(`SwaggerNav: Creating form builder for textarea ${textareaId}`);
+    swaggerNavLog(`SwaggerNav: Creating form builder for textarea ${textareaId}`);
 
     // Create container for side-by-side layout
     const container = document.createElement("div");
     container.className = "swagger-nav-body-container";
     container.dataset.textareaId = textareaId; // Link container to textarea
-    console.log(`SwaggerNav: Created container for textarea ${textareaId}`);
+    swaggerNavLog(`SwaggerNav: Created container for textarea ${textareaId}`);
 
     // Wrap existing textarea in left panel
     const leftPanel = document.createElement("div");
@@ -4214,7 +4397,7 @@ class SwaggerNavigator {
 
     // Get reference to original textarea parent
     const textareaWrapper = textarea.parentNode;
-    console.log("SwaggerNav: Textarea wrapper:", textareaWrapper);
+    swaggerNavLog("SwaggerNav: Textarea wrapper:", textareaWrapper);
 
     // IMPORTANT: Don't move the original textarea! Clone it instead
     // This preserves Swagger UI's original structure
@@ -4245,7 +4428,7 @@ class SwaggerNavigator {
     let lastTextareaValue = textarea.value;
     const textareaPollInterval = setInterval(() => {
       if (textarea.value !== lastTextareaValue) {
-        console.log(
+        swaggerNavLog(
           "SwaggerNav: Textarea value changed (polling detected - likely Reset button)"
         );
         lastTextareaValue = textarea.value;
@@ -4278,7 +4461,7 @@ class SwaggerNavigator {
     // Always show both JSON and Form View together
     container.appendChild(leftPanel);
     container.appendChild(rightPanel);
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Panels added to container for textarea ${textareaId}`
     );
 
@@ -4287,7 +4470,7 @@ class SwaggerNavigator {
 
     // Insert our container after the hidden wrapper
     textareaWrapper.after(container);
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Inserted container for textarea ${textareaId} after wrapper (wrapper now hidden)`
     );
 
@@ -4298,7 +4481,7 @@ class SwaggerNavigator {
     const totalContainers = opblock.querySelectorAll(
       ".swagger-nav-body-container"
     ).length;
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: Total containers in this opblock: ${totalContainers}`
     );
 
@@ -4309,7 +4492,7 @@ class SwaggerNavigator {
     // Track when form inputs have focus
     formContainer.addEventListener("focusin", () => {
       isFormFocused = true;
-      console.log("SwaggerNav: Form has focus, pausing textarea sync");
+      swaggerNavLog("SwaggerNav: Form has focus, pausing textarea sync");
     });
 
     formContainer.addEventListener("focusout", () => {
@@ -4317,7 +4500,7 @@ class SwaggerNavigator {
       setTimeout(() => {
         if (!formContainer.contains(document.activeElement)) {
           isFormFocused = false;
-          console.log("SwaggerNav: Form lost focus, resuming textarea sync");
+          swaggerNavLog("SwaggerNav: Form lost focus, resuming textarea sync");
         }
       }, 50);
     });
@@ -4325,7 +4508,7 @@ class SwaggerNavigator {
     textareaClone.addEventListener("input", () => {
       // Don't rebuild form if user is actively typing in it
       if (isFormFocused) {
-        console.log(
+        swaggerNavLog(
           "SwaggerNav: Skipping form rebuild - user is typing in form"
         );
         return;
@@ -4341,7 +4524,7 @@ class SwaggerNavigator {
   buildFormFromJSON(textarea, formContainer) {
     const isClone = textarea.dataset.swaggerNavClone === "true";
     const textareaId = textarea.dataset.swaggerNavTextareaId || "unknown";
-    console.log(
+    swaggerNavLog(
       `SwaggerNav: buildFormFromJSON called for ${
         isClone ? "clone of " : ""
       }textarea ${textareaId}`
@@ -4355,7 +4538,7 @@ class SwaggerNavigator {
       (focusedElement.tagName === "INPUT" ||
         focusedElement.tagName === "TEXTAREA")
     ) {
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Skipping form rebuild - user is typing in ${focusedElement.tagName}`
       );
       return;
@@ -4374,13 +4557,13 @@ class SwaggerNavigator {
 
       // Build form fields
       this.buildFormFields(data, formContainer, "", textarea);
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Form built successfully for textarea ${textareaId}`
       );
     } catch (error) {
       formContainer.innerHTML =
         '<p class="swagger-nav-form-error">Invalid JSON</p>';
-      console.log(
+      swaggerNavLog(
         `SwaggerNav: Form build error for textarea ${textareaId}:`,
         error
       );
@@ -4599,7 +4782,7 @@ class SwaggerNavigator {
             inputValue === "-." ||
             inputValue.endsWith(".")
           ) {
-            console.log(
+            swaggerNavLog(
               `SwaggerNav: Allowing partial number input "${inputValue}" during typing`
             );
             return; // Skip update, let user finish typing
@@ -4607,7 +4790,7 @@ class SwaggerNavigator {
 
           const parsed = parseFloat(inputValue);
           if (isNaN(parsed)) {
-            console.warn(
+            swaggerNavWarn(
               `SwaggerNav: Invalid number "${inputValue}", defaulting to 0`
             );
             value = 0;
@@ -4636,7 +4819,7 @@ class SwaggerNavigator {
       textarea.dispatchEvent(new Event("change", { bubbles: true }));
       textarea.dispatchEvent(new Event("input", { bubbles: true }));
     } catch (error) {
-      console.error("SwaggerNav: Failed to update JSON from form", error);
+      swaggerNavError("SwaggerNav: Failed to update JSON from form", error);
     }
   }
 
@@ -4656,10 +4839,632 @@ class SwaggerNavigator {
 
     current[parts[parts.length - 1]] = value;
   }
+
+  // Setup network error detection (offline/online events)
+  setupNetworkErrorDetection() {
+    // Only setup on Swagger UI pages
+    if (!this.isSwaggerUI) {
+      return;
+    }
+
+    // Check initial online status
+    this.isOffline = !navigator.onLine;
+    if (this.isOffline) {
+      this.showErrorPopup("No internet connection");
+    }
+
+    // Listen for online/offline events
+    const onlineHandler = () => {
+      // Check if still on Swagger UI page
+      if (!this.isSwaggerUI) return;
+      this.isOffline = false;
+      this.hideErrorPopup();
+      swaggerNavLog("SwaggerNav: Internet connection restored");
+    };
+
+    const offlineHandler = () => {
+      // Check if still on Swagger UI page
+      if (!this.isSwaggerUI) return;
+      this.isOffline = true;
+      this.showErrorPopup("No internet connection");
+      swaggerNavLog("SwaggerNav: Internet connection lost");
+    };
+
+    window.addEventListener("online", onlineHandler);
+    window.addEventListener("offline", offlineHandler);
+
+    // Store handlers for cleanup (though content scripts are per-page, this is good practice)
+    this._onlineHandler = onlineHandler;
+    this._offlineHandler = offlineHandler;
+  }
+
+  // Intercept fetch and XMLHttpRequest to detect server errors
+  setupNetworkErrorInterception() {
+    // CRITICAL: Check DOM/UI FIRST to detect if this is actually a Swagger UI page
+    // Don't rely on this.isSwaggerUI alone - check the actual page state
+    const isSwaggerUIPage = !!(
+      document.querySelector('.swagger-ui') ||
+      document.querySelector('#swagger-ui') ||
+      document.querySelector('[data-testid="swagger-ui"]') ||
+      document.querySelector('.opblock') ||
+      document.querySelector('.swagger-container') ||
+      window.ui ||
+      window.swaggerUi
+    );
+
+    // If not a Swagger UI page, restore original functions and return immediately
+    if (!isSwaggerUIPage) {
+      this.restoreOriginalFunctions();
+      return;
+    }
+
+    // Only proceed if we're actually on a Swagger UI page
+
+    // Store original functions if not already stored
+    if (!window._swaggerNavOriginalFetch) {
+      window._swaggerNavOriginalFetch = window.fetch;
+    }
+    if (!XMLHttpRequest.prototype._swaggerNavOriginalSend) {
+      XMLHttpRequest.prototype._swaggerNavOriginalSend = XMLHttpRequest.prototype.send;
+    }
+    if (!XMLHttpRequest.prototype._swaggerNavOriginalOpen) {
+      XMLHttpRequest.prototype._swaggerNavOriginalOpen = XMLHttpRequest.prototype.open;
+    }
+
+    const originalFetch = window._swaggerNavOriginalFetch;
+    const self = this;
+
+    // Helper to check if current page is Swagger UI (shared for both fetch and XHR)
+    const isCurrentPageSwaggerUI = () => {
+      return !!(
+        document.querySelector('.swagger-ui') ||
+        document.querySelector('#swagger-ui') ||
+        document.querySelector('[data-testid="swagger-ui"]') ||
+        document.querySelector('.opblock') ||
+        document.querySelector('.swagger-container') ||
+        window.ui ||
+        window.swaggerUi
+      );
+    };
+
+    // Only install interceptors if not already installed or if we need to update them
+    if (!window._swaggerNavFetchInstalled || window.fetch !== window._swaggerNavInterceptedFetch) {
+      window._swaggerNavInterceptedFetch = function(...args) {
+        // Check page state FIRST - if not Swagger UI, use original fetch immediately
+        if (!isCurrentPageSwaggerUI()) {
+          return originalFetch.apply(this, args);
+        }
+
+        return originalFetch.apply(this, args)
+          .then((response) => {
+            // Double-check page state before processing
+            if (!isCurrentPageSwaggerUI()) {
+              return response;
+            }
+
+            // Only show error for server errors (5xx) or network errors (status 0)
+            // 4xx errors (like 404) are client errors, not server down
+            if (response.status >= 500 || response.status === 0) {
+              self.showErrorPopup(
+                response.status === 0 
+                  ? "Cannot connect to server" 
+                  : `Server error (${response.status})`
+              );
+              self.lastHealthCheckSuccess = false;
+            } else if (response.ok || (response.status >= 200 && response.status < 500)) {
+              // Server is responding - check if Swagger UI is missing (error page showing)
+              const swaggerUIPresent = isCurrentPageSwaggerUI();
+              if (!swaggerUIPresent && !self.lastHealthCheckSuccess) {
+                // Swagger UI disappeared (error page) but server is back
+                // Show recovery popup and keep it visible until user reloads
+                self.showErrorPopup(
+                  "The server is back online! Please reload the page to restore Swagger UI.",
+                  true // isRecovery = true
+                );
+                // Don't set lastHealthCheckSuccess to true yet - keep popup visible
+              } else if (swaggerUIPresent) {
+                // Swagger UI is present - hide error popup
+                self.hideErrorPopup();
+                self.lastHealthCheckSuccess = true;
+              } else {
+                // Swagger UI still missing but we already showed recovery popup
+                // Keep it visible - don't hide
+                self.lastHealthCheckSuccess = false; // Keep showing popup
+              }
+            }
+            return response;
+          })
+          .catch((error) => {
+            // Double-check page state before processing
+            if (!isCurrentPageSwaggerUI()) {
+              throw error;
+            }
+
+            // Network errors (connection refused, timeout, etc.)
+            if (error.name === "TypeError" || error.message.includes("Failed to fetch")) {
+              self.showErrorPopup("Cannot connect to server");
+              self.lastHealthCheckSuccess = false;
+            }
+            throw error;
+          });
+      };
+      
+      window.fetch = window._swaggerNavInterceptedFetch;
+      window._swaggerNavFetchInstalled = true;
+    }
+
+    // Intercept XMLHttpRequest
+    const originalXHROpen = XMLHttpRequest.prototype._swaggerNavOriginalOpen || XMLHttpRequest.prototype.open;
+    const originalXHRSend = XMLHttpRequest.prototype._swaggerNavOriginalSend || XMLHttpRequest.prototype.send;
+
+    // Only install XHR interceptors if not already installed
+    if (!XMLHttpRequest.prototype._swaggerNavXHRInstalled) {
+      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        this._swaggerNavUrl = url;
+        return originalXHROpen.apply(this, [method, url, ...rest]);
+      };
+
+      XMLHttpRequest.prototype.send = function(...args) {
+        // Check page state FIRST - if not Swagger UI, use original send immediately
+        if (!isCurrentPageSwaggerUI()) {
+          return originalXHRSend.apply(this, args);
+        }
+
+        const xhr = this;
+
+        // Only add listeners if current page is Swagger UI
+        xhr.addEventListener("error", () => {
+          // Check again when event fires
+          if (!isCurrentPageSwaggerUI()) return;
+          self.showErrorPopup("Network error - cannot connect to server");
+          self.lastHealthCheckSuccess = false;
+        });
+
+        xhr.addEventListener("load", function() {
+          // Check again when event fires
+          if (!isCurrentPageSwaggerUI()) return;
+
+          // Only show error for server errors (5xx)
+          // 4xx errors (like 404) are client errors, not server down
+          if (xhr.status >= 500) {
+            self.showErrorPopup(`Server error (${xhr.status})`);
+            self.lastHealthCheckSuccess = false;
+          } else if (xhr.status >= 200 && xhr.status < 500) {
+            // Server is responding - check if Swagger UI is missing (error page showing)
+            const swaggerUIPresent = isCurrentPageSwaggerUI();
+            if (!swaggerUIPresent && !self.lastHealthCheckSuccess) {
+              // Swagger UI disappeared (error page) but server is back
+              // Show recovery popup and keep it visible until user reloads
+              self.showErrorPopup(
+                "The server is back online! Please reload the page to restore Swagger UI.",
+                true // isRecovery = true
+              );
+              // Don't set lastHealthCheckSuccess to true yet - keep popup visible
+            } else if (swaggerUIPresent) {
+              // Swagger UI is present - hide error popup
+              self.hideErrorPopup();
+              self.lastHealthCheckSuccess = true;
+            } else {
+              // Swagger UI still missing but we already showed recovery popup
+              // Keep it visible - don't hide
+              self.lastHealthCheckSuccess = false; // Keep showing popup
+            }
+          }
+        });
+
+        return originalXHRSend.apply(this, args);
+      };
+      
+      XMLHttpRequest.prototype._swaggerNavXHRInstalled = true;
+    }
+  }
+
+  // Create error popup element
+  createErrorPopup() {
+    if (this.errorPopup) {
+      return this.errorPopup;
+    }
+
+    const popup = document.createElement("div");
+    popup.id = "swagger-nav-error-popup";
+    popup.className = "swagger-nav-error-popup";
+    popup.innerHTML = `
+      <div class="swagger-nav-error-popup-content">
+        <div class="swagger-nav-error-popup-icon">⚠️</div>
+        <div class="swagger-nav-error-popup-text">
+          <div class="swagger-nav-error-popup-title">Connection Error</div>
+          <div class="swagger-nav-error-popup-message"></div>
+        </div>
+        <button class="swagger-nav-error-popup-reload" title="Reload page">
+          🔄 Reload
+        </button>
+      </div>
+    `;
+
+    // Add reload button handler
+    const reloadBtn = popup.querySelector(".swagger-nav-error-popup-reload");
+    reloadBtn.addEventListener("click", () => {
+      window.location.reload();
+    });
+
+    document.body.appendChild(popup);
+    this.errorPopup = popup;
+    return popup;
+  }
+
+  // Show error popup with message
+  showErrorPopup(message, isRecovery = false) {
+    if (!this.errorPopup) {
+      this.createErrorPopup();
+    }
+
+    const messageEl = this.errorPopup.querySelector(".swagger-nav-error-popup-message");
+    const titleEl = this.errorPopup.querySelector(".swagger-nav-error-popup-title");
+    const iconEl = this.errorPopup.querySelector(".swagger-nav-error-popup-icon");
+    const reloadBtn = this.errorPopup.querySelector(".swagger-nav-error-popup-reload");
+    
+    if (messageEl) {
+      messageEl.textContent = message;
+    }
+    
+    if (isRecovery) {
+      // Server is back - show success styling
+      this.errorPopup.classList.add("recovery");
+      if (titleEl) {
+        titleEl.textContent = "Server is Back!";
+      }
+      if (iconEl) {
+        iconEl.textContent = "✅";
+      }
+      if (reloadBtn) {
+        reloadBtn.textContent = "🔄 Reload Page";
+      }
+    } else {
+      // Server error - show error styling
+      this.errorPopup.classList.remove("recovery");
+      if (titleEl) {
+        titleEl.textContent = "Connection Error";
+      }
+      if (iconEl) {
+        iconEl.textContent = "⚠️";
+      }
+      if (reloadBtn) {
+        reloadBtn.textContent = "🔄 Reload";
+      }
+    }
+
+    this.errorPopup.classList.add("active");
+    swaggerNavLog(`SwaggerNav: Showing ${isRecovery ? 'recovery' : 'error'} popup - ${message}`);
+  }
+
+  // Hide error popup
+  hideErrorPopup() {
+    if (this.errorPopup) {
+      // Don't hide recovery popup - it should persist until user reloads
+      if (this.errorPopup.classList.contains("recovery")) {
+        swaggerNavLog("SwaggerNav: Recovery popup is persistent - not hiding");
+        return;
+      }
+      this.errorPopup.classList.remove("active");
+      this.errorPopup.classList.remove("recovery");
+      swaggerNavLog("SwaggerNav: Hiding error popup");
+    }
+  }
+
+  // Get API server URL for health checks
+  getApiServerUrl() {
+    // Try to get server URL from Swagger UI configuration
+    try {
+      // Check if Swagger UI has a server URL configured
+      if (window.ui && window.ui.getSystem) {
+        const system = window.ui.getSystem();
+        if (system && system.specSelectors) {
+          const servers = system.specSelectors.servers();
+          if (servers && servers.size > 0) {
+            const firstServer = servers.get(0);
+            if (firstServer && firstServer.url) {
+              const serverUrl = firstServer.url;
+              // If server URL is relative, make it absolute using current origin
+              try {
+                const url = new URL(serverUrl, window.location.href);
+                return url.origin; // Return only origin to avoid CORS issues with paths
+              } catch (e) {
+                return serverUrl;
+              }
+            }
+          }
+        }
+      }
+
+      // Try to get from SwaggerUIBundle config
+      if (window.swaggerUi && window.swaggerUi.spec && window.swaggerUi.spec.servers) {
+        const servers = window.swaggerUi.spec.servers;
+        if (servers && servers.length > 0 && servers[0].url) {
+          const serverUrl = servers[0].url;
+          try {
+            const url = new URL(serverUrl, window.location.href);
+            return url.origin;
+          } catch (e) {
+            return serverUrl;
+          }
+        }
+      }
+
+      // Try to extract from OpenAPI spec in the page
+      const specScript = document.querySelector('script[type="application/json"][data-spec]');
+      if (specScript) {
+        try {
+          const spec = JSON.parse(specScript.textContent);
+          if (spec.servers && spec.servers.length > 0 && spec.servers[0].url) {
+            const serverUrl = spec.servers[0].url;
+            try {
+              const url = new URL(serverUrl, window.location.href);
+              return url.origin;
+            } catch (e) {
+              return serverUrl;
+            }
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    } catch (e) {
+      swaggerNavLog("SwaggerNav: Could not extract API server URL from Swagger UI", e);
+    }
+
+    // Fallback to base URL (same origin as Swagger UI page)
+    const url = new URL(window.location.href);
+    return url.origin;
+  }
+
+  // Perform health check to see if server is alive
+  async performHealthCheck() {
+    // Only run on Swagger UI pages - check DOM/UI first
+    const isSwaggerUIPage = !!(
+      document.querySelector('.swagger-ui') ||
+      document.querySelector('#swagger-ui') ||
+      document.querySelector('[data-testid="swagger-ui"]') ||
+      document.querySelector('.opblock') ||
+      document.querySelector('.swagger-container') ||
+      window.ui ||
+      window.swaggerUi
+    );
+    
+    if (!isSwaggerUIPage) {
+      // Not a Swagger UI page - stop health checks
+      this.stopHealthCheck();
+      return;
+    }
+
+    // Skip if offline
+    if (this.isOffline || !navigator.onLine) {
+      return;
+    }
+
+    try {
+      const currentOrigin = new URL(window.location.href).origin;
+      
+      // Simple health check: just verify the web server is responding
+      // We don't check specific health endpoints since not all APIs have them
+      // The intercepted fetch/XHR calls will catch actual API failures
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      try {
+        // Just check if the root page is accessible (same origin)
+        // We use HEAD to minimize bandwidth, but if it fails, we don't assume server is down
+        const response = await fetch(currentOrigin, {
+          method: "HEAD",
+          signal: controller.signal,
+          cache: "no-cache",
+          mode: "same-origin", // Only check same-origin to avoid CORS issues
+        });
+        clearTimeout(timeoutId);
+
+        // Only consider 5xx as actual server errors
+        // 4xx (404, 405, 401, etc.) are client errors and don't mean server is down
+        if (response.status >= 500) {
+          // Actual server error (5xx) - server is having problems
+          this.lastHealthCheckSuccess = false;
+          this.showErrorPopup(`Server error (${response.status})`);
+          swaggerNavLog(`SwaggerNav: Health check detected server error ${response.status}`);
+        } else {
+          // Server responded (2xx, 3xx, 4xx) - server is up
+          // 4xx responses (404, 405, etc.) are normal and don't indicate server down
+          const swaggerUIPresent = this.detectSwaggerUI();
+          if (!swaggerUIPresent && !this.lastHealthCheckSuccess) {
+            // Swagger UI disappeared (error page) but server is responding
+            // Show recovery popup and keep it visible until user reloads
+            this.showErrorPopup(
+              "The server is back online! Please reload the page to restore Swagger UI.",
+              true // isRecovery = true
+            );
+            swaggerNavLog("SwaggerNav: Server is back but Swagger UI is missing - showing recovery popup");
+            // Don't set lastHealthCheckSuccess to true yet - keep popup visible
+          } else if (swaggerUIPresent) {
+            // Swagger UI is present - hide error popup
+            this.hideErrorPopup();
+            this.lastHealthCheckSuccess = true;
+            swaggerNavLog("SwaggerNav: Health check passed - web server is responding");
+          } else {
+            // Swagger UI still missing but we already showed recovery popup
+            // Keep it visible - don't hide
+            this.lastHealthCheckSuccess = false; // Keep showing popup
+          }
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        // Health check failures are unreliable indicators of server status
+        // We should rely on intercepted API calls (fetch/XHR) to detect actual failures
+        // Only log for debugging, don't show error popup
+        
+        if (fetchError.name === "AbortError") {
+          // Timeout - could be network issues, firewall, or server actually down
+          // Don't assume server is down based on timeout alone
+          swaggerNavLog("SwaggerNav: Health check timeout - relying on intercepted API calls for error detection");
+          // Don't change lastHealthCheckSuccess or show popup - let intercepted calls handle it
+        } else if (fetchError.name === "TypeError" || fetchError.message.includes("Failed to fetch")) {
+          // Check if it's a CORS error (which means server might be up but CORS is blocking)
+          if (fetchError.message.includes("CORS") || fetchError.message.includes("cross-origin")) {
+            // CORS error - can't determine server status, but don't show error
+            // The intercepted fetch/XHR calls will catch actual API failures
+            swaggerNavLog("SwaggerNav: Health check blocked by CORS - relying on intercepted API calls");
+            // Don't change lastHealthCheckSuccess - keep previous state
+          } else {
+            // Network error - could be temporary network issues
+            // Don't show error popup - let intercepted API calls handle actual failures
+            swaggerNavLog("SwaggerNav: Health check network error - relying on intercepted API calls for error detection", fetchError);
+            // Don't change lastHealthCheckSuccess or show popup - let intercepted calls handle it
+          }
+        } else {
+          // Other error - don't assume server is down
+          swaggerNavLog("SwaggerNav: Health check error - relying on intercepted API calls for error detection", fetchError);
+          // Don't change lastHealthCheckSuccess or show popup - let intercepted calls handle it
+        }
+      }
+    } catch (error) {
+      // Outer catch - same logic: don't assume server is down
+      if (error.name === "AbortError") {
+        swaggerNavLog("SwaggerNav: Health check timeout - relying on intercepted API calls for error detection");
+      } else if (error.name === "TypeError" || error.message.includes("Failed to fetch")) {
+        swaggerNavLog("SwaggerNav: Health check network error - relying on intercepted API calls for error detection", error);
+      } else {
+        swaggerNavLog("SwaggerNav: Health check error - relying on intercepted API calls for error detection", error);
+      }
+      // Don't change lastHealthCheckSuccess or show popup - let intercepted calls handle it
+    }
+  }
+
+  // Start periodic health checks
+  startHealthCheck() {
+    // Check DOM/UI FIRST to verify this is actually a Swagger UI page
+    const isSwaggerUIPage = !!(
+      document.querySelector('.swagger-ui') ||
+      document.querySelector('#swagger-ui') ||
+      document.querySelector('[data-testid="swagger-ui"]') ||
+      document.querySelector('.opblock') ||
+      document.querySelector('.swagger-container') ||
+      window.ui ||
+      window.swaggerUi
+    );
+    
+    // Only run health checks on Swagger UI pages
+    if (!isSwaggerUIPage) {
+      this.stopHealthCheck();
+      return;
+    }
+
+    // Clear any existing interval
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+    }
+
+    // Perform initial health check after a delay (to avoid interfering with page load)
+    const initialTimeout = setTimeout(() => {
+      // Double-check we're still on Swagger UI page
+      if (!this.isSwaggerUI) {
+        this.stopHealthCheck();
+        return;
+      }
+      this.performHealthCheck();
+    }, 10000); // Wait 10 seconds after page load
+
+    // Store timeout for cleanup
+    this._initialHealthCheckTimeout = initialTimeout;
+
+    // Then check every 30 seconds
+    this.healthCheckInterval = setInterval(() => {
+      // Double-check we're still on Swagger UI page
+      if (!this.isSwaggerUI) {
+        this.stopHealthCheck();
+        return;
+      }
+      this.performHealthCheck();
+    }, 30000); // Check every 30 seconds
+
+    swaggerNavLog("SwaggerNav: Started periodic health checks (every 30 seconds)");
+
+    // Clean up on page unload
+    const unloadHandler = () => {
+      this.stopHealthCheck();
+    };
+    window.addEventListener("beforeunload", unloadHandler);
+    this._unloadHandler = unloadHandler;
+  }
+
+  // Stop health checks
+  stopHealthCheck() {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+      swaggerNavLog("SwaggerNav: Stopped health checks");
+    }
+    if (this._initialHealthCheckTimeout) {
+      clearTimeout(this._initialHealthCheckTimeout);
+      this._initialHealthCheckTimeout = null;
+    }
+  }
+
+  // Restore original fetch and XHR functions when leaving Swagger UI pages
+  restoreOriginalFunctions() {
+    // Always restore fetch if we have the original
+    if (window._swaggerNavOriginalFetch) {
+      if (window.fetch === window._swaggerNavInterceptedFetch || 
+          (window._swaggerNavFetchInstalled && window.fetch !== window._swaggerNavOriginalFetch)) {
+        window.fetch = window._swaggerNavOriginalFetch;
+        window._swaggerNavFetchInstalled = false;
+        swaggerNavLog("SwaggerNav: Restored original fetch function");
+      }
+    }
+    
+    // Always restore XHR if we have the original
+    if (XMLHttpRequest.prototype._swaggerNavOriginalSend) {
+      if (XMLHttpRequest.prototype._swaggerNavXHRInstalled) {
+        XMLHttpRequest.prototype.send = XMLHttpRequest.prototype._swaggerNavOriginalSend;
+        if (XMLHttpRequest.prototype._swaggerNavOriginalOpen) {
+          XMLHttpRequest.prototype.open = XMLHttpRequest.prototype._swaggerNavOriginalOpen;
+        }
+        XMLHttpRequest.prototype._swaggerNavXHRInstalled = false;
+        swaggerNavLog("SwaggerNav: Restored original XMLHttpRequest functions");
+      }
+    }
+  }
 }
 
 // Initialize the extension
 const swaggerNav = new SwaggerNavigator();
+
+// Immediately check if we're on a Swagger UI page and restore functions if not
+// This prevents interceptors from running on non-Swagger pages
+// This check runs BEFORE init() to catch non-Swagger pages immediately
+(function() {
+  const isSwaggerUIPage = !!(
+    document.querySelector('.swagger-ui') ||
+    document.querySelector('#swagger-ui') ||
+    document.querySelector('[data-testid="swagger-ui"]') ||
+    document.querySelector('.opblock') ||
+    document.querySelector('.swagger-container') ||
+    window.ui ||
+    window.swaggerUi
+  );
+
+  if (!isSwaggerUIPage) {
+    // Not a Swagger UI page - restore original functions immediately
+    // This prevents any interceptors from running
+    if (window._swaggerNavOriginalFetch) {
+      window.fetch = window._swaggerNavOriginalFetch;
+      window._swaggerNavFetchInstalled = false;
+    }
+    if (XMLHttpRequest.prototype._swaggerNavOriginalSend) {
+      XMLHttpRequest.prototype.send = XMLHttpRequest.prototype._swaggerNavOriginalSend;
+      if (XMLHttpRequest.prototype._swaggerNavOriginalOpen) {
+        XMLHttpRequest.prototype.open = XMLHttpRequest.prototype._swaggerNavOriginalOpen;
+      }
+      XMLHttpRequest.prototype._swaggerNavXHRInstalled = false;
+    }
+  }
+})();
 
 // Theme will be applied after Swagger UI detection in init()
 swaggerNav.init();
@@ -4667,7 +5472,7 @@ swaggerNav.init();
 // Listen for messages from options page
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "RELOAD_BACKGROUND") {
-    console.log(
+    swaggerNavLog(
       "SwaggerNav: Received RELOAD_BACKGROUND message, reloading background..."
     );
     swaggerNav.applyNavBarBackground();

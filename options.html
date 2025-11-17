@@ -1294,20 +1294,20 @@
           <div class="option">
             <div class="option-header">
               <div class="option-label">
-                <span class="option-emoji">🎨</span>
-                Theme
+                <span class="option-emoji">📄</span>
+                Swagger UI Theme
               </div>
             </div>
             <div class="option-description" style="margin-bottom: 12px">
-              Choose the color theme for SwaggerNav and Swagger UI
+              Choose the color theme for the main Swagger UI documentation page
             </div>
             <div class="theme-selector">
               <label class="theme-option">
                 <input
                   type="radio"
-                  name="theme"
+                  name="swaggerUITheme"
                   value="light"
-                  id="theme-light"
+                  id="swaggerUITheme-light"
                 />
                 <span class="theme-option-content">
                   <span class="theme-icon">☀️</span>
@@ -1315,14 +1315,75 @@
                 </span>
               </label>
               <label class="theme-option">
-                <input type="radio" name="theme" value="dark" id="theme-dark" />
+                <input
+                  type="radio"
+                  name="swaggerUITheme"
+                  value="dark"
+                  id="swaggerUITheme-dark"
+                />
                 <span class="theme-option-content">
                   <span class="theme-icon">🌙</span>
                   <span class="theme-label">Dark</span>
                 </span>
               </label>
               <label class="theme-option">
-                <input type="radio" name="theme" value="auto" id="theme-auto" />
+                <input
+                  type="radio"
+                  name="swaggerUITheme"
+                  value="auto"
+                  id="swaggerUITheme-auto"
+                />
+                <span class="theme-option-content">
+                  <span class="theme-icon">🔄</span>
+                  <span class="theme-label">Follow OS</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="option">
+            <div class="option-header">
+              <div class="option-label">
+                <span class="option-emoji">🧭</span>
+                Extension Theme
+              </div>
+            </div>
+            <div class="option-description" style="margin-bottom: 12px">
+              Choose the color theme for the sidebar and extension features
+              (JSON/Form View, Parameter Search)
+            </div>
+            <div class="theme-selector">
+              <label class="theme-option">
+                <input
+                  type="radio"
+                  name="extensionTheme"
+                  value="light"
+                  id="extensionTheme-light"
+                />
+                <span class="theme-option-content">
+                  <span class="theme-icon">☀️</span>
+                  <span class="theme-label">Light</span>
+                </span>
+              </label>
+              <label class="theme-option">
+                <input
+                  type="radio"
+                  name="extensionTheme"
+                  value="dark"
+                  id="extensionTheme-dark"
+                />
+                <span class="theme-option-content">
+                  <span class="theme-icon">🌙</span>
+                  <span class="theme-label">Dark</span>
+                </span>
+              </label>
+              <label class="theme-option">
+                <input
+                  type="radio"
+                  name="extensionTheme"
+                  value="auto"
+                  id="extensionTheme-auto"
+                />
                 <span class="theme-option-content">
                   <span class="theme-icon">🔄</span>
                   <span class="theme-label">Follow OS</span>
