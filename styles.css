@@ -139,11 +139,34 @@
 /* When sidebar is visible, adjust the main Swagger UI container */
 body:has(.swagger-nav-sidebar:not(.hidden)) {
   margin-right: 350px;
+  overflow-x: hidden;
+  max-width: calc(100vw - 350px);
 }
 
 /* Smooth transition for the page adjustment */
 body {
   transition: margin-right 0.3s ease;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Ensure html doesn't overflow */
+html {
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Force Swagger UI containers to fit within available width */
+body:has(.swagger-nav-sidebar:not(.hidden)) #swagger-ui,
+body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui,
+body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-container,
+body:has(.swagger-nav-sidebar:not(.hidden)) .wrapper,
+body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui .wrapper,
+body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui .swagger-container,
+body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
+  max-width: calc(100vw - 350px) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .swagger-nav-sidebar.hidden {
@@ -1082,10 +1105,28 @@ body {
   
   body:has(.swagger-nav-sidebar:not(.hidden)) {
     margin-right: 280px;
+    overflow-x: hidden;
+    max-width: calc(100vw - 280px);
+  }
+  
+  body:has(.swagger-nav-sidebar:not(.hidden)) #swagger-ui,
+  body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui,
+  body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-container,
+  body:has(.swagger-nav-sidebar:not(.hidden)) .wrapper,
+  body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui .wrapper,
+  body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui .swagger-container,
+  body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
+    max-width: calc(100vw - 280px) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   
   .swagger-nav-sidebar.hidden {
     transform: translateX(100%);
+  }
+  
+  html {
+    overflow-x: hidden;
   }
   
   .swagger-nav-floating-show {

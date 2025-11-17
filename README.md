@@ -328,7 +328,19 @@ SOFTWARE.
 
 ## Changelog
 
-### Version 1.0.8 (Latest)
+### Version 1.0.9 (Latest)
+
+**Hotfix: Responsive Layout & Auto-Scroll:**
+- 🔧 Fixed responsive layout - Main page now properly shrinks to fit viewport when sidebar is visible (no horizontal scrolling)
+- 🎯 Restored auto-scroll on page load - Main page automatically scrolls to endpoint on reload when URL hash is present
+- 📱 Improved mobile responsiveness - Both desktop (350px) and mobile (280px) sidebar widths now properly constrain main content
+- ⚡ Added JavaScript-based width constraints to force Swagger UI containers to fit viewport
+- 🔄 Applied constraints on sidebar show/hide to ensure proper layout updates
+- 📐 Fixed scroll calculations to account for responsive layout changes
+
+----
+
+### Version 1.0.8
 
 **Liquid Glass & UI Refinements:**
 - ✨ New optional **Liquid Glass** mode for Swagger UI and the sidebar, layered on top of your existing backgrounds

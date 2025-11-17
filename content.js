@@ -1333,15 +1333,85 @@ class SwaggerNavigator {
       // Apply liquid glass effect if enabled
       this.applyLiquidGlass();
 
+      // Force responsive width constraints
+      this.applyResponsiveConstraints();
+
       // Check for already expanded endpoints on page load
       // Longer delay to let Swagger UI process URL hash and expand endpoint
       setTimeout(() => {
         this.syncToCurrentSwaggerState();
+        // Re-apply constraints after Swagger UI finishes loading
+        this.applyResponsiveConstraints();
       }, 500);
 
       // Setup parameter enhancements (searchable selects & form builder)
       this.setupParameterEnhancements();
     }, 1000);
+  }
+
+  // Force Swagger UI containers to fit within viewport when sidebar is visible
+  applyResponsiveConstraints() {
+    if (!this.navBar || this.navBar.classList.contains('hidden')) {
+      return;
+    }
+
+    const sidebarWidth = window.innerWidth <= 768 ? 280 : 350;
+    const maxWidth = window.innerWidth - sidebarWidth;
+
+    // Force body max-width
+    document.body.style.maxWidth = `${maxWidth}px`;
+    document.body.style.overflowX = 'hidden';
+
+    // Force html max-width
+    document.documentElement.style.maxWidth = `${window.innerWidth}px`;
+    document.documentElement.style.overflowX = 'hidden';
+
+    // Force all Swagger UI containers
+    const swaggerContainers = [
+      document.getElementById('swagger-ui'),
+      ...document.querySelectorAll('.swagger-ui'),
+      ...document.querySelectorAll('.swagger-container'),
+      ...document.querySelectorAll('.wrapper'),
+      ...document.querySelectorAll('.swagger-ui .wrapper'),
+      ...document.querySelectorAll('.swagger-ui .swagger-container'),
+      ...document.querySelectorAll('.swagger-ui > div'),
+    ];
+
+    swaggerContainers.forEach(container => {
+      if (container) {
+        container.style.maxWidth = `${maxWidth}px`;
+        container.style.width = '100%';
+        container.style.boxSizing = 'border-box';
+        container.style.overflowX = 'hidden';
+      }
+    });
+  }
+
+  // Remove responsive constraints when sidebar is hidden
+  removeResponsiveConstraints() {
+    document.body.style.maxWidth = '';
+    document.body.style.overflowX = '';
+    document.documentElement.style.maxWidth = '';
+    document.documentElement.style.overflowX = '';
+
+    const swaggerContainers = [
+      document.getElementById('swagger-ui'),
+      ...document.querySelectorAll('.swagger-ui'),
+      ...document.querySelectorAll('.swagger-container'),
+      ...document.querySelectorAll('.wrapper'),
+      ...document.querySelectorAll('.swagger-ui .wrapper'),
+      ...document.querySelectorAll('.swagger-ui .swagger-container'),
+      ...document.querySelectorAll('.swagger-ui > div'),
+    ];
+
+    swaggerContainers.forEach(container => {
+      if (container) {
+        container.style.maxWidth = '';
+        container.style.width = '';
+        container.style.boxSizing = '';
+        container.style.overflowX = '';
+      }
+    });
   }
 
   // Parse all endpoints from Swagger UI
@@ -2089,6 +2159,8 @@ class SwaggerNavigator {
     const isHidden = this.loadSidebarState();
     if (isHidden) {
       this.navBar.classList.add("hidden");
+      // Remove constraints when sidebar is hidden
+      this.removeResponsiveConstraints();
       const toggleBtn = this.navBar.querySelector(".swagger-nav-toggle-btn");
       if (toggleBtn) {
         toggleBtn.querySelector("span").textContent = "◀";
@@ -2113,6 +2185,8 @@ class SwaggerNavigator {
         if (isHidden) {
           // Show sidebar
           this.navBar.classList.remove("hidden");
+          // Apply constraints when sidebar is shown
+          this.applyResponsiveConstraints();
           toggleBtn.querySelector("span").textContent = "▶";
           toggleBtn.title = "Hide sidebar";
           toggleBtn.setAttribute("aria-label", "Hide sidebar");
@@ -2122,6 +2196,8 @@ class SwaggerNavigator {
         } else {
           // Hide sidebar
           this.navBar.classList.add("hidden");
+          // Remove constraints when sidebar is hidden
+          this.removeResponsiveConstraints();
           toggleBtn.querySelector("span").textContent = "◀";
           toggleBtn.title = "Show sidebar";
           toggleBtn.setAttribute("aria-label", "Show sidebar");
@@ -2387,6 +2463,8 @@ class SwaggerNavigator {
     floatingBtn.setAttribute("aria-label", "Show API Navigator sidebar");
     floatingBtn.addEventListener("click", () => {
       this.navBar.classList.remove("hidden");
+      // Apply constraints when sidebar is shown
+      this.applyResponsiveConstraints();
       const toggleBtn = this.navBar.querySelector(".swagger-nav-toggle-btn");
       if (toggleBtn) {
         toggleBtn.querySelector("span").textContent = "▶";
@@ -3037,20 +3115,28 @@ class SwaggerNavigator {
 
       console.log(`SwaggerNav: Navigating to endpoint ${endpointId}`);
 
+      // Ensure responsive constraints are applied before scrolling
+      if (this.navBar && !this.navBar.classList.contains('hidden')) {
+        this.applyResponsiveConstraints();
+      }
+
       // Get element position for offset scrolling
-      const elementRect = element.getBoundingClientRect();
-      const absoluteElementTop = elementRect.top + window.pageYOffset;
-      const offset = 100; // Scroll 100px above the endpoint for better visibility
+      // Use setTimeout to ensure layout has settled after constraints
+      setTimeout(() => {
+        const elementRect = element.getBoundingClientRect();
+        const absoluteElementTop = elementRect.top + window.pageYOffset;
+        const offset = 100; // Scroll 100px above the endpoint for better visibility
 
-      // Scroll with offset for better visibility
-      window.scrollTo({
-        top: absoluteElementTop - offset,
-        behavior: "smooth",
-      });
+        // Scroll with offset for better visibility
+        window.scrollTo({
+          top: absoluteElementTop - offset,
+          behavior: "smooth",
+        });
 
-      console.log(
-        `SwaggerNav: Scrolled to endpoint with ${offset}px offset for visibility`
-      );
+        console.log(
+          `SwaggerNav: Scrolled to endpoint with ${offset}px offset for visibility`
+        );
+      }, 100);
 
       // Expand endpoint if setting is enabled
       if (this.settings.autoExpand) {
@@ -3290,6 +3376,8 @@ class SwaggerNavigator {
         const expandedOpblock = document.querySelector(".opblock.is-open");
         if (expandedOpblock && expandedOpblock.id) {
           this.syncToSwaggerUI(expandedOpblock.id);
+          // Scroll main page to endpoint
+          this.scrollToEndpoint(expandedOpblock.id);
         }
       }, 100);
     });
@@ -3310,6 +3398,8 @@ class SwaggerNavigator {
             `SwaggerNav: Initial sync to expanded endpoint: ${expandedOpblock.id}`
           );
           this.syncToSwaggerUI(expandedOpblock.id);
+          // Scroll main page to endpoint
+          this.scrollToEndpoint(expandedOpblock.id);
 
           // Auto-click "Try it out" if setting is enabled (after page reload)
           if (this.settings.autoTryOut) {
@@ -3332,6 +3422,8 @@ class SwaggerNavigator {
                 `SwaggerNav: Initial sync to hash endpoint: ${opblock.id}`
               );
               this.syncToSwaggerUI(opblock.id);
+              // Scroll main page to endpoint
+              this.scrollToEndpoint(opblock.id);
 
               // Auto-click "Try it out" if setting is enabled (after page reload)
               if (this.settings.autoTryOut) {
@@ -3352,6 +3444,8 @@ class SwaggerNavigator {
           `SwaggerNav: Initial sync to expanded endpoint: ${expandedOpblock.id}`
         );
         this.syncToSwaggerUI(expandedOpblock.id);
+        // Scroll main page to endpoint
+        this.scrollToEndpoint(expandedOpblock.id);
 
         // Auto-click "Try it out" if setting is enabled (after page reload)
         if (this.settings.autoTryOut) {

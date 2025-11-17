@@ -1,12 +1,28 @@
-# SwaggerNav v1.0.8 Release Notes
+# SwaggerNav v1.0.9 Release Notes
 
-**Previous Version:** 1.0.7
+**Previous Version:** 1.0.8
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.0.8
+## 🎉 What's New in v1.0.9
+
+### **Hotfix: Responsive Layout & Auto-Scroll**
+
+- 🔧 **Fixed responsive layout** - Main page now properly shrinks to fit viewport when sidebar is visible (no horizontal scrolling)
+- 🎯 **Restored auto-scroll on page load** - Main page automatically scrolls to endpoint on reload when URL hash is present
+- 📱 **Improved mobile responsiveness** - Both desktop (350px) and mobile (280px) sidebar widths now properly constrain main content
+
+### **Technical Improvements**
+
+- ⚡ Added JavaScript-based width constraints to force Swagger UI containers to fit viewport
+- 🔄 Applied constraints on sidebar show/hide to ensure proper layout updates
+- 📐 Fixed scroll calculations to account for responsive layout changes
+
+---
+
+## 🎉 Previous Release: v1.0.8
 
 ### **New: Liquid Glass (Optional)**
 
