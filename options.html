@@ -319,6 +319,23 @@
         color: #ffffff;
       }
 
+      /* When liquid glass is enabled in light mode, adjust selected items for better readability */
+      body.liquid-glass-enabled:not(.force-dark-mode)
+        .theme-option
+        input[type="radio"]:checked
+        + .theme-option-content {
+        background: rgba(102, 126, 234, 0.85) !important;
+        border-color: #667eea !important;
+      }
+
+      body.liquid-glass-enabled:not(.force-dark-mode)
+        .theme-option
+        input[type="radio"]:checked
+        + .theme-option-content
+        .theme-label {
+        color: #1a1a1a !important;
+      }
+
       /* Background Selector */
       .background-selector {
         display: grid;
@@ -438,6 +455,23 @@
         + .background-option-content
         .background-label {
         color: #ffffff;
+      }
+
+      /* When liquid glass is enabled in light mode, adjust selected items for better readability */
+      body.liquid-glass-enabled:not(.force-dark-mode)
+        .background-option
+        input[type="radio"]:checked
+        + .background-option-content {
+        background: rgba(102, 126, 234, 0.85) !important;
+        border-color: #667eea !important;
+      }
+
+      body.liquid-glass-enabled:not(.force-dark-mode)
+        .background-option
+        input[type="radio"]:checked
+        + .background-option-content
+        .background-label {
+        color: #1a1a1a !important;
       }
 
       /* =====================================================================

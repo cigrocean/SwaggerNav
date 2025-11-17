@@ -2759,6 +2759,7 @@ body.swagger-nav-dark.swagger-nav-bg-custom .swagger-ui table tbody tr td {
     --liquid-reflex-dark: 2;
     --liquid-reflex-light: 0.3;
     --liquid-saturation: 150%;
+    --liquid-blur: 8px;
   }
 }
 
@@ -2770,6 +2771,7 @@ body.swagger-nav-force-light {
   --liquid-reflex-dark: 1;
   --liquid-reflex-light: 1;
   --liquid-saturation: 150%;
+  --liquid-blur: 8px;
 }
 
 /* Force dark mode liquid glass */
@@ -2780,6 +2782,7 @@ body.swagger-nav-force-dark {
   --liquid-reflex-dark: 2;
   --liquid-reflex-light: 0.3;
   --liquid-saturation: 150%;
+  --liquid-blur: 8px;
 }
 
 /* Liquid glass doesn't add its own background - it uses whatever background is already set */

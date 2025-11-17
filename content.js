@@ -190,23 +190,10 @@ class SwaggerNavigator {
     }
   }
 
-  // Update settings UI when settings change
+  // Update settings UI when settings change (no longer needed - settings moved to options page)
   updateSettingsUI() {
-    if (!this.navBar) return;
-
-    const autoExpandCheckbox = this.navBar.querySelector(
-      "#setting-auto-expand"
-    );
-    const autoTryOutCheckbox = this.navBar.querySelector(
-      "#setting-auto-try-out"
-    );
-
-    if (autoExpandCheckbox) {
-      autoExpandCheckbox.checked = this.settings.autoExpand;
-    }
-    if (autoTryOutCheckbox) {
-      autoTryOutCheckbox.checked = this.settings.autoTryOut;
-    }
+    // Settings UI is now in the options page, not in a modal
+    // This function kept for backward compatibility but does nothing
   }
 
   // Check if endpoint is pinned
@@ -401,6 +388,8 @@ class SwaggerNavigator {
             );
             // Apply or remove liquid glass effect
             this.applyLiquidGlass();
+            // Also update theme classes since liquid glass CSS requires theme classes on body
+            this.applyNavBarTheme();
           }
 
           // Update settings UI
@@ -415,6 +404,13 @@ class SwaggerNavigator {
     if (!this.navBar) return;
 
     const themeMode = this.settings.theme || "auto";
+    const backgroundTheme = this.settings.background || "default";
+    const liquidGlassEnabled = this.settings.liquidGlass || false;
+
+    // Only modify Swagger UI styling if custom background or liquid glass is enabled
+    // Otherwise, preserve original Swagger UI appearance
+    // NOTE: If liquid glass is enabled, we need theme classes on body for liquid glass CSS to work
+    const shouldModifySwaggerUI = backgroundTheme !== "default" || liquidGlassEnabled;
 
     // Remove all theme classes first
     this.navBar.classList.remove("swagger-nav-dark", "swagger-nav-light");
@@ -426,23 +422,35 @@ class SwaggerNavigator {
     );
 
     if (themeMode === "light") {
-      // Force light mode
+      // Force light mode for sidebar
       this.navBar.classList.add("swagger-nav-light");
-      document.body.classList.add("swagger-nav-force-light");
-      document.body.classList.add("swagger-nav-light");
+      // Only add force classes to body if we should modify Swagger UI
+      if (shouldModifySwaggerUI) {
+        document.body.classList.add("swagger-nav-force-light");
+        document.body.classList.add("swagger-nav-light");
+      }
     } else if (themeMode === "dark") {
-      // Force dark mode
+      // Force dark mode for sidebar
       this.navBar.classList.add("swagger-nav-dark");
-      document.body.classList.add("swagger-nav-force-dark");
-      document.body.classList.add("swagger-nav-dark");
+      // Only add force classes to body if we should modify Swagger UI
+      if (shouldModifySwaggerUI) {
+        document.body.classList.add("swagger-nav-force-dark");
+        document.body.classList.add("swagger-nav-dark");
+      }
     } else {
       // Auto mode - follow OS theme
       if (this.theme === "dark") {
         this.navBar.classList.add("swagger-nav-dark");
-        document.body.classList.add("swagger-nav-dark");
+        // Only add theme class to body if we should modify Swagger UI
+        if (shouldModifySwaggerUI) {
+          document.body.classList.add("swagger-nav-dark");
+        }
       } else {
         this.navBar.classList.add("swagger-nav-light");
-        document.body.classList.add("swagger-nav-light");
+        // Only add theme class to body if we should modify Swagger UI
+        if (shouldModifySwaggerUI) {
+          document.body.classList.add("swagger-nav-light");
+        }
       }
     }
 
@@ -2080,55 +2088,6 @@ class SwaggerNavigator {
 
     this.navBar.appendChild(content);
 
-    // Create settings modal
-    const settingsModal = document.createElement("div");
-    settingsModal.className = "swagger-nav-settings-modal";
-    settingsModal.innerHTML = `
-      <div class="swagger-nav-settings-overlay"></div>
-      <div class="swagger-nav-settings-panel">
-        <div class="swagger-nav-settings-header">
-          <h3>⚙️ Settings</h3>
-          <button type="button" class="swagger-nav-settings-close" aria-label="Close settings">✕</button>
-        </div>
-        <div class="swagger-nav-settings-body">
-          <div class="swagger-nav-setting-item">
-            <label class="swagger-nav-setting-label">
-              <input type="checkbox" class="swagger-nav-setting-checkbox" id="setting-auto-expand" ${
-                this.settings.autoExpand ? "checked" : ""
-              }>
-              <span class="swagger-nav-setting-text">
-                <strong>Auto-expand endpoint in Swagger UI</strong>
-                <small>Automatically expands the endpoint when clicked</small>
-              </span>
-            </label>
-          </div>
-          <div class="swagger-nav-setting-item">
-            <label class="swagger-nav-setting-label">
-              <input type="checkbox" class="swagger-nav-setting-checkbox" id="setting-auto-try-out" ${
-                this.settings.autoTryOut ? "checked" : ""
-              }>
-              <span class="swagger-nav-setting-text">
-                <strong>Auto-click "Try it out" button</strong>
-                <small>Automatically clicks "Try it out" after expanding (requires auto-expand)</small>
-              </span>
-            </label>
-          </div>
-          <div class="swagger-nav-setting-divider"></div>
-          <div class="swagger-nav-setting-item swagger-nav-setting-link">
-            <button type="button" class="swagger-nav-options-link" id="open-options-page">
-              <span class="swagger-nav-options-icon">⚙️</span>
-              <span class="swagger-nav-options-text">
-                <strong>More Settings</strong>
-                <small>Configure Form View, JSON View, and Parameter Search</small>
-              </span>
-              <span class="swagger-nav-options-arrow">→</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-    this.navBar.appendChild(settingsModal);
-
     // Create footer with author info
     const footer = document.createElement("div");
     footer.className = "swagger-nav-footer";
@@ -2233,68 +2192,10 @@ class SwaggerNavigator {
       });
     }
 
-    // Settings button
+    // Settings button - opens options page directly
     const settingsBtn = this.navBar.querySelector(".swagger-nav-settings-btn");
-    const settingsModal = this.navBar.querySelector(
-      ".swagger-nav-settings-modal"
-    );
-    if (settingsBtn && settingsModal) {
+    if (settingsBtn) {
       settingsBtn.addEventListener("click", () => {
-        settingsModal.classList.add("active");
-      });
-    }
-
-    // Settings modal close
-    const settingsClose = this.navBar.querySelector(
-      ".swagger-nav-settings-close"
-    );
-    const settingsOverlay = this.navBar.querySelector(
-      ".swagger-nav-settings-overlay"
-    );
-    if (settingsClose && settingsModal) {
-      settingsClose.addEventListener("click", () => {
-        settingsModal.classList.remove("active");
-      });
-    }
-    if (settingsOverlay && settingsModal) {
-      settingsOverlay.addEventListener("click", () => {
-        settingsModal.classList.remove("active");
-      });
-    }
-
-    // Settings checkboxes
-    const autoExpandCheckbox = this.navBar.querySelector(
-      "#setting-auto-expand"
-    );
-    if (autoExpandCheckbox) {
-      autoExpandCheckbox.addEventListener("change", (e) => {
-        this.settings.autoExpand = e.target.checked;
-        this.saveSettings();
-        console.log(
-          "SwaggerNav: Auto-expand setting changed to",
-          e.target.checked
-        );
-      });
-    }
-
-    const autoTryOutCheckbox = this.navBar.querySelector(
-      "#setting-auto-try-out"
-    );
-    if (autoTryOutCheckbox) {
-      autoTryOutCheckbox.addEventListener("change", (e) => {
-        this.settings.autoTryOut = e.target.checked;
-        this.saveSettings();
-        console.log(
-          "SwaggerNav: Auto-try-out setting changed to",
-          e.target.checked
-        );
-      });
-    }
-
-    // Options page link
-    const optionsPageBtn = this.navBar.querySelector("#open-options-page");
-    if (optionsPageBtn) {
-      optionsPageBtn.addEventListener("click", () => {
         console.log(
           "SwaggerNav: Requesting service worker to open options page"
         );

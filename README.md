@@ -328,7 +328,17 @@ SOFTWARE.
 
 ## Changelog
 
-### Version 1.1.0 (Latest)
+### Version 1.1.1 (Latest)
+
+**Liquid Glass & Settings Improvements:**
+- ✨ **Liquid Glass toggle now applies immediately** - Changes take effect instantly when toggling Liquid Glass in options page
+- 🔧 **Fixed Liquid Glass 3D effect** - Restored missing `--liquid-blur` CSS variable in forced theme blocks
+- ⚙️ **Settings button simplified** - Removed popup modal, Settings button now opens options page directly
+- 🎨 **Fixed options page readability** - Selected items now use dark text in light mode when Liquid Glass is enabled (Follow OS theme)
+
+----
+
+### Version 1.1.0
 
 **Preserve Swagger UI Default Styling:**
 - 🎨 **Swagger UI remains unchanged in default mode** - Extension no longer modifies Swagger UI's native styling when using default theme (auto theme, default background, no liquid glass)

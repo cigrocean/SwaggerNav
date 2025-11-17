@@ -1,12 +1,30 @@
-# SwaggerNav v1.1.0 Release Notes
+# SwaggerNav v1.1.1 Release Notes
 
-**Previous Version:** 1.0.9
+**Previous Version:** 1.1.0
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.0
+## 🎉 What's New in v1.1.1
+
+### **Liquid Glass & Settings Improvements**
+
+- ✨ **Liquid Glass toggle now applies immediately** - Changes take effect instantly when toggling Liquid Glass in the options page, no need to reload the page
+- 🔧 **Fixed Liquid Glass 3D effect** - Restored missing `--liquid-blur` CSS variable in forced theme blocks that was breaking the backdrop blur effect
+- ⚙️ **Settings button simplified** - Removed popup modal interface, Settings button now opens the options page directly for a streamlined experience
+- 🎨 **Fixed options page readability** - Selected theme and background items now display with dark text in light mode when Liquid Glass is enabled, ensuring better contrast and readability
+
+### **Technical Fixes**
+
+- Fixed theme classes not being applied to body when Liquid Glass is toggled on/off
+- Fixed missing CSS variable `--liquid-blur` in `@media (prefers-color-scheme: dark)`, `body.swagger-nav-force-light`, and `body.swagger-nav-force-dark` blocks
+- Removed settings modal HTML and event handlers, simplified Settings button to open options page directly
+- Added CSS overrides for selected items in options page when Liquid Glass is enabled in light mode
+
+---
+
+## 🎉 Previous Release: v1.1.0
 
 ### **Preserve Swagger UI Default Styling**
 
@@ -85,7 +103,7 @@ When SwaggerNav is installed with default settings, Swagger UI now looks exactly
 
 ## 🎨 Complete Feature List
 
-SwaggerNav v1.1.0 includes all features from previous versions:
+SwaggerNav v1.1.1 includes all features from previous versions:
 
 ### 🧭 **Smart Navigation**
 
