@@ -20,7 +20,7 @@
   --sn-scrollbar-thumb: #555;
   --sn-scrollbar-thumb-hover: #666;
   --sn-accent: #61affe;
-
+  
   /* Form Builder - Dark Mode */
   --sn-form-bg: #252525;
   --sn-form-border: #404040;
@@ -36,7 +36,7 @@
   --sn-form-array-border: #4a90e2;
   --sn-form-array-legend-bg: #253548;
   --sn-form-shadow: rgba(0, 0, 0, 0.5);
-
+  
   /* Parameter Search Box - Dark Mode */
   --sn-param-search-bg: #1b1b1b;
   --sn-param-search-text: #e0e0e0;
@@ -46,7 +46,7 @@
   --sn-param-item-border: #3a3a3a;
   --sn-param-item-hover: #3a3a3a;
   --sn-param-no-result: #888;
-
+  
   /* Endpoint Search - Dark Mode */
   --sn-endpoint-search-bg: #2a2a2a;
   --sn-endpoint-search-text: #e0e0e0;
@@ -79,7 +79,7 @@
     --sn-scrollbar-thumb: #ccc;
     --sn-scrollbar-thumb-hover: #999;
     --sn-accent: #61affe;
-
+    
     /* Form Builder - Light Mode */
     --sn-form-bg: #fafafa;
     --sn-form-border: #e1e1e1;
@@ -95,7 +95,7 @@
     --sn-form-array-border: #90caf9;
     --sn-form-array-legend-bg: #e3f2fd;
     --sn-form-shadow: rgba(0, 0, 0, 0.1);
-
+    
     /* Parameter Search Box - Light Mode */
     --sn-param-search-bg: #fff;
     --sn-param-search-text: #3b4151;
@@ -105,7 +105,7 @@
     --sn-param-item-border: #f0f0f0;
     --sn-param-item-hover: #f0f7ff;
     --sn-param-no-result: #999;
-
+    
     /* Endpoint Search - Light Mode */
     --sn-endpoint-search-bg: white;
     --sn-endpoint-search-text: #3b4151;
@@ -1114,7 +1114,7 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
   .swagger-nav-sidebar {
     width: 280px;
   }
-
+  
   body:has(.swagger-nav-sidebar:not(.hidden)) {
     margin-right: 280px;
     overflow-x: hidden;
@@ -1132,7 +1132,7 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
     width: 100% !important;
     box-sizing: border-box !important;
   }
-
+  
   .swagger-nav-sidebar.hidden {
     transform: translateX(100%);
   }
@@ -1140,7 +1140,7 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
   html {
     overflow-x: hidden;
   }
-
+  
   .swagger-nav-floating-show {
     padding: 10px 8px;
     font-size: 16px;
@@ -1511,12 +1511,12 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
 @keyframes swagger-nav-current-pulse {
   0%,
   100% {
-    box-shadow: 0 2px 8px rgba(97, 175, 254, 0.2),
+    box-shadow: 0 2px 8px rgba(97, 175, 254, 0.2), 
       inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 0 rgba(97, 175, 254, 0);
     border-color: rgba(97, 175, 254, 0.5);
   }
   50% {
-    box-shadow: 0 2px 8px rgba(97, 175, 254, 0.3),
+    box-shadow: 0 2px 8px rgba(97, 175, 254, 0.3), 
       inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 4px rgba(97, 175, 254, 0.15);
     border-color: rgba(97, 175, 254, 0.7);
   }
@@ -1760,6 +1760,9 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
   border-radius: 6px;
   transition: all 0.2s ease;
   white-space: nowrap;
+  position: relative;
+  z-index: 10001;
+  pointer-events: auto;
 }
 
 .swagger-nav-settings-btn:hover {
@@ -1843,17 +1846,17 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
    ============================================ */
 
 .swagger-nav-body-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   width: 100%;
   margin-top: 12px;
 }
 
 .swagger-nav-body-panel {
-  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px var(--sn-form-shadow);
@@ -1898,7 +1901,7 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
     background: linear-gradient(135deg, #1a2d42 0%, #253548 100%);
     color: #90caf9;
   }
-
+  
   .swagger-nav-body-json .swagger-nav-body-header strong {
     color: #90caf9;
   }
@@ -1946,7 +1949,7 @@ body.swagger-nav-force-light
     background: linear-gradient(135deg, #1b3a1f 0%, #2d5a33 100%);
     color: #81c784;
   }
-
+  
   .swagger-nav-body-form .swagger-nav-body-header strong {
     color: #81c784;
   }
@@ -2108,17 +2111,13 @@ body.swagger-nav-force-light
 /* Responsive: Stack panels on smaller screens */
 @media (max-width: 1600px) {
   .swagger-nav-body-container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
-
-  .swagger-nav-body-panel {
-    width: 100%;
-  }
-
+  
   .swagger-nav-body-json textarea {
     height: 300px !important;
   }
-
+  
   .swagger-nav-form-container {
     max-height: 400px;
   }
@@ -2129,9 +2128,164 @@ body.swagger-nav-force-light
   .swagger-nav-body-json textarea {
     height: 250px !important;
   }
-
+  
   .swagger-nav-form-container {
     max-height: 300px;
+  }
+
+  .swagger-nav-response-view-container {
+    max-height: 300px;
+  }
+}
+
+/* =====================================================================
+   RESPONSE VIEW STYLES
+   Read-only structured view of API responses with checkboxes
+   ===================================================================== */
+
+.swagger-nav-response-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.swagger-nav-response-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Ensure panels don't overflow */
+}
+
+.swagger-nav-response-code {
+  /* Left panel with original JSON code */
+}
+
+.swagger-nav-response-code pre {
+  margin: 0 !important;
+  padding: 15px !important;
+  /* Keep original Swagger UI background - don't override */
+  border-radius: 0 0 6px 6px !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  flex: 1;
+  min-height: 0; /* Allow flex item to shrink below content size */
+}
+
+.swagger-nav-response-view {
+  /* Right panel with structured view */
+}
+
+.swagger-nav-response-view-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 15px;
+  background: var(--sn-form-bg);
+  border-radius: 0 0 6px 6px;
+  border: 1px solid var(--sn-form-border);
+  border-top: none;
+  min-height: 0; /* Allow flex item to shrink below content size for proper scrolling */
+}
+
+.swagger-nav-response-view-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.swagger-nav-response-view-container::-webkit-scrollbar-track {
+  background: var(--sn-scrollbar-track);
+  border-radius: 4px;
+}
+
+.swagger-nav-response-view-container::-webkit-scrollbar-thumb {
+  background: var(--sn-scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.swagger-nav-response-view-container::-webkit-scrollbar-thumb:hover {
+  background: var(--sn-scrollbar-thumb-hover);
+}
+
+.swagger-nav-response-field {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--sn-form-field-bg);
+  border-radius: 6px;
+  border: 1px solid var(--sn-form-field-border);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.swagger-nav-response-field:hover {
+  border-color: var(--sn-form-field-hover);
+  box-shadow: 0 1px 4px rgba(102, 187, 106, 0.1);
+}
+
+.swagger-nav-response-field-checked {
+  background: var(--sn-form-field-bg);
+  border-color: #66bb6a;
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.15);
+}
+
+.swagger-nav-response-field-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.swagger-nav-response-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sn-text-primary);
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", monospace;
+  letter-spacing: 0.3px;
+}
+
+.swagger-nav-response-value {
+  font-size: 12px;
+  color: var(--sn-text-secondary);
+  font-weight: 400;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", monospace;
+  word-break: break-word;
+}
+
+.swagger-nav-response-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #66bb6a;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Use same fieldset and legend styles as Form View */
+.swagger-nav-response-view-container .swagger-nav-form-fieldset {
+  /* Inherits from Form View styles */
+}
+
+.swagger-nav-response-view-container .swagger-nav-form-legend {
+  /* Inherits from Form View styles */
+}
+
+.swagger-nav-response-view-container .swagger-nav-form-empty,
+.swagger-nav-response-view-container .swagger-nav-form-error {
+  /* Inherits from Form View styles */
+}
+
+/* Responsive: Stack panels on smaller screens */
+@media (max-width: 1600px) {
+  .swagger-nav-response-container {
+    grid-template-columns: 1fr;
+  }
+
+  .swagger-nav-response-view-container {
+    max-height: 400px;
   }
 }
 
@@ -2160,7 +2314,7 @@ body.swagger-nav-force-light
   --sn-scrollbar-thumb: #ccc !important;
   --sn-scrollbar-thumb-hover: #999 !important;
   --sn-accent: #61affe !important;
-
+  
   /* Form Builder - Light Mode */
   --sn-form-bg: #fafafa !important;
   --sn-form-border: #e1e1e1 !important;
@@ -2180,7 +2334,7 @@ body.swagger-nav-force-light
   --sn-form-array-border: #90caf9 !important;
   --sn-form-array-legend-bg: #e3f2fd !important;
   --sn-form-shadow: rgba(0, 0, 0, 0.1) !important;
-
+  
   /* Parameter Search Box - Light Mode */
   --sn-param-search-bg: #fff !important;
   --sn-param-search-text: #3b4151 !important;
@@ -2190,7 +2344,7 @@ body.swagger-nav-force-light
   --sn-param-item-border: #f0f0f0 !important;
   --sn-param-item-hover: #f0f7ff !important;
   --sn-param-no-result: #999 !important;
-
+  
   /* Endpoint Search - Light Mode */
   --sn-endpoint-search-bg: white !important;
   --sn-endpoint-search-text: #3b4151 !important;
@@ -2222,7 +2376,7 @@ body.swagger-nav-force-light
   --sn-scrollbar-thumb: #555 !important;
   --sn-scrollbar-thumb-hover: #666 !important;
   --sn-accent: #61affe !important;
-
+  
   /* Form Builder - Dark Mode */
   --sn-form-bg: #252525 !important;
   --sn-form-border: #404040 !important;
@@ -2242,7 +2396,7 @@ body.swagger-nav-force-light
   --sn-form-array-border: #4a90e2 !important;
   --sn-form-array-legend-bg: #253548 !important;
   --sn-form-shadow: rgba(0, 0, 0, 0.5) !important;
-
+  
   /* Parameter Search Box - Dark Mode */
   --sn-param-search-bg: #1b1b1b !important;
   --sn-param-search-text: #e0e0e0 !important;
@@ -2252,7 +2406,7 @@ body.swagger-nav-force-light
   --sn-param-item-border: #3a3a3a !important;
   --sn-param-item-hover: #3a3a3a !important;
   --sn-param-no-result: #888 !important;
-
+  
   /* Endpoint Search - Dark Mode */
   --sn-endpoint-search-bg: #2a2a2a !important;
   --sn-endpoint-search-text: #e0e0e0 !important;

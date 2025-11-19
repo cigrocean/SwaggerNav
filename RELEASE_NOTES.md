@@ -1,12 +1,39 @@
-# SwaggerNav v1.1.2 Release Notes
+# SwaggerNav v1.1.3 Release Notes
 
-**Previous Version:** 1.1.1
+**Previous Version:** 1.1.2
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.2
+## 🎉 What's New in v1.1.3
+
+### **Response View Feature**
+
+- 📊 **Response View** - New structured view of API responses with editable checkboxes for easy data comparison
+- ✅ **Checkboxes for comparison** - Each field has a checkbox on the right side that you can check to mark fields for comparison
+- 🎨 **Visual feedback** - Checked fields are highlighted with green border and shadow for easy identification
+- 🔄 **Replaces original response** - Response View replaces the original Swagger UI response body, showing both JSON and structured view side-by-side
+- 📏 **Height limits** - Response View has a maximum height (capped at 600px) with scrolling for better UX on long responses
+- 🎯 **Consistent layout** - Form View and Response View now use the same grid-based layout system, staying side-by-side and wrapping only on smaller screens
+
+### **Layout Improvements**
+
+- 📐 **Grid layout for Form View** - Form View now uses grid layout instead of flex, matching Response View behavior
+- 📱 **Responsive wrapping** - Both Form View and Response View wrap to single column only when screen width is below 1600px
+- 🎨 **Consistent styling** - Both features now have matching layout and behavior
+
+### **Technical Improvements**
+
+- Added `addResponseView()` function to detect and enhance API response displays
+- Added `buildResponseView()` and `buildResponseFields()` to create structured view with checkboxes
+- Updated Form View container to use CSS Grid instead of Flexbox
+- Added height matching logic to ensure both panels have consistent heights
+- Response View automatically updates when response content changes
+
+---
+
+## 🎉 Previous Release: v1.1.2
 
 ### **Network Error Detection & Monitoring**
 

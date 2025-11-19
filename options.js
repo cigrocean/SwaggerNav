@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS = {
   background: "default", // "default", "ocean", "tet", "christmas", "too_many_bugs"
   enableFormView: true,
   enableParamSearch: true,
+  enableResponseView: true,
   liquidGlass: false, // iOS 26-style liquid glass effect
 };
 
@@ -78,6 +79,7 @@ async function loadSettings() {
     document.getElementById("enableFormView").checked = result.enableFormView;
     document.getElementById("enableParamSearch").checked =
       result.enableParamSearch;
+    document.getElementById("enableResponseView").checked = result.enableResponseView;
     document.getElementById("liquidGlass").checked = result.liquidGlass;
 
     // Apply Swagger UI theme radio selection
@@ -145,6 +147,7 @@ async function saveSettings() {
       background: background,
       enableFormView: document.getElementById("enableFormView").checked,
       enableParamSearch: document.getElementById("enableParamSearch").checked,
+      enableResponseView: document.getElementById("enableResponseView").checked,
       liquidGlass: document.getElementById("liquidGlass").checked,
     };
 

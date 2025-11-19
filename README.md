@@ -21,6 +21,7 @@ A Chrome extension that supercharges Swagger UI with a powerful navigation sideb
 
 ### ✨ **Enhanced Editing**
 - 📝 **JSON & Form View** - Visual form builder alongside JSON editor for request bodies
+- 📊 **Response View** - Structured view of API responses with editable checkboxes for easy data comparison
 - 🔍 **Parameter Search** - Searchable dropdowns for parameter select fields with long option lists
 - ⌨️ **Smart Input** - Handles negative numbers, decimals, and complex data types correctly
 
@@ -153,6 +154,7 @@ Access settings by:
 **Enhanced Features:**
 - ✅ **JSON & Form View** (default: ON) - Visual form builder for request bodies
 - ✅ **Parameter Search** (default: ON) - Searchable dropdown fields
+- ✅ **Response View** (default: ON) - Structured view of API responses with checkboxes for comparison
 
 > ⚠️ **Important**: For the best experience, disable any browser dark mode extensions (like "Dark Reader") as they may conflict with SwaggerNav's theme system.
 
@@ -334,7 +336,23 @@ SOFTWARE.
 
 ## Changelog
 
-### Version 1.1.2 (Latest)
+### Version 1.1.3 (Latest)
+
+**Response View Feature:**
+- 📊 **Response View** - New structured view of API responses with editable checkboxes for easy data comparison
+- ✅ **Checkboxes for comparison** - Each field has a checkbox on the right side that you can check to mark fields for comparison
+- 🎨 **Visual feedback** - Checked fields are highlighted with green border and shadow for easy identification
+- 🔄 **Replaces original response** - Response View replaces the original Swagger UI response body, showing both JSON and structured view side-by-side
+- 📏 **Height limits** - Response View has a maximum height (capped at 600px) with scrolling for better UX on long responses
+- 🎯 **Consistent layout** - Form View and Response View now use the same grid-based layout system
+
+**Layout Improvements:**
+- 📐 **Grid layout for Form View** - Form View now uses grid layout instead of flex, matching Response View behavior
+- 📱 **Responsive wrapping** - Both Form View and Response View wrap to single column only when screen width is below 1600px
+
+-----
+
+### Version 1.1.2
 
 **Network Error Detection & Monitoring:**
 - 🔔 **Connection error popup** - Shows a popup notification when the server is down or internet is disconnected, with a reload button for quick recovery
