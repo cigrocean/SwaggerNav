@@ -1,12 +1,42 @@
-# SwaggerNav v1.1.3 Release Notes
+# SwaggerNav v1.1.4 Release Notes
 
-**Previous Version:** 1.1.2
+**Previous Version:** 1.1.3
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.3
+## 🎉 What's New in v1.1.4
+
+### **Response View Enhancements**
+
+- 📋 **Custom Copy/Download Buttons** - Added custom copy and download buttons to Response View that work reliably (no more missing buttons!)
+- 🎨 **Dark Mode Checkbox Fix** - Response View checkboxes now properly visible in dark mode with custom styling
+- 📏 **Improved Button Spacing** - Custom buttons now have proper spacing (16px gap) and are responsive on mobile devices
+- ✅ **Default Buttons Preserved** - When Response View is OFF, default Swagger UI buttons remain unchanged
+
+### **Form View Improvements**
+
+- ⚡ **Instant Toggle Updates** - Form View and JSON View now update immediately when toggled (no delay)
+- 🔒 **Fixed Toggle Off Behavior** - Form View containers now properly stay hidden when toggled OFF (no re-appearing)
+
+### **Performance & Speed Improvements**
+
+- ⚡ **Faster Extension Loading** - Reduced initialization delays from 500ms to 200ms, extension appears much faster on page load
+- 🚀 **Instant Scrolling** - All scrolling operations (endpoint navigation, sidebar sync) now use instant scrolling instead of smooth animation for faster navigation
+- ⏱️ **Optimized Mutation Observers** - Reduced debounce time from 1000ms to 300ms for faster response to DOM changes
+
+### **Technical Improvements**
+
+- Removed unreliable button detection logic, replaced with custom button implementation
+- Custom buttons use proper event handling and clipboard API with fallback support
+- Improved CSS for button spacing and responsive behavior
+- Enhanced Form View toggle logic to prevent re-appearing containers
+- Optimized all scroll operations to use `behavior: "auto"` instead of `"smooth"`
+
+---
+
+## 🎉 Previous Release: v1.1.3
 
 ### **Response View Feature**
 
@@ -159,7 +189,7 @@ When SwaggerNav is installed with default settings, Swagger UI now looks exactly
 
 ## 🎨 Complete Feature List
 
-SwaggerNav v1.1.2 includes all features from previous versions:
+SwaggerNav v1.1.4 includes all features from previous versions:
 
 ### 🧭 **Smart Navigation**
 
