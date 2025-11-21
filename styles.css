@@ -1875,6 +1875,89 @@ body:has(.swagger-nav-sidebar:not(.hidden)) .swagger-ui > div {
   display: flex;
   align-items: center;
   gap: 8px;
+  justify-content: space-between;
+}
+
+.swagger-nav-response-buttons {
+  display: flex !important;
+  gap: 16px !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+  flex-wrap: wrap !important;
+  width: auto !important;
+}
+
+.swagger-nav-response-buttons button {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.swagger-nav-response-buttons button.copy-to-clipboard {
+  margin-right: 16px !important;
+}
+
+/* Default Swagger UI response buttons (when Response View is OFF) */
+.swagger-nav-default-response-buttons {
+  display: flex !important;
+  gap: 20px !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+  flex-wrap: wrap !important;
+  padding: 8px 16px !important;
+  width: auto !important;
+}
+
+.swagger-nav-default-response-buttons button {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  min-width: fit-content !important;
+  box-sizing: border-box !important;
+}
+
+.swagger-nav-default-response-buttons button.copy-to-clipboard {
+  margin-right: 20px !important;
+}
+
+/* Responsive: On smaller screens, allow buttons to wrap */
+@media (max-width: 768px) {
+  .swagger-nav-body-header {
+    flex-wrap: wrap !important;
+  }
+  
+  .swagger-nav-body-header strong {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .swagger-nav-response-buttons {
+    width: 100% !important;
+    margin-left: 0 !important;
+    justify-content: flex-end !important;
+  }
+}
+
+/* On very small screens, stack buttons vertically */
+@media (max-width: 480px) {
+  .swagger-nav-response-buttons {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+  
+  .swagger-nav-response-buttons button {
+    width: 100% !important;
+  }
 }
 
 .swagger-nav-body-header strong {
@@ -2262,6 +2345,73 @@ body.swagger-nav-force-light
   accent-color: #66bb6a;
   flex-shrink: 0;
   margin-left: auto;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 2px solid var(--sn-border);
+  border-radius: 4px;
+  background-color: var(--sn-form-field-bg);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.swagger-nav-response-checkbox:hover {
+  border-color: #66bb6a;
+  background-color: var(--sn-form-field-hover);
+}
+
+.swagger-nav-response-checkbox:checked {
+  background-color: #66bb6a;
+  border-color: #66bb6a;
+}
+
+.swagger-nav-response-checkbox:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* Dark mode specific styling */
+@media (prefers-color-scheme: dark) {
+  .swagger-nav-response-checkbox {
+    border-color: #555;
+    background-color: #2d2d2d;
+  }
+  
+  .swagger-nav-response-checkbox:hover {
+    border-color: #66bb6a;
+    background-color: #363636;
+  }
+  
+  .swagger-nav-response-checkbox:checked {
+    background-color: #66bb6a;
+    border-color: #66bb6a;
+  }
+}
+
+/* Force dark mode when dark theme class is present */
+body.swagger-nav-dark .swagger-nav-response-checkbox,
+body.swagger-nav-force-dark .swagger-nav-response-checkbox {
+  border-color: #555 !important;
+  background-color: #2d2d2d !important;
+}
+
+body.swagger-nav-dark .swagger-nav-response-checkbox:hover,
+body.swagger-nav-force-dark .swagger-nav-response-checkbox:hover {
+  border-color: #66bb6a !important;
+  background-color: #363636 !important;
+}
+
+body.swagger-nav-dark .swagger-nav-response-checkbox:checked,
+body.swagger-nav-force-dark .swagger-nav-response-checkbox:checked {
+  background-color: #66bb6a !important;
+  border-color: #66bb6a !important;
 }
 
 /* Use same fieldset and legend styles as Form View */
