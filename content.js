@@ -5513,22 +5513,7 @@ class SwaggerNavigator {
           return;
         }
 
-        // Check if this looks like JSON
-        const text = codeElement.textContent.trim();
-        if (!text || (!text.startsWith("{") && !text.startsWith("["))) {
-          return;
-        }
-
-        // Try to parse as JSON
-        let responseData;
-        try {
-          responseData = JSON.parse(text);
-        } catch (e) {
-          // Not valid JSON, skip
-          return;
-        }
-
-        // Mark as enhanced
+        // Mark as enhanced (do this early to prevent re-processing)
         codeElement.dataset.swaggerNavResponseView = "true";
 
         // Find the parent pre element
@@ -5540,6 +5525,27 @@ class SwaggerNavigator {
           ".response-col_description, .response-body, .response"
         );
         if (!parentContainer) return;
+        
+        // Check if this looks like JSON (do this after finding parentContainer)
+        const text = codeElement.textContent.trim();
+        if (!text || (!text.startsWith("{") && !text.startsWith("["))) {
+          return;
+        }
+
+        // Try to parse as JSON for initial validation
+        let initialResponseData;
+        try {
+          initialResponseData = JSON.parse(text);
+        } catch (e) {
+          // Not valid JSON, skip
+          return;
+        }
+        
+        // Function to get CURRENT response data dynamically (not from initial parse)
+        // This ensures we always read from the LIVE response, not stale data
+        // NOTE: This function will be defined after container is created, but we'll define it here
+        // and update it later to reference container
+        let getCurrentResponseData;
 
         // Double-check that Response View is enabled BEFORE any processing
         if (!this.settings.enableResponseView) {
@@ -5584,6 +5590,90 @@ class SwaggerNavigator {
         // Don't set grid-template-columns inline - let CSS handle it (including responsive breakpoints)
         // CSS already sets grid-template-columns: 1fr 1fr by default, and 1fr for screens < 1600px
         container.style.cssText = "display: grid; gap: 16px; width: 100%;";
+        
+        // NOW define getCurrentResponseData function (after container and parentContainer exist)
+        getCurrentResponseData = () => {
+          // Strategy 1: Find the CURRENT visible response (most reliable)
+          // Look for response code elements that are currently visible and not marked as processed
+          const allCodeElements = parentContainer.querySelectorAll(
+            "pre code, .highlight-code code, pre.highlight-code code"
+          );
+          
+          // Find the most recent/current response code element
+          // Usually Swagger UI puts the latest response last or in a specific wrapper
+          let currentCodeElement = null;
+          
+          // First, try to find a visible response that's not our clone
+          for (let i = allCodeElements.length - 1; i >= 0; i--) {
+            const el = allCodeElements[i];
+            // Skip if it's part of our Response View container (now that container exists)
+            if (container && container.contains(el)) continue;
+            // Skip if it's already marked as processed
+            if (el.dataset.swaggerNavResponseView) continue;
+            
+            const text = el.textContent.trim();
+            if (text && (text.startsWith("{") || text.startsWith("["))) {
+              // Check if this element is visible (not hidden)
+              const preParent = el.closest("pre");
+              if (preParent && preParent.offsetParent !== null) {
+                currentCodeElement = el;
+                break;
+              }
+            }
+          }
+          
+          // Strategy 2: If no visible element found, check the hidden original wrapper
+          if (!currentCodeElement) {
+            const originalWrapper = parentContainer.querySelector(
+              "[data-swagger-nav-hidden-original='true']"
+            );
+            if (originalWrapper) {
+              currentCodeElement = originalWrapper.querySelector("code") || 
+                                  originalWrapper.querySelector("pre code") ||
+                                  originalWrapper.querySelector("pre");
+            }
+          }
+          
+          // Strategy 3: Find any response code element in the container
+          if (!currentCodeElement) {
+            const currentPre = parentContainer.querySelector(
+              "pre:not([data-swagger-nav-response-view]):not(.swagger-nav-response-code pre)"
+            );
+            if (currentPre) {
+              currentCodeElement = currentPre.querySelector("code") || currentPre;
+            }
+          }
+          
+          // Strategy 4: Fallback to the initial codeElement (should rarely happen)
+          if (!currentCodeElement) {
+            currentCodeElement = codeElement;
+          }
+          
+          if (!currentCodeElement) {
+            swaggerNavWarn("SwaggerNav: Could not find current response element");
+            return null;
+          }
+          
+          const text = currentCodeElement.textContent.trim();
+          if (!text || (!text.startsWith("{") && !text.startsWith("["))) {
+            return null;
+          }
+          
+          try {
+            const data = JSON.parse(text);
+            // Only log occasionally to avoid performance impact
+            if (Math.random() < 0.1) { // Log only 10% of the time
+              swaggerNavLog("SwaggerNav: Got current response data", {
+                textLength: text.length,
+                keys: typeof data === 'object' && data !== null ? Object.keys(data).slice(0, 3) : 'not object'
+              });
+            }
+            return data;
+          } catch (e) {
+            swaggerNavWarn("SwaggerNav: Failed to parse response data", e);
+            return null;
+          }
+        };
 
         // Left panel: Original code view
         const leftPanel = document.createElement("div");
@@ -5603,8 +5693,14 @@ class SwaggerNavigator {
         codeHeader.appendChild(codeHeaderTitle);
 
         // Clone the original pre element FIRST so we can reference it in buttons
+        // Use cloneNode(true) to preserve all HTML structure including syntax highlighting
         const codeClone = preElement.cloneNode(true);
-        codeClone.style.cssText = "margin: 0; flex: 1; overflow: auto;";
+        // Preserve original classes for syntax highlighting
+        codeClone.className = preElement.className;
+        // Only override specific styles, don't replace all styles
+        codeClone.style.margin = "0";
+        codeClone.style.flex = "1";
+        codeClone.style.overflow = "auto";
 
         // Create custom copy/download buttons BEFORE appending header to panel
         // We'll implement the functionality ourselves instead of trying to find Swagger UI's buttons
@@ -5613,8 +5709,29 @@ class SwaggerNavigator {
         buttonsWrapper.style.cssText =
           "display: flex !important; gap: 16px !important; align-items: center !important; visibility: visible !important; opacity: 1 !important; flex-shrink: 0 !important; margin-left: auto !important; flex-wrap: wrap !important; width: auto !important;";
 
-        // Get the response text from the code element
+        // Get the response text from the LIVE original response element (not the clone)
+        // This ensures we always get the current response, not stale data
         const getResponseText = () => {
+          // Find the original response wrapper (it might be hidden but still exists)
+          const originalWrapper = parentContainer.querySelector(
+            "[data-swagger-nav-hidden-original='true']"
+          );
+          if (originalWrapper) {
+            // Find the code element in the original wrapper
+            const originalCodeEl = originalWrapper.querySelector("code") || 
+                                   originalWrapper.querySelector("pre code") ||
+                                   originalWrapper.querySelector("pre");
+            if (originalCodeEl) {
+              return originalCodeEl.textContent || originalCodeEl.innerText || "";
+            }
+          }
+          // Fallback: try to find the current response in the parent container
+          const currentPre = parentContainer.querySelector("pre:not([data-swagger-nav-response-view])");
+          if (currentPre) {
+            const currentCodeEl = currentPre.querySelector("code") || currentPre;
+            return currentCodeEl.textContent || currentCodeEl.innerText || "";
+          }
+          // Last resort: use the clone (but this should rarely happen)
           const codeEl = codeClone.querySelector("code") || codeClone;
           return codeEl.textContent || codeEl.innerText || "";
         };
@@ -6275,8 +6392,20 @@ class SwaggerNavigator {
           }
         }
 
-        // Build response view
-        this.buildResponseView(responseData, viewContainer);
+        // Build response view - ALWAYS get current data right before building
+        // Use initialResponseData as fallback if getCurrentResponseData fails
+        const currentResponseData = getCurrentResponseData ? getCurrentResponseData() : initialResponseData;
+        if (currentResponseData) {
+          this.buildResponseView(currentResponseData, viewContainer);
+        } else {
+          swaggerNavWarn("SwaggerNav: Could not get current response data for Response View");
+          // Don't return - use initialResponseData as fallback
+          if (initialResponseData) {
+            this.buildResponseView(initialResponseData, viewContainer);
+          } else {
+            return;
+          }
+        }
 
         // No need to search for Swagger UI buttons anymore - we use custom buttons
 
@@ -6323,107 +6452,203 @@ class SwaggerNavigator {
           });
         };
 
-        // Watch for changes in the cloned code element (response might update)
-        // Find the code element inside the clone
-        const clonedCodeElement = codeClone.querySelector("code") || codeClone;
-        const observer = new MutationObserver(() => {
+        // Watch for changes in the ORIGINAL response element (not the clone)
+        // Swagger UI updates the original, so we need to watch it and sync the clone
+        const originalCodeElement = preElement.querySelector("code") || preElement;
+        
+        // Debounce updates to avoid excessive processing
+        let updateTimeout = null;
+        let lastResponseText = null;
+        
+        const updateResponseView = () => {
           // Check if Response View is still enabled before updating
           if (!this.settings.enableResponseView) {
             return;
           }
 
-          const newText = clonedCodeElement.textContent.trim();
+          // Find the CURRENT original response element (it might have been replaced)
+          let currentOriginalElement = originalCodeElement;
+          if (!document.contains(originalCodeElement)) {
+            // Original element was replaced, find the new one
+            const hiddenWrapper = parentContainer.querySelector(
+              "[data-swagger-nav-hidden-original='true']"
+            );
+            if (hiddenWrapper) {
+              currentOriginalElement = hiddenWrapper.querySelector("code") || 
+                                      hiddenWrapper.querySelector("pre code") ||
+                                      hiddenWrapper.querySelector("pre");
+            }
+            // If still not found, try finding any code element in the parent container
+            if (!currentOriginalElement) {
+              const currentPre = parentContainer.querySelector("pre:not([data-swagger-nav-response-view])");
+              if (currentPre) {
+                currentOriginalElement = currentPre.querySelector("code") || currentPre;
+              }
+            }
+          }
+
+          if (!currentOriginalElement) {
+            return; // Can't find the response element
+          }
+
+          // Get current text first (cheaper check)
+          const newText = currentOriginalElement.textContent.trim();
+          
+          // Skip if text hasn't actually changed
+          if (newText === lastResponseText) {
+            matchHeights(); // Still update heights for size changes
+            return;
+          }
+          
+          // Only parse and rebuild if text actually changed
           if (newText && (newText.startsWith("{") || newText.startsWith("["))) {
             try {
-              const newData = JSON.parse(newText);
+              const latestData = JSON.parse(newText);
+              lastResponseText = newText;
+              
+              // Update the clone to match the original (preserve syntax highlighting HTML)
+              const clonedCodeElement = codeClone.querySelector("code") || codeClone;
+              const originalCodeElement = currentOriginalElement.querySelector("code") || currentOriginalElement;
+              
+              if (clonedCodeElement && originalCodeElement) {
+                // Preserve the HTML structure (including syntax highlighting spans)
+                // Only update if the innerHTML is different to avoid unnecessary DOM updates
+                if (clonedCodeElement.innerHTML !== originalCodeElement.innerHTML) {
+                  clonedCodeElement.innerHTML = originalCodeElement.innerHTML;
+                }
+                // Also sync classes to preserve highlighting classes
+                if (clonedCodeElement.className !== originalCodeElement.className) {
+                  clonedCodeElement.className = originalCodeElement.className;
+                }
+              } else if (clonedCodeElement && clonedCodeElement.textContent !== newText) {
+                // Fallback: if we can't get HTML, at least update text
+                clonedCodeElement.textContent = newText;
+              }
+              
+              // Update the Response View with the latest data
               viewContainer.innerHTML = "";
-              this.buildResponseView(newData, viewContainer);
+              this.buildResponseView(latestData, viewContainer);
               // Re-match heights after content update
               matchHeights();
             } catch (e) {
-              // Invalid JSON, keep current view
+              // Invalid JSON, skip update
             }
+          } else {
+            // Just update heights for non-JSON changes
+            matchHeights();
           }
-          // Also re-match heights when the element size changes
-          matchHeights();
+        };
+        
+        const observer = new MutationObserver(() => {
+          // Debounce: clear previous timeout and set new one
+          if (updateTimeout) {
+            clearTimeout(updateTimeout);
+          }
+          updateTimeout = setTimeout(updateResponseView, 150); // 150ms debounce
         });
 
-        observer.observe(clonedCodeElement, {
+        // Watch the ORIGINAL element, not the clone
+        observer.observe(originalCodeElement, {
           childList: true,
           characterData: true,
           subtree: true,
         });
+        
+        // Also watch the parent wrapper in case Swagger UI replaces the entire element
+        if (responseBodyWrapper) {
+          observer.observe(responseBodyWrapper, {
+            childList: true,
+            subtree: true,
+          });
+        }
 
         // Also watch the parent container for new responses being added by Swagger UI
         // This handles cases where Swagger UI replaces the entire response section
+        let containerUpdateTimeout = null;
         const containerObserver = new MutationObserver((mutations) => {
           // Check if Response View is still enabled before processing
           if (!this.settings.enableResponseView) {
             return;
           }
 
-          // Check if Swagger UI added copy/download buttons
-          // Find buttonsWrapper from the container we created
-          const currentButtonsWrapper = container.querySelector(
-            ".swagger-nav-body-header > div:last-child"
-          );
-          const newCopyButton = parentContainer?.querySelector(
-            ".copy-to-clipboard:not([data-swagger-nav-cloned])"
-          );
-          const newDownloadButton = parentContainer?.querySelector(
-            ".download-contents:not([data-swagger-nav-cloned]), .btn-download:not([data-swagger-nav-cloned])"
-          );
-
-          if ((newCopyButton || newDownloadButton) && currentButtonsWrapper) {
-            // Check if we already have these buttons
-            const hasCopy =
-              currentButtonsWrapper.querySelector(".copy-to-clipboard");
-            const hasDownload = currentButtonsWrapper.querySelector(
-              ".download-contents, .btn-download"
+          // Debounce container updates
+          if (containerUpdateTimeout) {
+            clearTimeout(containerUpdateTimeout);
+          }
+          containerUpdateTimeout = setTimeout(() => {
+            // Check if Swagger UI added copy/download buttons
+            // Find buttonsWrapper from the container we created
+            const currentButtonsWrapper = container.querySelector(
+              ".swagger-nav-body-header > div:last-child"
+            );
+            const newCopyButton = parentContainer?.querySelector(
+              ".copy-to-clipboard:not([data-swagger-nav-cloned])"
+            );
+            const newDownloadButton = parentContainer?.querySelector(
+              ".download-contents:not([data-swagger-nav-cloned]), .btn-download:not([data-swagger-nav-cloned])"
             );
 
-            if (newCopyButton && !hasCopy) {
-              swaggerNavLog(
-                "SwaggerNav: Found copy button dynamically, adding to header"
+            if ((newCopyButton || newDownloadButton) && currentButtonsWrapper) {
+              // Check if we already have these buttons
+              const hasCopy =
+                currentButtonsWrapper.querySelector(".copy-to-clipboard");
+              const hasDownload = currentButtonsWrapper.querySelector(
+                ".download-contents, .btn-download"
               );
-              const copyBtnClone = newCopyButton.cloneNode(true);
-              copyBtnClone.dataset.swaggerNavCloned = "true";
-              copyBtnClone.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                newCopyButton.click();
-              });
-              currentButtonsWrapper.appendChild(copyBtnClone);
-            }
-            if (newDownloadButton && !hasDownload) {
-              swaggerNavLog(
-                "SwaggerNav: Found download button dynamically, adding to header"
-              );
-              const downloadBtnClone = newDownloadButton.cloneNode(true);
-              downloadBtnClone.dataset.swaggerNavCloned = "true";
-              downloadBtnClone.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                newDownloadButton.click();
-              });
-              currentButtonsWrapper.appendChild(downloadBtnClone);
-            }
-          }
 
-          // Check if Swagger UI added a new response code block
-          const newCodeBlocks = parentContainer.querySelectorAll(
-            ".highlight-code pre code:not([data-swagger-nav-response-view])"
-          );
-          if (newCodeBlocks.length > 0) {
-            // Re-run addResponseView to catch new responses
-            swaggerNavLog(
-              "SwaggerNav: New response detected, re-adding Response View"
+              if (newCopyButton && !hasCopy) {
+                swaggerNavLog(
+                  "SwaggerNav: Found copy button dynamically, adding to header"
+                );
+                const copyBtnClone = newCopyButton.cloneNode(true);
+                copyBtnClone.dataset.swaggerNavCloned = "true";
+                copyBtnClone.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  newCopyButton.click();
+                });
+                currentButtonsWrapper.appendChild(copyBtnClone);
+              }
+              if (newDownloadButton && !hasDownload) {
+                swaggerNavLog(
+                  "SwaggerNav: Found download button dynamically, adding to header"
+                );
+                const downloadBtnClone = newDownloadButton.cloneNode(true);
+                downloadBtnClone.dataset.swaggerNavCloned = "true";
+                downloadBtnClone.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  newDownloadButton.click();
+                });
+                currentButtonsWrapper.appendChild(downloadBtnClone);
+              }
+            }
+
+            // Check if Swagger UI added a new response code block or replaced the response
+            const newCodeBlocks = parentContainer.querySelectorAll(
+              ".highlight-code pre code:not([data-swagger-nav-response-view])"
             );
-            // Small delay to ensure Swagger UI is done updating
-            setTimeout(() => {
-              this.addResponseView(opblock);
-            }, 100);
-          }
+            
+            // Also check if the original wrapper was replaced (Swagger UI might create a new one)
+            const currentHiddenWrapper = parentContainer.querySelector(
+              "[data-swagger-nav-hidden-original='true']"
+            );
+            const currentResponsePre = parentContainer.querySelector(
+              "pre:not([data-swagger-nav-response-view]):not([data-swagger-nav-hidden-original])"
+            );
+            
+            if (newCodeBlocks.length > 0 || (currentResponsePre && !currentHiddenWrapper)) {
+              // Re-run addResponseView to catch new/replaced responses
+              swaggerNavLog(
+                "SwaggerNav: New/replaced response detected, re-adding Response View",
+                { newCodeBlocks: newCodeBlocks.length, hasCurrentPre: !!currentResponsePre }
+              );
+              // Small delay to ensure Swagger UI is done updating
+              setTimeout(() => {
+                this.addResponseView(opblock);
+              }, 100);
+            }
+          }, 200); // 200ms debounce for container observer
         });
 
         containerObserver.observe(parentContainer, {

@@ -1,12 +1,35 @@
-# SwaggerNav v1.1.4 Release Notes
+# SwaggerNav v1.1.5 Release Notes
 
-**Previous Version:** 1.1.3
+**Previous Version:** 1.1.4
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.4
+## 🎉 What's New in v1.1.5
+
+### **Critical Bug Fixes**
+
+- 🐛 **Fixed Response View Showing Wrong Data** - Response View now always reads from the LIVE current response element, not stale cloned data. This ensures users always see the correct response data, not data from previous requests.
+- 🔧 **Fixed Response View Not Showing** - Resolved issue where Response View wouldn't appear due to function scope and timing issues.
+
+### **Performance Optimizations**
+
+- ⚡ **Debounced Mutation Observers** - Added 150ms debounce to Response View mutation observer to prevent excessive updates during rapid DOM changes
+- 🚀 **Smart Update Detection** - Response View now only rebuilds when response text actually changes, skipping unnecessary parsing and rendering
+- ⏱️ **Optimized Container Observer** - Added 200ms debounce to container observer to reduce expensive DOM queries
+- 📊 **Reduced Logging Overhead** - Reduced logging frequency to 10% to minimize performance impact
+
+### **Technical Improvements**
+
+- Fixed `getCurrentResponseData()` to always read from live response elements
+- Improved MutationObserver to watch original response elements instead of clones
+- Added text comparison checks to prevent unnecessary updates
+- Enhanced error handling for response element detection
+
+---
+
+## 🎉 Previous Release: v1.1.4
 
 ### **Response View Enhancements**
 
@@ -189,7 +212,7 @@ When SwaggerNav is installed with default settings, Swagger UI now looks exactly
 
 ## 🎨 Complete Feature List
 
-SwaggerNav v1.1.4 includes all features from previous versions:
+SwaggerNav v1.1.5 includes all features from previous versions:
 
 ### 🧭 **Smart Navigation**
 
