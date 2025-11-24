@@ -154,6 +154,16 @@ class SwaggerNavigator {
     // Don't setup network error detection here - will be called in setup() after Swagger UI is detected
   }
 
+  // Check if extension context is still valid
+  isExtensionContextValid() {
+    try {
+      // Check if chrome.runtime exists and has a valid ID
+      return !!(chrome && chrome.runtime && chrome.runtime.id);
+    } catch (error) {
+      return false;
+    }
+  }
+
   // Load pinned endpoints from localStorage
   loadPinnedEndpoints() {
     try {
@@ -315,6 +325,13 @@ class SwaggerNavigator {
         "SwaggerNav: Settings loaded from chrome.storage",
         this.settings
       );
+
+      // Re-detect theme before applying (in case OS theme changed or detection was incorrect)
+      const newTheme = this.detectTheme();
+      if (newTheme !== this.theme) {
+        this.theme = newTheme;
+        swaggerNavLog(`SwaggerNav: Theme re-detected as ${this.theme} mode when settings loaded`);
+      }
 
       // Re-apply themes and background now that settings are loaded
       // Only apply on Swagger UI pages
@@ -1924,6 +1941,26 @@ class SwaggerNavigator {
         if (window._swaggerNavLoadingOverlay) {
           delete window._swaggerNavLoadingOverlay;
         }
+        
+        // Re-detect theme and re-apply themes, backgrounds, and effects after overlay is hidden
+        // This ensures correct theme and backgrounds are applied after page is fully loaded
+        if (isSwaggerUIPage()) {
+          // Re-detect theme in case OS theme changed or detection was incorrect
+          const newTheme = this.detectTheme();
+          if (newTheme !== this.theme) {
+            this.theme = newTheme;
+            swaggerNavLog(`SwaggerNav: Theme re-detected as ${this.theme} mode after loading`);
+          }
+          
+          // Re-apply all themes, backgrounds, and effects to ensure everything is correct
+          requestAnimationFrame(() => {
+            this.applySwaggerUITheme();
+            this.applyNavBarTheme(); // This also calls applyNavBarBackground() internally
+            this.applySwaggerTheme();
+            this.applyLiquidGlass(); // Re-apply liquid glass effect if enabled
+            swaggerNavLog("SwaggerNav: Themes, backgrounds, and effects re-applied after loading overlay hidden");
+          });
+        }
       }, 300);
       return true;
     }
@@ -2065,6 +2102,26 @@ class SwaggerNavigator {
               overlay.remove();
               if (window._swaggerNavLoadingOverlay) {
                 delete window._swaggerNavLoadingOverlay;
+              }
+              
+              // Re-detect theme and re-apply themes, backgrounds, and effects after overlay is hidden
+              // This ensures correct theme and backgrounds are applied after page is fully loaded
+              if (isSwaggerUIPage()) {
+                // Re-detect theme in case OS theme changed or detection was incorrect
+                const newTheme = this.detectTheme();
+                if (newTheme !== this.theme) {
+                  this.theme = newTheme;
+                  swaggerNavLog(`SwaggerNav: Theme re-detected as ${this.theme} mode after loading (fallback)`);
+                }
+                
+                // Re-apply all themes, backgrounds, and effects to ensure everything is correct
+                requestAnimationFrame(() => {
+                  this.applySwaggerUITheme();
+                  this.applyNavBarTheme(); // This also calls applyNavBarBackground() internally
+                  this.applySwaggerTheme();
+                  this.applyLiquidGlass(); // Re-apply liquid glass effect if enabled
+                  swaggerNavLog("SwaggerNav: Themes, backgrounds, and effects re-applied after loading overlay hidden (fallback)");
+                });
               }
             }, 300);
           }
@@ -2928,30 +2985,51 @@ class SwaggerNavigator {
     const toggleBtn = this.navBar.querySelector(".swagger-nav-toggle-btn");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", () => {
-        const isHidden = this.navBar.classList.contains("hidden");
+        try {
+          // Check if extension context is still valid and navBar exists
+          if (!this.isExtensionContextValid()) {
+            swaggerNavWarn("SwaggerNav: Extension context invalidated, skipping toggle");
+            return;
+          }
+          if (!this.navBar || !document.body.contains(this.navBar)) {
+            swaggerNavWarn("SwaggerNav: navBar removed, skipping toggle");
+            return;
+          }
 
-        if (isHidden) {
-          // Show sidebar
-          this.navBar.classList.remove("hidden");
-          // Apply constraints when sidebar is shown
-          this.applyResponsiveConstraints();
-          toggleBtn.querySelector("span").textContent = "▶";
-          toggleBtn.title = "Hide sidebar";
-          toggleBtn.setAttribute("aria-label", "Hide sidebar");
-          toggleBtn.setAttribute("aria-expanded", "true");
-          this.removeFloatingShowButton();
-          this.saveSidebarState(false); // Save as visible
-        } else {
-          // Hide sidebar
-          this.navBar.classList.add("hidden");
-          // Remove constraints when sidebar is hidden
-          this.removeResponsiveConstraints();
-          toggleBtn.querySelector("span").textContent = "◀";
-          toggleBtn.title = "Show sidebar";
-          toggleBtn.setAttribute("aria-label", "Show sidebar");
-          toggleBtn.setAttribute("aria-expanded", "false");
-          this.createFloatingShowButton();
-          this.saveSidebarState(true); // Save as hidden
+          const isHidden = this.navBar.classList.contains("hidden");
+
+          if (isHidden) {
+            // Show sidebar
+            this.navBar.classList.remove("hidden");
+            // Apply constraints when sidebar is shown
+            this.applyResponsiveConstraints();
+            toggleBtn.querySelector("span").textContent = "▶";
+            toggleBtn.title = "Hide sidebar";
+            toggleBtn.setAttribute("aria-label", "Hide sidebar");
+            toggleBtn.setAttribute("aria-expanded", "true");
+            this.removeFloatingShowButton();
+            this.saveSidebarState(false); // Save as visible
+          } else {
+            // Hide sidebar
+            this.navBar.classList.add("hidden");
+            // Remove constraints when sidebar is hidden
+            this.removeResponsiveConstraints();
+            toggleBtn.querySelector("span").textContent = "◀";
+            toggleBtn.title = "Show sidebar";
+            toggleBtn.setAttribute("aria-label", "Show sidebar");
+            toggleBtn.setAttribute("aria-expanded", "false");
+            this.createFloatingShowButton();
+            this.saveSidebarState(true); // Save as hidden
+          }
+        } catch (error) {
+          // Handle extension context invalidated errors gracefully
+          if (error.message && error.message.includes("Extension context invalidated")) {
+            swaggerNavWarn("SwaggerNav: Extension context invalidated, page reload may be needed");
+            // Optionally reload the page to restore extension context
+            // window.location.reload();
+          } else {
+            swaggerNavError("SwaggerNav: Error in toggle button handler", error);
+          }
         }
       });
     }
@@ -2985,32 +3063,56 @@ class SwaggerNavigator {
     const settingsBtn = this.navBar.querySelector(".swagger-nav-settings-btn");
     if (settingsBtn) {
       settingsBtn.addEventListener("click", () => {
-        swaggerNavLog(
-          "SwaggerNav: Requesting service worker to open options page"
-        );
-
-        // Send message to service worker to open options page
-        // This avoids ERR_BLOCKED_BY_CLIENT since content scripts have limited API access
-        chrome.runtime.sendMessage(
-          { action: "openOptionsPage" },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              swaggerNavError(
-                "SwaggerNav: Error sending message to service worker",
-                chrome.runtime.lastError
-              );
-              // Fallback: try opening directly as a last resort
-              window.open(chrome.runtime.getURL("options.html"), "_blank");
-            } else if (response && response.success) {
-              swaggerNavLog("SwaggerNav: Options page opened successfully");
-            } else {
-              swaggerNavError(
-                "SwaggerNav: Service worker failed to open options page",
-                response?.error
-              );
-            }
+        try {
+          // Check if extension context is still valid
+          if (!chrome.runtime || !chrome.runtime.id) {
+            swaggerNavWarn("SwaggerNav: Extension context invalidated, cannot open options page");
+            return;
           }
-        );
+
+          swaggerNavLog(
+            "SwaggerNav: Requesting service worker to open options page"
+          );
+
+          // Send message to service worker to open options page
+          // This avoids ERR_BLOCKED_BY_CLIENT since content scripts have limited API access
+          chrome.runtime.sendMessage(
+            { action: "openOptionsPage" },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                // Check if error is due to invalidated context
+                if (chrome.runtime.lastError.message && chrome.runtime.lastError.message.includes("Extension context invalidated")) {
+                  swaggerNavWarn("SwaggerNav: Extension context invalidated, page reload may be needed");
+                  return;
+                }
+                swaggerNavError(
+                  "SwaggerNav: Error sending message to service worker",
+                  chrome.runtime.lastError
+                );
+                // Fallback: try opening directly as a last resort
+                try {
+                  window.open(chrome.runtime.getURL("options.html"), "_blank");
+                } catch (fallbackError) {
+                  swaggerNavError("SwaggerNav: Failed to open options page", fallbackError);
+                }
+              } else if (response && response.success) {
+                swaggerNavLog("SwaggerNav: Options page opened successfully");
+              } else {
+                swaggerNavError(
+                  "SwaggerNav: Service worker failed to open options page",
+                  response?.error
+                );
+              }
+            }
+          );
+        } catch (error) {
+          // Handle extension context invalidated errors gracefully
+          if (error.message && error.message.includes("Extension context invalidated")) {
+            swaggerNavWarn("SwaggerNav: Extension context invalidated, page reload may be needed");
+          } else {
+            swaggerNavError("SwaggerNav: Error in settings button handler", error);
+          }
+        }
       });
     }
 
