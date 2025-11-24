@@ -3,11 +3,47 @@
 
 // VERSION is loaded from version.js
 
-// Create loading overlay immediately
+// Helper function to check if current page is Swagger UI (early check)
+// This is used before the main init() to avoid creating loading overlay on non-Swagger pages
+function isSwaggerUIPageEarly() {
+  try {
+    // Check DOM elements first (safest)
+    if (
+      document.querySelector(".swagger-ui") ||
+      document.querySelector("#swagger-ui") ||
+      document.querySelector('[data-testid="swagger-ui"]') ||
+      document.querySelector(".opblock") ||
+      document.querySelector(".swagger-container")
+    ) {
+      return true;
+    }
+
+    // Check window properties carefully to avoid getter recursion
+    // Use hasOwnProperty to check if property exists without triggering getters
+    if (window.hasOwnProperty("ui") && window.ui) {
+      return true;
+    }
+    if (window.hasOwnProperty("swaggerUi") && window.swaggerUi) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    // If there's any error (including stack overflow), return false safely
+    return false;
+  }
+}
+
+// Create loading overlay only on Swagger UI pages
 (function() {
   function createLoadingOverlay() {
     // Check if overlay already exists
     if (document.getElementById("swagger-nav-loading-overlay") || window._swaggerNavLoadingOverlay) {
+      return;
+    }
+    
+    // Only create overlay if this is a Swagger UI page
+    if (!isSwaggerUIPageEarly()) {
       return;
     }
     
@@ -73,7 +109,7 @@
     window._swaggerNavLoadingOverlay = loadingOverlay;
   }
   
-  // Create overlay immediately
+  // Create overlay only if Swagger UI is detected
   createLoadingOverlay();
 })();
 
