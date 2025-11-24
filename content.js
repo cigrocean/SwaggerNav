@@ -3,6 +3,80 @@
 
 // VERSION is loaded from version.js
 
+// Create loading overlay immediately
+(function() {
+  function createLoadingOverlay() {
+    // Check if overlay already exists
+    if (document.getElementById("swagger-nav-loading-overlay") || window._swaggerNavLoadingOverlay) {
+      return;
+    }
+    
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.id = "swagger-nav-loading-overlay";
+    loadingOverlay.style.cssText = `
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background-color: rgba(0, 0, 0, 0.85) !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    `;
+    
+    const loadingText = document.createElement("div");
+    loadingText.textContent = "SwaggerNav sidebar is loading...";
+    loadingText.style.cssText = `
+      color: #ffffff !important;
+      font-size: 24px !important;
+      font-weight: 500 !important;
+      text-align: center !important;
+      animation: swagger-nav-loading-pulse 1.5s ease-in-out infinite !important;
+    `;
+    
+    loadingOverlay.appendChild(loadingText);
+    
+    // Add CSS animation if not already added
+    if (!document.getElementById("swagger-nav-loading-style")) {
+      const style = document.createElement("style");
+      style.id = "swagger-nav-loading-style";
+      style.textContent = `
+        @keyframes swagger-nav-loading-pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Append to body if it exists, otherwise wait for it
+    if (document.body) {
+      document.body.appendChild(loadingOverlay);
+    } else {
+      // Wait for body to be ready
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+          if (document.body) {
+            document.body.appendChild(loadingOverlay);
+          }
+        });
+      } else {
+        // Use a fallback - append to documentElement
+        document.documentElement.appendChild(loadingOverlay);
+      }
+    }
+    
+    // Store reference globally so we can hide it later
+    window._swaggerNavLoadingOverlay = loadingOverlay;
+  }
+  
+  // Create overlay immediately
+  createLoadingOverlay();
+})();
+
 // Helper function to check if current page is Swagger UI
 // Use try-catch to prevent infinite recursion from getters
 function isSwaggerUIPage() {
@@ -246,7 +320,7 @@ class SwaggerNavigator {
       // Only apply on Swagger UI pages
       if (isSwaggerUIPage()) {
         this.applySwaggerUITheme();
-        this.applyNavBarTheme();
+      this.applyNavBarTheme();
         // Apply liquid glass effect if enabled
         this.applyLiquidGlass();
       }
@@ -442,11 +516,11 @@ class SwaggerNavigator {
         if (swaggerUITheme === "auto") {
           // Apply theme to Swagger UI and sidebar immediately
           this.applySwaggerUITheme();
-          this.applySwaggerTheme();
+        this.applySwaggerTheme();
         }
 
         if (extensionTheme === "auto") {
-          this.applyNavBarTheme();
+        this.applyNavBarTheme();
         }
 
         // Force CSS recalculation by triggering a reflow
@@ -492,9 +566,9 @@ class SwaggerNavigator {
             // Apply new Swagger UI theme immediately using requestAnimationFrame for instant update
             requestAnimationFrame(() => {
               this.applySwaggerUITheme();
-              this.applySwaggerTheme();
+            this.applySwaggerTheme();
               // Extension features and backgrounds follow Swagger UI theme, so update them too
-              this.applyNavBarTheme();
+            this.applyNavBarTheme();
               this.applyNavBarBackground();
               // Force CSS recalculation by triggering a reflow
               void document.body.offsetHeight;
@@ -538,7 +612,7 @@ class SwaggerNavigator {
             );
             // Apply new background immediately
             requestAnimationFrame(() => {
-              this.applyNavBarBackground();
+            this.applyNavBarBackground();
 
               // If switching to default, restore Swagger UI theme properly
               if (changes.background.newValue === "default") {
@@ -764,6 +838,70 @@ class SwaggerNavigator {
             });
           }
 
+          // Handle Parameter Search toggle changes
+          if (changes.enableParamSearch !== undefined) {
+            swaggerNavLog(
+              `SwaggerNav: Parameter Search ${
+                changes.enableParamSearch.newValue ? "enabled" : "disabled"
+              }`
+            );
+            // Update Parameter Search immediately
+            requestAnimationFrame(() => {
+              if (changes.enableParamSearch.newValue) {
+                // Show all parameter search boxes and hide original selects
+                const allSearchInputs = document.querySelectorAll(
+                  ".swagger-nav-select-search"
+                );
+                swaggerNavLog(
+                  `SwaggerNav: Found ${allSearchInputs.length} parameter search boxes to show`
+                );
+
+                allSearchInputs.forEach((searchInput) => {
+                  // Find the search wrapper (parent of searchInput)
+                  const searchWrapper = searchInput.parentElement;
+                  if (searchWrapper) {
+                    searchWrapper.style.display = "block";
+                    swaggerNavLog("SwaggerNav: Showed parameter search wrapper");
+                  }
+                  
+                  // Find the original select (sibling of searchWrapper)
+                  const select = searchWrapper?.nextElementSibling;
+                  if (select && select.tagName === "SELECT" && select.dataset.swaggerNavSearchable === "true") {
+                    select.style.display = "none";
+                    swaggerNavLog("SwaggerNav: Hid original select");
+                  }
+                });
+
+                // Also re-enhance to add Parameter Search to any new selects
+                this.enhanceParameters();
+              } else {
+                // Hide parameter search boxes and show original selects
+                const allSearchInputs = document.querySelectorAll(
+                  ".swagger-nav-select-search"
+                );
+                swaggerNavLog(
+                  `SwaggerNav: Found ${allSearchInputs.length} parameter search boxes to hide`
+                );
+
+                allSearchInputs.forEach((searchInput) => {
+                  // Find the search wrapper (parent of searchInput)
+                  const searchWrapper = searchInput.parentElement;
+                  if (searchWrapper) {
+                    searchWrapper.style.display = "none";
+                    swaggerNavLog("SwaggerNav: Hid parameter search wrapper");
+                  }
+                  
+                  // Find the original select (sibling of searchWrapper)
+                  const select = searchWrapper?.nextElementSibling;
+                  if (select && select.tagName === "SELECT" && select.dataset.swaggerNavSearchable === "true") {
+                    select.style.display = "";
+                    swaggerNavLog("SwaggerNav: Showed original select");
+                  }
+                });
+              }
+            });
+          }
+
           // Update settings UI
           this.updateSettingsUI();
         }
@@ -798,12 +936,12 @@ class SwaggerNavigator {
     if (swaggerUITheme === "light") {
       // Only add force classes to body if we should modify Swagger UI
       if (shouldModifySwaggerUI) {
-        document.body.classList.add("swagger-nav-force-light");
+      document.body.classList.add("swagger-nav-force-light");
       }
     } else if (swaggerUITheme === "dark") {
       // Only add force classes to body if we should modify Swagger UI
       if (shouldModifySwaggerUI) {
-        document.body.classList.add("swagger-nav-force-dark");
+      document.body.classList.add("swagger-nav-force-dark");
       }
     } else {
       // Auto mode - follow OS theme
@@ -851,7 +989,7 @@ class SwaggerNavigator {
           "SwaggerNav: Applied light theme to extension features (following Swagger UI light)"
         );
       } else if (swaggerUITheme === "dark") {
-        document.body.classList.add("swagger-nav-dark");
+      document.body.classList.add("swagger-nav-dark");
         swaggerNavLog(
           "SwaggerNav: Applied dark theme to extension features (following Swagger UI dark)"
         );
@@ -884,12 +1022,12 @@ class SwaggerNavigator {
         this.navBar.classList.add("swagger-nav-light");
       } else if (extensionTheme === "dark") {
         this.navBar.classList.add("swagger-nav-dark");
+    } else {
+      // Auto mode - follow OS theme
+      if (this.theme === "dark") {
+        this.navBar.classList.add("swagger-nav-dark");
       } else {
-        // Auto mode - follow OS theme
-        if (this.theme === "dark") {
-          this.navBar.classList.add("swagger-nav-dark");
-        } else {
-          this.navBar.classList.add("swagger-nav-light");
+        this.navBar.classList.add("swagger-nav-light");
         }
       }
     }
@@ -1761,6 +1899,37 @@ class SwaggerNavigator {
     return indicators.some((el) => el !== null);
   }
 
+  // Hide loading overlay - only if SwaggerNav sidebar is rendered
+  hideLoadingOverlay() {
+    // Check if SwaggerNav sidebar is actually rendered and in the DOM
+    const sidebar = document.getElementById("swagger-nav-sidebar");
+    if (!sidebar || !this.navBar) {
+      // Sidebar not ready yet, don't hide overlay
+      return false;
+    }
+    
+    // Check if sidebar is actually in the DOM (even if hidden, it's still rendered)
+    if (!document.body.contains(sidebar)) {
+      // Sidebar exists but not in DOM yet, don't hide overlay
+      return false;
+    }
+    
+    // Sidebar is rendered and in DOM, hide overlay
+    const overlay = document.getElementById("swagger-nav-loading-overlay") || window._swaggerNavLoadingOverlay;
+    if (overlay) {
+      overlay.style.opacity = "0";
+      overlay.style.transition = "opacity 0.3s ease-out";
+      setTimeout(() => {
+        overlay.remove();
+        if (window._swaggerNavLoadingOverlay) {
+          delete window._swaggerNavLoadingOverlay;
+        }
+      }, 300);
+      return true;
+    }
+    return false;
+  }
+
   // Initialize the extension
   init() {
     // Wait for DOM to be ready
@@ -1773,7 +1942,10 @@ class SwaggerNavigator {
     this.isSwaggerUI = this.detectSwaggerUI();
 
     if (!this.isSwaggerUI) {
-      // Not a Swagger UI page - restore original functions if interceptors were installed
+      // Not a Swagger UI page - hide loading overlay immediately
+      this.hideLoadingOverlay();
+      
+      // Restore original functions if interceptors were installed
       this.restoreOriginalFunctions();
       // Stop any health checks
       this.stopHealthCheck();
@@ -1790,6 +1962,7 @@ class SwaggerNavigator {
           // Also trigger sync after a delay to ensure Swagger UI is fully rendered
           setTimeout(() => {
             this.syncToCurrentSwaggerState();
+            // Loading overlay will be hidden by setup() when sidebar is ready
           }, 1000);
         } else {
           // Still not Swagger UI - make sure everything is cleaned up
@@ -1813,10 +1986,10 @@ class SwaggerNavigator {
     );
 
     // Create sidebar immediately for faster display
-    this.parseEndpoints();
-    this.createNavBar();
-    this.setupObserver();
-    this.setupSwaggerUISync();
+      this.parseEndpoints();
+      this.createNavBar();
+      this.setupObserver();
+      this.setupSwaggerUISync();
 
     // Double-check we're still on Swagger UI page before setting up network monitoring
     const isSwaggerUIPage = !!(
@@ -1841,7 +2014,7 @@ class SwaggerNavigator {
 
     // Apply themes (these don't affect layout/positioning, safe to apply early)
     this.applySwaggerUITheme();
-    this.applySwaggerTheme();
+      this.applySwaggerTheme();
     this.applyNavBarTheme();
 
     // Apply liquid glass effect if enabled
@@ -1855,13 +2028,51 @@ class SwaggerNavigator {
     this.applyResponsiveConstraints();
 
     // Also sync after a short delay to catch Swagger UI's hash jump
-    setTimeout(() => {
-      this.syncToCurrentSwaggerState();
+      setTimeout(() => {
+        this.syncToCurrentSwaggerState();
       this.applyResponsiveConstraints();
     }, 200);
 
-    // Setup parameter enhancements (searchable selects & form builder)
-    this.setupParameterEnhancements();
+      // Setup parameter enhancements (searchable selects & form builder)
+      this.setupParameterEnhancements();
+      
+      // Hide loading overlay after SwaggerNav sidebar is rendered
+      // Check periodically until sidebar is ready
+      let checkCount = 0;
+      const maxChecks = 100; // Maximum 5 seconds (100 * 50ms)
+      const checkSidebarReady = () => {
+        checkCount++;
+        const sidebar = document.getElementById("swagger-nav-sidebar");
+        if (sidebar && this.navBar && document.body.contains(sidebar)) {
+          // Sidebar is rendered and in DOM, hide loading overlay
+          if (this.hideLoadingOverlay()) {
+            swaggerNavLog("SwaggerNav: Sidebar rendered, hiding loading overlay");
+            return; // Successfully hid overlay
+          }
+        }
+        
+        // Sidebar not ready yet, check again after a short delay (or give up after max checks)
+        if (checkCount < maxChecks) {
+          setTimeout(checkSidebarReady, 50);
+        } else {
+          // Give up after max checks - sidebar might not render (e.g., no endpoints)
+          swaggerNavWarn("SwaggerNav: Sidebar not found after max checks, hiding overlay anyway");
+          const overlay = document.getElementById("swagger-nav-loading-overlay") || window._swaggerNavLoadingOverlay;
+          if (overlay) {
+            overlay.style.opacity = "0";
+            overlay.style.transition = "opacity 0.3s ease-out";
+            setTimeout(() => {
+              overlay.remove();
+              if (window._swaggerNavLoadingOverlay) {
+                delete window._swaggerNavLoadingOverlay;
+              }
+            }, 300);
+          }
+        }
+      };
+      
+      // Start checking after a small initial delay to allow DOM to update
+      setTimeout(checkSidebarReady, 100);
   }
 
   // Setup resize listener to handle layout updates when monitors disconnect/reconnect
@@ -2699,6 +2910,14 @@ class SwaggerNavigator {
       }
       this.createFloatingShowButton();
     }
+    
+    // Sidebar is now rendered, hide loading overlay
+    // Use requestAnimationFrame to ensure DOM is fully updated
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        this.hideLoadingOverlay();
+      }, 50);
+    });
 
     swaggerNavLog("SwaggerNav: Navigation bar created");
   }
@@ -3851,16 +4070,16 @@ class SwaggerNavigator {
       const attemptHashSync = (retryCount = 0, maxRetries = 10) => {
         const delay = Math.min(50 + retryCount * 50, 300); // 50ms, 100ms, 150ms... up to 300ms
 
-        setTimeout(() => {
-          // Find active/expanded endpoint in Swagger UI
-          const expandedOpblock = document.querySelector(".opblock.is-open");
-          if (expandedOpblock && expandedOpblock.id) {
+      setTimeout(() => {
+        // Find active/expanded endpoint in Swagger UI
+        const expandedOpblock = document.querySelector(".opblock.is-open");
+        if (expandedOpblock && expandedOpblock.id) {
             swaggerNavLog(
               `SwaggerNav: Hash changed, syncing sidebar and scrolling to expanded endpoint (attempt ${
                 retryCount + 1
               }): ${expandedOpblock.id}`
             );
-            this.syncToSwaggerUI(expandedOpblock.id);
+          this.syncToSwaggerUI(expandedOpblock.id);
             // Scroll main page to the endpoint immediately
             this.scrollToEndpoint(expandedOpblock.id);
             return;
@@ -3881,7 +4100,7 @@ class SwaggerNavigator {
 
   // Check and sync to current Swagger UI state on initial load
   syncToCurrentSwaggerState() {
-    const hash = window.location.hash;
+      const hash = window.location.hash;
     if (!hash) {
       // No hash, check for any expanded endpoint
       setTimeout(() => {
@@ -3901,8 +4120,8 @@ class SwaggerNavigator {
           }
         }
       }, 100);
-      return;
-    }
+          return;
+        }
 
     // Wait for Swagger UI to expand endpoint from hash, then sync sidebar
     const attemptSync = (retryCount = 0, maxRetries = 15) => {
@@ -3921,13 +4140,13 @@ class SwaggerNavigator {
           // Scroll main page to the endpoint immediately
           this.scrollToEndpoint(expandedOpblock.id);
 
-          if (this.settings.autoTryOut) {
-            setTimeout(() => {
+              if (this.settings.autoTryOut) {
+                setTimeout(() => {
               this.clickTryItOut(expandedOpblock, expandedOpblock.id);
             }, 500);
-          }
-          return;
-        }
+              }
+              return;
+            }
 
         // Retry if endpoint not expanded yet
         if (retryCount < maxRetries) {
@@ -3954,20 +4173,20 @@ class SwaggerNavigator {
     if (!this._hashSyncObserver) {
       this._hashSyncObserver = new MutationObserver((mutations) => {
         // Check if any opblock became expanded
-        const expandedOpblock = document.querySelector(".opblock.is-open");
-        if (expandedOpblock && expandedOpblock.id) {
+      const expandedOpblock = document.querySelector(".opblock.is-open");
+      if (expandedOpblock && expandedOpblock.id) {
           const hash = window.location.hash;
           if (hash && hash.includes(expandedOpblock.id)) {
             swaggerNavLog(
               `SwaggerNav: Endpoint expanded via MutationObserver: ${expandedOpblock.id}`
-            );
-            this.syncToSwaggerUI(expandedOpblock.id);
+        );
+        this.syncToSwaggerUI(expandedOpblock.id);
             // Scroll main page to the endpoint immediately
             this.scrollToEndpoint(expandedOpblock.id);
 
-            if (this.settings.autoTryOut) {
-              setTimeout(() => {
-                this.clickTryItOut(expandedOpblock, expandedOpblock.id);
+        if (this.settings.autoTryOut) {
+          setTimeout(() => {
+            this.clickTryItOut(expandedOpblock, expandedOpblock.id);
               }, 500);
             }
 
@@ -4251,14 +4470,21 @@ class SwaggerNavigator {
             `SwaggerNav: Opblock ${index} - not in "Try it out" mode, hiding enhancements`
           );
 
-          // Hide parameter search boxes
-          const searchWrappers = opblock.querySelectorAll(
+          // Hide parameter search boxes and show original selects
+          const searchInputs = opblock.querySelectorAll(
             ".swagger-nav-select-search"
           );
-          searchWrappers.forEach((wrapper) => {
-            const parent = wrapper.closest("div");
-            if (parent && parent.querySelector(".swagger-nav-select-search")) {
-              parent.style.display = "none";
+          searchInputs.forEach((searchInput) => {
+            // Find the search wrapper (parent of searchInput)
+            const searchWrapper = searchInput.parentElement;
+            if (searchWrapper) {
+              searchWrapper.style.display = "none";
+            }
+            
+            // Find the original select (sibling of searchWrapper)
+            const select = searchWrapper?.nextElementSibling;
+            if (select && select.tagName === "SELECT" && select.dataset.swaggerNavSearchable === "true") {
+              select.style.display = "";
             }
           });
 
@@ -4345,17 +4571,17 @@ class SwaggerNavigator {
         // Show form builder (if already created and enabled) and hide original wrapper
         // Only show if Form View is enabled in settings
         if (this.settings.enableFormView) {
-          const formContainers = opblock.querySelectorAll(
-            ".swagger-nav-body-container"
-          );
-          formContainers.forEach((container) => {
-            container.style.display = "grid";
-            // Also hide the original wrapper if it's visible
-            const wrapper = container.previousElementSibling;
-            if (wrapper && wrapper.style.display !== "none") {
-              wrapper.style.display = "none";
-            }
-          });
+        const formContainers = opblock.querySelectorAll(
+          ".swagger-nav-body-container"
+        );
+        formContainers.forEach((container) => {
+          container.style.display = "grid";
+          // Also hide the original wrapper if it's visible
+          const wrapper = container.previousElementSibling;
+          if (wrapper && wrapper.style.display !== "none") {
+            wrapper.style.display = "none";
+          }
+        });
         } else {
           // If disabled, ALWAYS hide Form View containers and show original textareas
           // This prevents containers from being re-shown by MutationObservers
@@ -4422,6 +4648,25 @@ class SwaggerNavigator {
         // Add searchable selects to parameter dropdowns (if enabled in settings)
         if (this.settings.enableParamSearch) {
           this.addSearchableSelects(opblock);
+        } else {
+          // If disabled, ALWAYS hide parameter search boxes and show original selects
+          // This prevents search boxes from being re-shown by MutationObservers
+          const searchWrappers = opblock.querySelectorAll(
+            ".swagger-nav-select-search"
+          );
+          searchWrappers.forEach((searchInput) => {
+            // Find the search wrapper (parent of searchInput)
+            const searchWrapper = searchInput.parentElement;
+            if (searchWrapper) {
+              searchWrapper.style.display = "none";
+            }
+            
+            // Find the original select (sibling of searchWrapper)
+            const select = searchWrapper?.nextElementSibling;
+            if (select && select.tagName === "SELECT" && select.dataset.swaggerNavSearchable === "true") {
+              select.style.display = "";
+            }
+          });
         }
 
         // Add form builder for request body (if enabled in settings)

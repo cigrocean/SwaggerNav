@@ -2377,6 +2377,40 @@ body.swagger-nav-force-light
   line-height: 1;
 }
 
+/* Light mode specific styling */
+@media (prefers-color-scheme: light) {
+  .swagger-nav-response-checkbox {
+    border-color: #999 !important;
+    background-color: #ffffff !important;
+  }
+  
+  .swagger-nav-response-checkbox:hover {
+    border-color: #66bb6a !important;
+    background-color: #f0f7f0 !important;
+  }
+  
+  .swagger-nav-response-checkbox:checked {
+    background-color: #66bb6a !important;
+    border-color: #66bb6a !important;
+  }
+}
+
+/* Force light mode when light theme class is present */
+body.swagger-nav-light .swagger-nav-response-checkbox {
+  border-color: #999 !important;
+  background-color: #ffffff !important;
+}
+
+body.swagger-nav-light .swagger-nav-response-checkbox:hover {
+  border-color: #66bb6a !important;
+  background-color: #f0f7f0 !important;
+}
+
+body.swagger-nav-light .swagger-nav-response-checkbox:checked {
+  background-color: #66bb6a !important;
+  border-color: #66bb6a !important;
+}
+
 /* Dark mode specific styling */
 @media (prefers-color-scheme: dark) {
   .swagger-nav-response-checkbox {

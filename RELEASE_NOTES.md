@@ -1,12 +1,40 @@
-# SwaggerNav v1.1.5 Release Notes
+# SwaggerNav v1.1.6 Release Notes
 
-**Previous Version:** 1.1.4
+**Previous Version:** 1.1.5
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.5
+## 🎉 What's New in v1.1.6
+
+### **UI Improvements**
+
+- 🎨 **Fixed Checkbox Visibility in Light Mode** - Response View checkboxes now properly visible in light mode with explicit styling and proper contrast
+- ⚡ **Instant Parameter Search Toggle** - Parameter Search now updates immediately when toggled on/off, matching the behavior of Form View and Response View
+- 🔒 **Fixed Parameter Search Toggle Persistence** - Parameter Search now stays OFF when disabled, preventing it from automatically re-enabling (matches Response View behavior)
+
+### **Loading Experience**
+
+- ⏳ **Fullscreen Loading Indicator** - Added beautiful fullscreen loading overlay with "SwaggerNav sidebar is loading..." message and dark background
+- ✨ **Smart Loading Detection** - Loading overlay only hides when SwaggerNav sidebar is actually rendered and ready, not just when Swagger UI is detected
+- 🎯 **Improved Loading Logic** - Loading overlay checks sidebar render state with polling mechanism and proper DOM verification
+
+### **Bug Fixes**
+
+- 🐛 **Fixed Parameter Search Auto-Enable Bug** - Parameter Search no longer automatically re-enables when toggled off, even when `enhanceParameters()` runs multiple times
+- 🔧 **Fixed Checkbox Light Mode Styling** - Added explicit light mode styles for Response View checkboxes with proper border colors and backgrounds
+
+### **Technical Improvements**
+
+- Added `else` clause in `enhanceParameters()` to explicitly hide search wrappers when param search is disabled
+- Improved loading overlay detection to check sidebar DOM presence instead of visibility
+- Added polling mechanism with maximum check limit to prevent infinite loops
+- Enhanced `hideLoadingOverlay()` to verify sidebar is actually in DOM before hiding
+
+---
+
+## 🎉 Previous Release: v1.1.5
 
 ### **Critical Bug Fixes**
 
