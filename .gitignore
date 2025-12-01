@@ -54,3 +54,17 @@ ehthumbs.db
 tmp/
 temp/
 
+
+# Admin key - keep private!
+modules/premium/admin-key.js
+
+# Node modules and build outputs
+node_modules/
+dist/
+build/
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local

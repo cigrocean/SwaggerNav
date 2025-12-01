@@ -1,12 +1,39 @@
-# SwaggerNav v1.1.6 Release Notes
+# SwaggerNav v1.1.7 Release Notes
 
-**Previous Version:** 1.1.5
+**Previous Version:** 1.1.6
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.6
+## 🎉 What's New in v1.1.7
+
+### **UI Improvements**
+
+- 🎨 **Modern Button & Input Styling** - Enhanced button and input styles with smoother transitions, better focus states, and improved hover effects for a more polished look
+- 📱 **Responsive Method Filters** - Method filter buttons (GET, POST, PUT, DELETE, PATCH) now wrap to multiple lines on small screens instead of overlapping, with horizontal scroll as fallback
+- 🎨 **Monochrome Design System** - Converted entire extension to clean monochrome shadcn-style design with neutral gray palette, while maintaining colored method badges for better distinction
+- 🖼️ **SVG Icons** - Replaced all emojis with clean SVG icons throughout the extension for better consistency and appearance
+
+### **Critical Fixes**
+
+- 🔒 **Fixed CSS Affecting Other Websites** - Extension CSS now only applies on Swagger UI pages, preventing any interference with other websites like Facebook. All global CSS rules are scoped to Swagger UI pages only
+- ✅ **Proper CSS Scoping** - Added `swagger-nav-active` class to body/html only when Swagger UI is detected, ensuring extension styles never affect non-Swagger pages
+- 🎨 **Fixed Settings Icon Color** - Settings icon in options page now properly displays as black in light mode for better visibility
+- 🎯 **Restored Method Badge Colors** - Method badges (GET, POST, PUT, DELETE, PATCH) restored to their original colors for better visibility and distinction
+
+### **Technical Improvements**
+
+- Scoped all global CSS rules (`body`, `html`, `body:has()`) to `.swagger-nav-active` class
+- Added automatic class management: adds class on Swagger UI pages, removes on other pages
+- Enhanced method filter container with `flex-wrap: wrap` and responsive gap adjustments
+- Added media query for screens < 400px with smaller badge sizes
+- Converted all accent colors to monochrome (#71717a) throughout the extension
+- Replaced emoji characters with SVG icon system in content.js and options.js
+
+---
+
+## 🎉 Previous Release: v1.1.6
 
 ### **UI Improvements**
 

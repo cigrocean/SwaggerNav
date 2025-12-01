@@ -14,7 +14,7 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #09090b;
         color: #333;
         padding: 40px 20px;
         min-height: 100vh;
@@ -30,7 +30,7 @@
       }
 
       .header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #09090b;
         color: white;
         padding: 32px;
         text-align: center;
@@ -60,6 +60,19 @@
         align-items: center;
         justify-content: center;
         font-size: 24px;
+        color: #000;
+      }
+
+      @media (prefers-color-scheme: light) {
+        .icon {
+          color: #000;
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .icon {
+          color: #000;
+        }
       }
 
       .content {
@@ -88,7 +101,7 @@
         content: "";
         width: 4px;
         height: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #09090b;
         border-radius: 2px;
       }
 
@@ -102,8 +115,8 @@
       }
 
       .option:hover {
-        border-color: #667eea;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        border-color: #71717a;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       }
 
       .option-header {
@@ -173,7 +186,7 @@
       }
 
       input:checked + .toggle-slider {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #09090b;
       }
 
       input:checked + .toggle-slider:before {
@@ -203,9 +216,14 @@
         transform: translateY(0);
       }
 
+      .status-message.error {
+        background: #dc3545;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+      }
+
       .divider {
         height: 1px;
-        background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+        background: linear-gradient(90deg, transparent, #e4e4e7, transparent);
         margin: 24px 0;
       }
 
@@ -219,7 +237,7 @@
       }
 
       .footer a {
-        color: #667eea;
+        color: #71717a;
         text-decoration: none;
         font-weight: 500;
       }
@@ -279,17 +297,17 @@
       }
 
       .theme-option:hover .theme-option-content {
-        border-color: #667eea;
+        border-color: #71717a;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       .theme-option input[type="radio"]:checked + .theme-option-content {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-color: #667eea;
+        background: #09090b;
+        border-color: #71717a;
         border-width: 4px;
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5),
-          0 0 0 2px rgba(102, 126, 234, 0.2);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2),
+          0 0 0 2px rgba(113, 113, 122, 0.2);
       }
 
       .theme-icon {
@@ -324,8 +342,8 @@
         .theme-option
         input[type="radio"]:checked
         + .theme-option-content {
-        background: rgba(102, 126, 234, 0.85) !important;
-        border-color: #667eea !important;
+        background: #27272a !important;
+        border-color: #71717a !important;
       }
 
       body.liquid-glass-enabled:not(.force-dark-mode)
@@ -369,19 +387,19 @@
       }
 
       .background-option:hover .background-option-content {
-        border-color: #667eea;
+        border-color: #71717a;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       .background-option
         input[type="radio"]:checked
         + .background-option-content {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-color: #667eea;
+        background: #09090b;
+        border-color: #71717a;
         border-width: 4px;
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5),
-          0 0 0 2px rgba(102, 126, 234, 0.2);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2),
+          0 0 0 2px rgba(113, 113, 122, 0.2);
       }
 
       .background-preview {
@@ -398,7 +416,7 @@
       }
 
       .background-preview-default {
-        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+        background: #f4f4f5;
       }
 
       /* Preview uses light version by default, shows dark version in dark mode */
@@ -419,7 +437,7 @@
       }
 
       .background-preview-custom {
-        background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+        background: #f4f4f5;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -462,8 +480,8 @@
         .background-option
         input[type="radio"]:checked
         + .background-option-content {
-        background: rgba(102, 126, 234, 0.85) !important;
-        border-color: #667eea !important;
+        background: #27272a !important;
+        border-color: #71717a !important;
       }
 
       body.liquid-glass-enabled:not(.force-dark-mode)
@@ -479,7 +497,7 @@
        ===================================================================== */
       @media (prefers-color-scheme: dark) {
         body {
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          background: #09090b;
         }
 
         .container {
@@ -488,7 +506,7 @@
         }
 
         .header {
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          background: #09090b;
         }
 
         .icon {
@@ -500,7 +518,7 @@
         }
 
         .section-title::before {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: #09090b;
         }
 
         .option {
@@ -509,8 +527,8 @@
         }
 
         .option:hover {
-          border-color: #667eea;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+          border-color: #71717a;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .option-label {
@@ -555,7 +573,7 @@
         }
 
         .theme-option:hover .theme-option-content {
-          border-color: #667eea;
+          border-color: #71717a;
         }
 
         .theme-label {
@@ -568,7 +586,7 @@
         }
 
         .background-option:hover .background-option-content {
-          border-color: #667eea;
+          border-color: #71717a;
         }
 
         .background-label {
@@ -599,11 +617,7 @@
 
       /* Force light mode when class is present (theme = "light") */
       body.force-light-mode {
-        background: linear-gradient(
-          135deg,
-          #667eea 0%,
-          #764ba2 100%
-        ) !important;
+        background: #09090b !important;
       }
 
       body.force-light-mode .container {
@@ -617,7 +631,7 @@
       }
 
       body.force-light-mode .option:hover {
-        border-color: #667eea !important;
+        border-color: #71717a !important;
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1) !important;
       }
 
@@ -637,7 +651,7 @@
       }
 
       body.force-light-mode .footer a {
-        color: #667eea !important;
+        color: #71717a !important;
       }
 
       body.force-light-mode .note {
@@ -704,11 +718,7 @@
 
       /* Force dark mode when class is present (theme = "dark") */
       body.force-dark-mode {
-        background: linear-gradient(
-          135deg,
-          #1a1a2e 0%,
-          #16213e 100%
-        ) !important;
+        background: #09090b !important;
       }
 
       body.force-dark-mode .container {
@@ -722,7 +732,7 @@
       }
 
       body.force-dark-mode .option:hover {
-        border-color: #667eea !important;
+        border-color: #71717a !important;
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
       }
 
@@ -810,7 +820,7 @@
       /* Custom Background Upload Section */
       .custom-upload-box {
         background: #f8f9fa;
-        border: 2px dashed #667eea;
+        border: 2px dashed #71717a;
         border-radius: 12px;
         padding: 20px;
         text-align: center;
@@ -823,7 +833,7 @@
       }
 
       .custom-upload-button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #09090b;
         color: white;
         border: none;
         padding: 10px 24px;
@@ -835,7 +845,7 @@
 
       .custom-upload-button:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
 
       .custom-upload-status {
@@ -888,7 +898,7 @@
       @media (prefers-color-scheme: dark) {
         .custom-upload-box {
           background: #2d2d2d;
-          border-color: #667eea;
+          border-color: #71717a;
         }
 
         .custom-upload-info {
@@ -911,7 +921,7 @@
       /* Force light mode for custom upload section */
       body.force-light-mode .custom-upload-box {
         background: #f8f9fa !important;
-        border-color: #667eea !important;
+        border-color: #71717a !important;
       }
 
       body.force-light-mode .custom-upload-info {
@@ -933,7 +943,7 @@
       /* Force dark mode for custom upload section */
       body.force-dark-mode .custom-upload-box {
         background: #2d2d2d !important;
-        border-color: #667eea !important;
+        border-color: #71717a !important;
       }
 
       body.force-dark-mode .custom-upload-info {
@@ -958,20 +968,12 @@
 
       /* Liquid glass for body background */
       body.liquid-glass-enabled {
-        background: linear-gradient(
-          135deg,
-          #667eea 0%,
-          #764ba2 100%
-        ) !important;
+        background: #09090b !important;
         position: relative;
       }
 
       body.liquid-glass-enabled.force-dark-mode {
-        background: linear-gradient(
-          135deg,
-          #1a1a2e 0%,
-          #16213e 100%
-        ) !important;
+        background: #09090b !important;
       }
 
       /* Auto theme: dark OS + liquid glass should also use dark background when theme = auto */
@@ -979,8 +981,8 @@
         body.liquid-glass-enabled:not(.force-light-mode) {
           background: linear-gradient(
             135deg,
-            #1a1a2e 0%,
-            #16213e 100%
+            #09090b 0%,
+            #09090b 100%
           ) !important;
         }
       }
@@ -1073,23 +1075,23 @@
       /* Liquid glass for options hover */
       body.liquid-glass-enabled .option:hover {
         background: rgba(255, 255, 255, 0.35) !important;
-        border-color: rgba(102, 126, 234, 0.5) !important;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2),
+        border-color: #71717a !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1),
           inset 0 1px 0 0 rgba(255, 255, 255, 0.4) !important;
       }
 
       body.liquid-glass-enabled.force-dark-mode .option:hover {
         background: #333333 !important;
-        border-color: #667eea !important;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3),
+        border-color: #71717a !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15),
           inset 0 1px 0 0 rgba(255, 255, 255, 0.12) !important;
       }
 
       @media (prefers-color-scheme: dark) {
         body.liquid-glass-enabled:not(.force-light-mode) .option:hover {
           background: #333333 !important;
-          border-color: #667eea !important;
-          box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3),
+          border-color: #71717a !important;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15),
             inset 0 1px 0 0 rgba(255, 255, 255, 0.12) !important;
         }
       }
@@ -1155,7 +1157,7 @@
         background: rgba(255, 255, 255, 0.42) !important;
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
-        border: 2px dashed rgba(102, 126, 234, 0.7) !important;
+        border: 2px dashed #71717a !important;
       }
 
       /* Liquid glass for custom upload boxes - Dark mode: keep original dark colors */
@@ -1164,7 +1166,7 @@
         background: #2d2d2d !important;
         backdrop-filter: blur(10px) !important;
         -webkit-backdrop-filter: blur(10px) !important;
-        border: 2px dashed #667eea !important;
+        border: 2px dashed #71717a !important;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -1173,7 +1175,7 @@
           background: #2d2d2d !important;
           backdrop-filter: blur(10px) !important;
           -webkit-backdrop-filter: blur(10px) !important;
-          border: 2px dashed #667eea !important;
+          border: 2px dashed #71717a !important;
         }
       }
 
@@ -1525,7 +1527,24 @@
               >
                 <div class="custom-manager-content">
                   <div class="custom-manager-title">
-                    ✅ Custom background uploaded
+                    <span
+                      style="display: inline-flex; align-items: center; gap: 4px;"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        style="display: inline-block; vertical-align: middle;"
+                      >
+                        <path d="M20 6 9 17l-5-5"></path>
+                      </svg>
+                      Custom background uploaded
+                    </span>
                   </div>
                   <div
                     id="customBackgroundInfo"
@@ -1627,6 +1646,8 @@
             the Swagger UI page to see changes take effect.
           </div>
         </div>
+
+        <div class="divider"></div>
       </div>
 
       <div class="footer">
