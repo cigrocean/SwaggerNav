@@ -1915,9 +1915,6 @@ class SwaggerNavigator {
       // Not a Swagger UI page - hide loading overlay immediately
       this.hideLoadingOverlay();
 
-      // Restore original functions if interceptors were installed
-      this.restoreOriginalFunctions();
-
       // Check again after a delay (for SPAs)
       setTimeout(() => {
         this.isSwaggerUI = this.detectSwaggerUI();
