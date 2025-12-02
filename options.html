@@ -14,7 +14,7 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: #09090b;
+        background: #f5f5f5;
         color: #333;
         padding: 40px 20px;
         min-height: 100vh;
@@ -34,6 +34,7 @@
         color: white;
         padding: 32px;
         text-align: center;
+        border-radius: 16px 16px 0 0;
       }
 
       .header h1 {
@@ -71,7 +72,7 @@
 
       @media (prefers-color-scheme: dark) {
         .icon {
-          color: #000;
+          color: #ffffff;
         }
       }
 
@@ -137,6 +138,21 @@
 
       .option-emoji {
         font-size: 20px;
+      }
+
+      .beta-tag {
+        display: inline-block;
+        background: #71717a;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 6px;
+        vertical-align: middle;
+        line-height: 1.4;
       }
 
       .option-description {
@@ -246,22 +262,31 @@
         text-decoration: underline;
       }
 
-      /* Note box */
+      /* Note box - subtle yellow styling */
       .note {
-        background: #fff3cd;
-        border-left: 4px solid #ffc107;
-        padding: 12px 16px;
-        border-radius: 8px;
+        background: #fefce8;
+        border: 2px solid #fef08a;
+        padding: 16px 20px;
+        border-radius: 12px;
         margin-top: 16px;
         font-size: 13px;
-        color: #856404;
+        color: #713f12;
         line-height: 1.5;
+        transition: all 0.2s;
+      }
+
+      .note:hover {
+        border-color: #fde047;
+        box-shadow: 0 4px 12px rgba(250, 204, 21, 0.15);
+        background: #fef9c3;
       }
 
       .note strong {
         display: block;
-        margin-bottom: 4px;
-        color: #664d03;
+        margin-bottom: 8px;
+        color: #854d0e;
+        font-weight: 600;
+        font-size: 14px;
       }
 
       /* Theme Selector */
@@ -506,11 +531,16 @@
         }
 
         .header {
-          background: #09090b;
+          background: #2d2d2d;
+          border-radius: 16px 16px 0 0;
         }
 
         .icon {
           background: #2d2d2d;
+        }
+
+        .icon {
+          color: #ffffff;
         }
 
         .section-title {
@@ -518,7 +548,7 @@
         }
 
         .section-title::before {
-          background: #09090b;
+          background: #e0e0e0;
         }
 
         .option {
@@ -539,8 +569,17 @@
           color: #999;
         }
 
+        .beta-tag {
+          background: #52525b;
+          color: #f4f4f5;
+        }
+
         .toggle-slider {
           background-color: #404040;
+        }
+
+        input:checked + .toggle-slider {
+          background: #e0e0e0;
         }
 
         .divider {
@@ -558,13 +597,19 @@
         }
 
         .note {
-          background: #2d2410;
-          border-left-color: #ffc107;
-          color: #f9d57b;
+          background: #2a1f0f;
+          border-color: #a16207;
+          color: #d4a574;
+        }
+
+        .note:hover {
+          border-color: #ca8a04;
+          box-shadow: 0 4px 12px rgba(161, 98, 7, 0.15);
+          background: #3a2410;
         }
 
         .note strong {
-          color: #ffb300;
+          color: #eab308;
         }
 
         .theme-option-content {
@@ -617,7 +662,7 @@
 
       /* Force light mode when class is present (theme = "light") */
       body.force-light-mode {
-        background: #09090b !important;
+        background: #f5f5f5 !important;
       }
 
       body.force-light-mode .container {
@@ -640,6 +685,10 @@
         color: #1a1a1a !important;
       }
 
+      body.force-light-mode .section-title::before {
+        background: #09090b !important;
+      }
+
       body.force-light-mode .option-description {
         color: #6c757d !important;
       }
@@ -655,13 +704,19 @@
       }
 
       body.force-light-mode .note {
-        background: #fff3cd !important;
-        border-left-color: #ffc107 !important;
-        color: #856404 !important;
+        background: #fefce8 !important;
+        border-color: #fef08a !important;
+        color: #713f12 !important;
+      }
+
+      body.force-light-mode .note:hover {
+        border-color: #fde047 !important;
+        box-shadow: 0 4px 12px rgba(250, 204, 21, 0.15) !important;
+        background: #fef9c3 !important;
       }
 
       body.force-light-mode .note strong {
-        color: #664d03 !important;
+        color: #854d0e !important;
       }
 
       body.force-light-mode .divider {
@@ -675,6 +730,10 @@
 
       body.force-light-mode .toggle-slider {
         background-color: #ccc !important;
+      }
+
+      body.force-light-mode input:checked + .toggle-slider {
+        background: #09090b !important;
       }
 
       body.force-light-mode .theme-option-content {
@@ -697,6 +756,11 @@
 
       body.force-light-mode .background-preview {
         border-color: #e9ecef !important;
+      }
+
+      body.force-light-mode .beta-tag {
+        background: #71717a !important;
+        color: white !important;
       }
 
       /* Force light mode previews to show light versions */
@@ -726,6 +790,10 @@
         color: #e0e0e0 !important;
       }
 
+      body.force-dark-mode .icon {
+        color: #ffffff !important;
+      }
+
       body.force-dark-mode .option {
         background: #2d2d2d !important;
         border-color: #404040 !important;
@@ -739,6 +807,10 @@
       body.force-dark-mode .option-label,
       body.force-dark-mode .section-title {
         color: #e0e0e0 !important;
+      }
+
+      body.force-dark-mode .section-title::before {
+        background: #e0e0e0 !important;
       }
 
       body.force-dark-mode .option-description {
@@ -756,13 +828,19 @@
       }
 
       body.force-dark-mode .note {
-        background: #2d2410 !important;
-        border-left-color: #ffc107 !important;
-        color: #f9d57b !important;
+        background: #2a1f0f !important;
+        border-color: #a16207 !important;
+        color: #d4a574 !important;
+      }
+
+      body.force-dark-mode .note:hover {
+        border-color: #ca8a04 !important;
+        box-shadow: 0 4px 12px rgba(161, 98, 7, 0.15) !important;
+        background: #3a2410 !important;
       }
 
       body.force-dark-mode .note strong {
-        color: #ffb300 !important;
+        color: #eab308 !important;
       }
 
       body.force-dark-mode .divider {
@@ -776,6 +854,10 @@
 
       body.force-dark-mode .toggle-slider {
         background-color: #404040 !important;
+      }
+
+      body.force-dark-mode input:checked + .toggle-slider {
+        background: #e0e0e0 !important;
       }
 
       body.force-dark-mode .theme-option-content {
@@ -815,6 +897,11 @@
 
       body.force-dark-mode .background-preview-bugs {
         background-image: url("../backgrounds/too_many_bugs_dark.png") !important;
+      }
+
+      body.force-dark-mode .beta-tag {
+        background: #52525b !important;
+        color: #f4f4f5 !important;
       }
 
       /* Custom Background Upload Section */
@@ -967,8 +1054,8 @@
          ===================================================================== */
 
       /* Liquid glass for body background */
-      body.liquid-glass-enabled {
-        background: #09090b !important;
+      body.liquid-glass-enabled:not(.force-dark-mode) {
+        background: #f5f5f5 !important;
         position: relative;
       }
 
@@ -984,6 +1071,13 @@
             #09090b 0%,
             #09090b 100%
           ) !important;
+        }
+      }
+
+      /* Auto theme: light OS + liquid glass should use light background when theme = auto */
+      @media (prefers-color-scheme: light) {
+        body.liquid-glass-enabled:not(.force-dark-mode) {
+          background: #f5f5f5 !important;
         }
       }
 
@@ -1022,22 +1116,25 @@
         backdrop-filter: blur(20px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 16px 16px 0 0 !important;
       }
 
       /* Liquid glass for header - Dark mode */
       body.liquid-glass-enabled.force-dark-mode .header {
-        background: rgba(0, 0, 0, 0.35) !important;
+        background: rgba(45, 45, 45, 0.6) !important;
         backdrop-filter: blur(20px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px 16px 0 0 !important;
       }
 
       @media (prefers-color-scheme: dark) {
         body.liquid-glass-enabled:not(.force-light-mode) .header {
-          background: rgba(0, 0, 0, 0.35) !important;
+          background: rgba(45, 45, 45, 0.6) !important;
           backdrop-filter: blur(20px) saturate(180%) !important;
           -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
           border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+          border-radius: 16px 16px 0 0 !important;
         }
       }
 
@@ -1180,27 +1277,48 @@
       }
 
       /* Liquid glass for note boxes - Light mode */
-      body.liquid-glass-enabled .note {
-        background: rgba(255, 243, 205, 0.5) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        border-left: 4px solid #ffc107 !important;
+      body.liquid-glass-enabled:not(.force-dark-mode) .note {
+        background: rgba(254, 252, 232, 0.6) !important;
+        backdrop-filter: blur(18px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+        border: 2px solid #fef08a !important;
+        box-shadow: 0 6px 16px rgba(250, 204, 21, 0.15),
+          inset 0 1px 0 0 rgba(254, 240, 138, 0.3) !important;
+        color: #713f12 !important;
+      }
+
+      body.liquid-glass-enabled:not(.force-dark-mode) .note strong {
+        color: #854d0e !important;
       }
 
       /* Liquid glass for note boxes - Dark mode */
       body.liquid-glass-enabled.force-dark-mode .note {
-        background: rgba(45, 36, 16, 0.7) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        border-left: 4px solid #ffc107 !important;
+        background: rgba(42, 31, 15, 0.8) !important;
+        backdrop-filter: blur(14px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+        border: 2px solid #a16207 !important;
+        box-shadow: 0 6px 18px rgba(161, 98, 7, 0.15),
+          inset 0 1px 0 0 rgba(161, 98, 7, 0.2) !important;
+        color: #d4a574 !important;
+      }
+
+      body.liquid-glass-enabled.force-dark-mode .note strong {
+        color: #eab308 !important;
       }
 
       @media (prefers-color-scheme: dark) {
         body.liquid-glass-enabled:not(.force-light-mode) .note {
-          background: rgba(45, 36, 16, 0.7) !important;
-          backdrop-filter: blur(12px) !important;
-          -webkit-backdrop-filter: blur(12px) !important;
-          border-left: 4px solid #ffc107 !important;
+          background: rgba(42, 31, 15, 0.8) !important;
+          backdrop-filter: blur(14px) saturate(160%) !important;
+          -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+          border: 2px solid #a16207 !important;
+          box-shadow: 0 6px 18px rgba(161, 98, 7, 0.15),
+            inset 0 1px 0 0 rgba(161, 98, 7, 0.2) !important;
+          color: #d4a574 !important;
+        }
+
+        body.liquid-glass-enabled:not(.force-light-mode) .note strong {
+          color: #eab308 !important;
         }
       }
 
@@ -1214,10 +1332,12 @@
       body.liquid-glass-enabled.force-dark-mode .theme-label,
       body.liquid-glass-enabled.force-dark-mode .custom-upload-info,
       body.liquid-glass-enabled.force-dark-mode .custom-manager-title,
-      body.liquid-glass-enabled.force-dark-mode .custom-manager-info,
-      body.liquid-glass-enabled.force-dark-mode .note,
-      body.liquid-glass-enabled.force-dark-mode .note strong {
+      body.liquid-glass-enabled.force-dark-mode .custom-manager-info {
         color: #e0e0e0 !important;
+      }
+
+      body.liquid-glass-enabled.force-dark-mode .section-title::before {
+        background: #e0e0e0 !important;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -1230,10 +1350,13 @@
         body.liquid-glass-enabled:not(.force-light-mode) .theme-label,
         body.liquid-glass-enabled:not(.force-light-mode) .custom-upload-info,
         body.liquid-glass-enabled:not(.force-light-mode) .custom-manager-title,
-        body.liquid-glass-enabled:not(.force-light-mode) .custom-manager-info,
-        body.liquid-glass-enabled:not(.force-light-mode) .note,
-        body.liquid-glass-enabled:not(.force-light-mode) .note strong {
+        body.liquid-glass-enabled:not(.force-light-mode) .custom-manager-info {
           color: #e0e0e0 !important;
+        }
+
+        body.liquid-glass-enabled:not(.force-light-mode)
+          .section-title::before {
+          background: #e0e0e0 !important;
         }
       }
 
@@ -1393,7 +1516,9 @@
               </label>
             </div>
             <div class="note">
-              <strong><span class="note-warning-icon"></span> Important:</strong>
+              <strong
+                ><span class="note-warning-icon"></span> Important:</strong
+              >
               For the best experience, please disable any browser dark mode
               extensions (like "Dark Reader") as they may conflict with
               SwaggerNav's theme system.
@@ -1528,7 +1653,11 @@
                 <div class="custom-manager-content">
                   <div class="custom-manager-title">
                     <span
-                      style="display: inline-flex; align-items: center; gap: 4px;"
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                      "
                     >
                       <svg
                         width="14"
@@ -1539,7 +1668,7 @@
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        style="display: inline-block; vertical-align: middle;"
+                        style="display: inline-block; vertical-align: middle"
                       >
                         <path d="M20 6 9 17l-5-5"></path>
                       </svg>
@@ -1625,6 +1754,7 @@
               <div class="option-label">
                 <span class="option-emoji">✨</span>
                 Liquid Glass Effect
+                <span class="beta-tag">BETA</span>
               </div>
               <label class="toggle">
                 <input type="checkbox" id="liquidGlass" />
@@ -1637,6 +1767,10 @@
               reflections that make UI elements transparent and glassy,
               beautifully showing your background through frosted glass
               surfaces.
+              <br /><br />
+              <strong>Note:</strong> This is a BETA feature and may affect
+              performance. It may also behave weirdly in some UIs. If issues
+              appear, please turn it off.
             </div>
           </div>
 
@@ -1651,7 +1785,7 @@
       </div>
 
       <div class="footer">
-        Made with 💜 by SwaggerNav |
+        Made with 💜 by Ocean LITMERS |
         <a href="https://github.com/cigrocean/SwaggerNav" target="_blank"
           >GitHub</a
         >

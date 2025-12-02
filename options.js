@@ -140,15 +140,22 @@ function replaceEmojisWithIcons() {
     statusMessage.appendChild(document.createTextNode(" Settings saved!"));
   }
 
-  // Replace footer heart
+  // Replace footer heart - place icon after "Made with" text
   const footer = document.querySelector(".footer");
-  if (footer) {
-    const text = footer.innerHTML;
-    if (text.includes("💜")) {
-      footer.innerHTML = text.replace("💜", "");
-      const heartIcon = createIcon("heart", 14);
-      heartIcon.style.margin = "0 4px";
-      footer.insertBefore(heartIcon, footer.firstChild);
+  if (footer && footer.innerHTML.includes("💜")) {
+    // Create heart icon
+    const heartIcon = createIcon("heart", 14);
+    heartIcon.style.margin = "0 4px";
+    heartIcon.style.display = "inline-block";
+    heartIcon.style.verticalAlign = "middle";
+    
+    // Replace "Made with 💜" with "Made with" and insert icon after
+    footer.innerHTML = footer.innerHTML.replace("Made with 💜", "Made with <span class=\"footer-heart-placeholder\"></span>");
+    
+    // Insert the icon into the placeholder
+    const placeholder = footer.querySelector(".footer-heart-placeholder");
+    if (placeholder) {
+      placeholder.replaceWith(heartIcon);
     }
   }
 

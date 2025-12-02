@@ -1,12 +1,56 @@
-# SwaggerNav v1.1.8 Release Notes
+# SwaggerNav v1.1.9 Release Notes
 
-**Previous Version:** 1.1.7
+**Previous Version:** 1.1.8
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.8
+## 🎉 What's New in v1.1.9
+
+### **Settings Page Improvements**
+
+- 🎨 **Light Background in Light Mode** - Settings page now uses light background (#f5f5f5) in light mode instead of black, making it more pleasant to use
+- 📐 **Rounded Corner Visibility** - Fixed top corners of settings panel to match bottom corners with proper border-radius styling
+- 🏷️ **Liquid Glass BETA Tag** - Added BETA badge to Liquid Glass Effect option to indicate it's an experimental feature
+- ⚠️ **BETA Warning** - Added performance and UI behavior warning to Liquid Glass Effect description
+- 💜 **Footer Icon Placement** - Fixed footer heart icon to appear after "Made with" text instead of before
+
+### **Dark Mode UI Fixes**
+
+- 🌙 **Light Elements in Dark Mode** - All icons and dark elements (vertical lines, settings icon) now display as light/white in dark mode for better visibility
+- 🎨 **Header Background** - Changed header background from black to grey (#2d2d2d) in dark mode for better consistency
+- 📋 **Note Boxes** - Made yellow note boxes more subtle with muted colors:
+  - Light mode: Soft yellow backgrounds and borders
+  - Dark mode: Muted brown-yellow tones instead of bright saturated yellows
+
+### **Toggle Switch Improvements**
+
+- 🔄 **Clear Visual States** - Toggle switches now clearly distinguish ON/OFF states:
+  - Light mode: Dark toggle when ON, gray when OFF
+  - Dark mode: Light toggle when ON, dark gray when OFF
+  - Removed green color for better consistency
+
+### **Code Cleanup**
+
+- 🧹 **Removed Server Monitoring** - Removed all server health check and network monitoring functionality:
+  - Removed health check intervals and methods
+  - Removed network error detection and popups
+  - Removed fetch/XHR interception for error monitoring
+  - Cleaned up all related code and documentation
+
+### **Extension Icon**
+
+- 🎯 **New Extension Icon** - Updated extension icon using `exticon.png` with proper sizes (16x16, 48x48, 128x128)
+
+### **Documentation Updates**
+
+- 📝 **README Updates** - Removed network monitoring feature section
+- 📋 **Release Notes** - Updated with all new changes and improvements
+
+---
+
+## 🎉 Previous Release: v1.1.8
 
 ### **UI Improvements**
 
@@ -171,15 +215,6 @@
 
 ## 🎉 Previous Release: v1.1.2
 
-### **Network Error Detection & Monitoring**
-
-- 🔔 **Connection error popup** - Shows a popup notification when the server is down or internet is disconnected, with a reload button for quick recovery
-- 🌐 **Automatic health checks** - Performs periodic health checks every 30 seconds to monitor server status, even when the page is idle
-- ⚠️ **Smart error detection** - Monitors both network connectivity (online/offline events) and API server health (intercepts fetch/XHR calls)
-- 🎯 **Accurate error detection** - Only shows errors for actual server failures (5xx errors), not client errors (4xx) or timeouts, preventing false positives
-- 🔄 **Auto-recovery detection** - Automatically detects when server is back online and shows recovery popup with reload button
-- 🚫 **Swagger UI only** - Network monitoring only runs on Swagger UI pages, not on other websites
-
 ### **Theme & Performance Improvements**
 
 - 🎨 **Theme isolation** - Themes and CSS classes are only applied on Swagger UI pages, preventing any styling from affecting other websites
@@ -188,13 +223,9 @@
 
 ### **Technical Improvements**
 
-- Added `setupNetworkErrorDetection()` to listen for browser online/offline events
-- Added `setupNetworkErrorInterception()` to intercept `fetch` and `XMLHttpRequest` calls to detect server errors (5xx) and network failures
-- Implemented `performHealthCheck()` that only checks web server connectivity and relies on intercepted API calls for actual failures
 - Added `isSwaggerUIPage()` helper function for consistent page detection
 - Created conditional logging functions (`swaggerNavLog`, `swaggerNavError`, `swaggerNavWarn`) that only log on Swagger UI pages
 - Added early returns in all theme functions to prevent execution on non-Swagger pages
-- Health checks run every 30 seconds after initial 10-second delay, only on Swagger UI pages
 
 ---
 
@@ -295,7 +326,7 @@ When SwaggerNav is installed with default settings, Swagger UI now looks exactly
 
 ## 🎨 Complete Feature List
 
-SwaggerNav v1.1.8 includes all features from previous versions:
+SwaggerNav v1.1.9 includes all features from previous versions:
 
 ### 🧭 **Smart Navigation**
 
@@ -369,7 +400,7 @@ _Built with [Cursor](https://www.cursor.com) - The AI-first code editor_
 
 ## Developer
 
-**Ocean Litmers**
+**Ocean LITMERS**
 
 - GitHub: [@cigrocean](https://github.com/cigrocean)
 - Project: [SwaggerNav](https://github.com/cigrocean/SwaggerNav)

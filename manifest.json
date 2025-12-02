@@ -1,47 +1,36 @@
 {
   "manifest_version": 3,
   "name": "SwaggerNav - Swagger UI Navigator",
-  "version": "1.1.7",
+  "version": "1.1.9",
   "description": "Adds a navigation sidebar to Swagger UI pages for quick access to API endpoints and sections",
-  "author": "Ocean Litmers (https://github.com/cigrocean)",
+  "author": "Ocean LITMERS (https://github.com/cigrocean)",
   "homepage_url": "https://github.com/cigrocean/SwaggerNav",
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
+  "permissions": ["activeTab", "storage"],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://*/*"
-      ],
+      "matches": ["*://*/*"],
       "js": [
         "version.js",
-            "modules/utils/swagger-detection.js",
-            "modules/utils/logging.js",
-            "modules/utils/loading-overlay.js",
-            "modules/features/parameter-search.js",
+        "modules/utils/swagger-detection.js",
+        "modules/utils/logging.js",
+        "modules/utils/loading-overlay.js",
+        "modules/features/parameter-search.js",
         "modules/features/form-view.js",
         "modules/features/response-view.js",
         "content.js"
       ],
-      "css": [
-        "styles.css"
-      ],
+      "css": ["styles.css"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": [
-        "backgrounds/*"
-      ],
-      "matches": [
-        "*://*/*"
-      ]
+      "resources": ["backgrounds/*"],
+      "matches": ["*://*/*"]
     }
   ],
   "icons": {

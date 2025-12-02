@@ -2,11 +2,12 @@
 
 A Chrome extension that supercharges Swagger UI with a powerful navigation sidebar, enhanced editing tools, beautiful themes, and productivity features that make API documentation a joy to use.
 
-**Developed by [Ocean Litmers](https://github.com/cigrocean)** | **Powered by [Cursor](https://www.cursor.com)**
+**Developed by [Ocean LITMERS](https://github.com/cigrocean)** | **Powered by [Cursor](https://www.cursor.com)**
 
 ## Features
 
 ### 🧭 **Smart Navigation**
+
 - ✨ **Auto-Detection** - Automatically detects Swagger UI pages and activates
 - 📋 **Organized Sidebar** - Groups endpoints by tags/sections for easy browsing
 - 🔍 **Live Search** - Filter endpoints by method, path, or description in real-time
@@ -16,16 +17,19 @@ A Chrome extension that supercharges Swagger UI with a powerful navigation sideb
 - 🔄 **Auto-Refresh** - Updates automatically when Swagger UI content changes
 
 ### ⚡ **Auto Actions**
+
 - 🔓 **Auto Try It Out** - Automatically clicks "Try it out" when navigating to endpoints
 - 📂 **Auto Expand** - Automatically expands collapsed endpoints when clicking them
 
 ### ✨ **Enhanced Editing**
+
 - 📝 **JSON & Form View** - Visual form builder alongside JSON editor for request bodies
 - 📊 **Response View** - Structured view of API responses with editable checkboxes for easy data comparison
 - 🔍 **Parameter Search** - Searchable dropdowns for parameter select fields with long option lists
 - ⌨️ **Smart Input** - Handles negative numbers, decimals, and complex data types correctly
 
 ### 🎨 **Beautiful Themes**
+
 - 🌓 **Theme Control** - Choose Light, Dark, or Follow OS preference
 - 🖼️ **Decorative Backgrounds** - Multiple themed backgrounds:
   - 🌊 **Ocean** - Calming ocean waves
@@ -37,16 +41,11 @@ A Chrome extension that supercharges Swagger UI with a powerful navigation sideb
 - 🔄 **Instant Updates** - Theme changes apply immediately across all tabs
 
 ### 🎛️ **Customization**
+
 - ⚙️ **Options Page** - Easy-to-use settings interface
 - 🎯 **Smart Defaults** - All features enabled out of the box
 - 💾 **Persistent Settings** - Your preferences are saved and synced
 - 🎨 **Adaptive UI** - Options page follows your theme preference
-
-### 🔔 **Network Monitoring**
-- 🌐 **Connection Error Detection** - Automatically detects when the server is down or internet is disconnected
-- 🔄 **Auto Health Checks** - Periodic health checks every 30 seconds to monitor server status
-- ⚠️ **Error Popup** - Shows a popup with reload button when connection issues are detected
-- 🎯 **Smart Detection** - Monitors both network connectivity and API server health
 
 ## Screenshots
 
@@ -132,26 +131,29 @@ For parameters with dropdown selects:
 ### Customization
 
 Access settings by:
+
 1. **Right-click the extension icon** → Click "Options"
 2. Or visit `chrome://extensions/` → Click "Details" → "Extension options"
 
 #### Available Settings
 
 **Auto Actions:**
+
 - ✅ **Auto Try It Out** (default: ON) - Automatically activates "Try it out" mode
 - ✅ **Auto Expand** (default: ON) - Automatically expands endpoints when clicked
 
 **Appearance:**
+
 - 🎨 **Theme** (default: Follow OS)
   - ☀️ Light - Always use light theme
   - 🌙 Dark - Always use dark theme
   - 🔄 Follow OS - Automatically follow system preference
-  
 - 🖼️ **Background** (default: Default)
   - Select from Ocean, Tet Holiday, Christmas, Too Many Bugs!
   - Upload your own custom image (max 5MB, PNG/JPG/WebP)
 
 **Enhanced Features:**
+
 - ✅ **JSON & Form View** (default: ON) - Visual form builder for request bodies
 - ✅ **Parameter Search** (default: ON) - Searchable dropdown fields
 - ✅ **Response View** (default: ON) - Structured view of API responses with checkboxes for comparison
@@ -160,7 +162,7 @@ Access settings by:
 
 ### Keyboard Shortcuts
 
-*Keyboard shortcuts are planned for a future release.*
+_Keyboard shortcuts are planned for a future release._
 
 ## Compatibility
 
@@ -339,6 +341,7 @@ SOFTWARE.
 ### Version 1.1.3 (Latest)
 
 **Response View Feature:**
+
 - 📊 **Response View** - New structured view of API responses with editable checkboxes for easy data comparison
 - ✅ **Checkboxes for comparison** - Each field has a checkbox on the right side that you can check to mark fields for comparison
 - 🎨 **Visual feedback** - Checked fields are highlighted with green border and shadow for easy identification
@@ -347,51 +350,48 @@ SOFTWARE.
 - 🎯 **Consistent layout** - Form View and Response View now use the same grid-based layout system
 
 **Layout Improvements:**
+
 - 📐 **Grid layout for Form View** - Form View now uses grid layout instead of flex, matching Response View behavior
 - 📱 **Responsive wrapping** - Both Form View and Response View wrap to single column only when screen width is below 1600px
 
------
+---
 
 ### Version 1.1.2
 
-**Network Error Detection & Monitoring:**
-- 🔔 **Connection error popup** - Shows a popup notification when the server is down or internet is disconnected, with a reload button for quick recovery
-- 🌐 **Automatic health checks** - Performs periodic health checks every 30 seconds to monitor server status, even when the page is idle
-- ⚠️ **Smart error detection** - Monitors both network connectivity (online/offline events) and API server health (intercepts fetch/XHR calls)
-- 🎯 **Accurate error detection** - Only shows errors for actual server failures (5xx errors), not client errors (4xx) or timeouts, preventing false positives
-- 🔄 **Auto-recovery detection** - Automatically detects when server is back online and shows recovery popup with reload button
-- 🚫 **Swagger UI only** - Network monitoring only runs on Swagger UI pages, not on other websites
-
 **Theme & Performance Improvements:**
+
 - 🎨 **Theme isolation** - Themes and CSS classes are only applied on Swagger UI pages, preventing any styling from affecting other websites
 - 🔇 **Silent on other pages** - Console logs only appear on Swagger UI pages, keeping other pages' console clean
 - ⚡ **Optimized performance** - All extension features (themes, backgrounds, liquid glass) check page type before executing, reducing overhead on non-Swagger pages
 
------
+---
 
 ### Version 1.1.1
 
 **Liquid Glass & Settings Improvements:**
+
 - ✨ **Liquid Glass toggle now applies immediately** - Changes take effect instantly when toggling Liquid Glass in options page
 - 🔧 **Fixed Liquid Glass 3D effect** - Restored missing `--liquid-blur` CSS variable in forced theme blocks
 - ⚙️ **Settings button simplified** - Removed popup modal, Settings button now opens options page directly
 - 🎨 **Fixed options page readability** - Selected items now use dark text in light mode when Liquid Glass is enabled (Follow OS theme)
 
-----
+---
 
 ### Version 1.1.0
 
 **Preserve Swagger UI Default Styling:**
+
 - 🎨 **Swagger UI remains unchanged in default mode** - Extension no longer modifies Swagger UI's native styling when using default theme (auto theme, default background, no liquid glass)
 - 🔧 Removed file input style overrides that were affecting Swagger UI even in default mode
 - ✨ Extension features (sidebar, parameter search) continue to work perfectly while preserving Swagger UI's original appearance
 - 🎯 Only explicit theme choices (light/dark) or custom backgrounds will modify Swagger UI styling
 
-----
+---
 
 ### Version 1.0.9
 
 **Hotfix: Responsive Layout & Auto-Scroll:**
+
 - 🔧 Fixed responsive layout - Main page now properly shrinks to fit viewport when sidebar is visible (no horizontal scrolling)
 - 🎯 Restored auto-scroll on page load - Main page automatically scrolls to endpoint on reload when URL hash is present
 - 📱 Improved mobile responsiveness - Both desktop (350px) and mobile (280px) sidebar widths now properly constrain main content
@@ -399,11 +399,12 @@ SOFTWARE.
 - 🔄 Applied constraints on sidebar show/hide to ensure proper layout updates
 - 📐 Fixed scroll calculations to account for responsive layout changes
 
-----
+---
 
 ### Version 1.0.8
 
 **Liquid Glass & UI Refinements:**
+
 - ✨ New optional **Liquid Glass** mode for Swagger UI and the sidebar, layered on top of your existing backgrounds
 - 🌗 Full light/dark support for Liquid Glass, including buttons, dropdowns, and collapsible sections
 - 🧊 JSON / code blocks keep their solid dark background for maximum readability (no glass there)
@@ -414,6 +415,7 @@ SOFTWARE.
 ### Version 1.0.7
 
 **Version Management System:**
+
 - ✨ Centralized version configuration - `version.js` is now the single source of truth
 - 🔄 Automatic version sync script - `sync-version.js` keeps `manifest.json` in sync
 - 📋 Dynamic version display in options page (no more hardcoded versions)
@@ -421,6 +423,7 @@ SOFTWARE.
 - 📝 Professional version management documentation
 
 **Technical Improvements:**
+
 - 🔧 Created `version.js` - central version configuration file
 - 🔧 Created `sync-version.js` - Node.js script for version synchronization
 - 🔧 Updated `manifest.json` to load `version.js` before `content.js`
@@ -431,6 +434,7 @@ SOFTWARE.
 - ✅ Git-friendly release workflow with automatic tagging
 
 **Benefits:**
+
 - ✅ Update version in ONE place instead of 4+ files
 - ✅ Automatic synchronization prevents version inconsistencies
 - ✅ Clear, documented release process for future versions
@@ -439,6 +443,7 @@ SOFTWARE.
 ### Version 1.0.6
 
 **New Features:**
+
 - ✨ Custom background upload (up to 5MB, PNG/JPG/WebP)
 - 🎨 Decorative themed backgrounds (Ocean, Tet Holiday, Christmas, Too Many Bugs!)
 - 🖼️ Smart blur and tint effects for background readability
@@ -453,6 +458,7 @@ SOFTWARE.
 - ⚠️ Dark mode extension conflict warning
 
 **Improvements:**
+
 - 🎨 Complete dark mode support throughout the extension
 - 🎨 Responsive design for options page
 - 🔧 Fixed theme switching for all UI components
@@ -466,6 +472,7 @@ SOFTWARE.
 - 🎯 Centered layout for upload manager section
 
 **Bug Fixes:**
+
 - Fixed parameter search and endpoint search theme switching
 - Fixed "Try it out" button disappearing after cancel
 - Fixed "Could not render Parameters" error
