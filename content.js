@@ -57,6 +57,8 @@ class SwaggerNavigator {
       check: `<path d="M20 6 9 17l-5-5"></path>`,
       chevronDown: `<path d="m6 9 6 6 6-6"></path>`,
       chevronUp: `<path d="m18 15-6-6-6 6"></path>`,
+      clock: `<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>`,
+      star: `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>`,
     };
 
     if (icons[iconName]) {
@@ -251,7 +253,7 @@ class SwaggerNavigator {
       // Only apply on Swagger UI pages
       if (checkIsSwaggerUIPage()) {
         this.applySwaggerUITheme();
-        this.applyNavBarTheme();
+      this.applyNavBarTheme();
         // Apply liquid glass effect if enabled
         this.applyLiquidGlass();
       }
@@ -450,11 +452,11 @@ class SwaggerNavigator {
         if (swaggerUITheme === "auto") {
           // Apply theme to Swagger UI and sidebar immediately
           this.applySwaggerUITheme();
-          this.applySwaggerTheme();
+        this.applySwaggerTheme();
         }
 
         if (extensionTheme === "auto") {
-          this.applyNavBarTheme();
+        this.applyNavBarTheme();
         }
 
         // Force CSS recalculation by triggering a reflow
@@ -500,9 +502,9 @@ class SwaggerNavigator {
             // Apply new Swagger UI theme immediately using requestAnimationFrame for instant update
             requestAnimationFrame(() => {
               this.applySwaggerUITheme();
-              this.applySwaggerTheme();
+            this.applySwaggerTheme();
               // Extension features and backgrounds follow Swagger UI theme, so update them too
-              this.applyNavBarTheme();
+            this.applyNavBarTheme();
               this.applyNavBarBackground();
               // Force CSS recalculation by triggering a reflow
               void document.body.offsetHeight;
@@ -546,7 +548,7 @@ class SwaggerNavigator {
             );
             // Apply new background immediately
             requestAnimationFrame(() => {
-              this.applyNavBarBackground();
+            this.applyNavBarBackground();
 
               // If switching to default, restore Swagger UI theme properly
               if (changes.background.newValue === "default") {
@@ -880,12 +882,12 @@ class SwaggerNavigator {
     if (swaggerUITheme === "light") {
       // Only add force classes to body if we should modify Swagger UI
       if (shouldModifySwaggerUI) {
-        document.body.classList.add("swagger-nav-force-light");
+      document.body.classList.add("swagger-nav-force-light");
       }
     } else if (swaggerUITheme === "dark") {
       // Only add force classes to body if we should modify Swagger UI
       if (shouldModifySwaggerUI) {
-        document.body.classList.add("swagger-nav-force-dark");
+      document.body.classList.add("swagger-nav-force-dark");
       }
     } else {
       // Auto mode - follow OS theme
@@ -933,7 +935,7 @@ class SwaggerNavigator {
           "SwaggerNav: Applied light theme to extension features (following Swagger UI light)"
         );
       } else if (swaggerUITheme === "dark") {
-        document.body.classList.add("swagger-nav-dark");
+      document.body.classList.add("swagger-nav-dark");
         swaggerNavLog(
           "SwaggerNav: Applied dark theme to extension features (following Swagger UI dark)"
         );
@@ -966,12 +968,12 @@ class SwaggerNavigator {
         this.navBar.classList.add("swagger-nav-light");
       } else if (extensionTheme === "dark") {
         this.navBar.classList.add("swagger-nav-dark");
+    } else {
+      // Auto mode - follow OS theme
+      if (this.theme === "dark") {
+        this.navBar.classList.add("swagger-nav-dark");
       } else {
-        // Auto mode - follow OS theme
-        if (this.theme === "dark") {
-          this.navBar.classList.add("swagger-nav-dark");
-        } else {
-          this.navBar.classList.add("swagger-nav-light");
+        this.navBar.classList.add("swagger-nav-light");
         }
       }
     }
@@ -1967,10 +1969,10 @@ class SwaggerNavigator {
     document.documentElement.classList.add("swagger-nav-active");
 
     // Create sidebar immediately for faster display
-    this.parseEndpoints();
-    this.createNavBar();
-    this.setupObserver();
-    this.setupSwaggerUISync();
+      this.parseEndpoints();
+      this.createNavBar();
+      this.setupObserver();
+      this.setupSwaggerUISync();
 
     // Double-check we're still on Swagger UI page before setting up network monitoring
     const isSwaggerUIPage = !!(
@@ -1995,7 +1997,7 @@ class SwaggerNavigator {
 
     // Apply themes (these don't affect layout/positioning, safe to apply early)
     this.applySwaggerUITheme();
-    this.applySwaggerTheme();
+      this.applySwaggerTheme();
     this.applyNavBarTheme();
 
     // Apply liquid glass effect if enabled
@@ -2009,13 +2011,13 @@ class SwaggerNavigator {
     this.applyResponsiveConstraints();
 
     // Also sync after a short delay to catch Swagger UI's hash jump
-    setTimeout(() => {
-      this.syncToCurrentSwaggerState();
+      setTimeout(() => {
+        this.syncToCurrentSwaggerState();
       this.applyResponsiveConstraints();
     }, 200);
 
-    // Setup parameter enhancements (searchable selects & form builder)
-    this.setupParameterEnhancements();
+      // Setup parameter enhancements (searchable selects & form builder)
+      this.setupParameterEnhancements();
 
     // Hide loading overlay after SwaggerNav sidebar is rendered
     // Check periodically until sidebar is ready
@@ -2981,7 +2983,7 @@ class SwaggerNavigator {
     footer.innerHTML = `
       <div class="swagger-nav-footer-content">
         <a href="https://github.com/cigrocean/SwaggerNav" target="_blank" rel="noopener noreferrer" class="swagger-nav-footer-link swagger-nav-github-link">
-          <span class="swagger-nav-github-icon">⭐</span>
+          <span class="swagger-nav-github-icon"></span>
           <span>Star</span>
         </a>
         <span class="swagger-nav-footer-separator">•</span>
@@ -2990,6 +2992,13 @@ class SwaggerNavigator {
         <span>Powered by <a href="https://www.cursor.com" target="_blank" rel="noopener noreferrer" class="swagger-nav-footer-link">Cursor</a></span>
       </div>
     `;
+    
+    // Add star icon to footer
+    const githubIcon = footer.querySelector(".swagger-nav-github-icon");
+    if (githubIcon) {
+      githubIcon.appendChild(this.createIcon("star", 14));
+    }
+    
     this.navBar.appendChild(footer);
 
     // Add to page
@@ -3051,11 +3060,11 @@ class SwaggerNavigator {
             return;
           }
 
-          const isHidden = this.navBar.classList.contains("hidden");
+        const isHidden = this.navBar.classList.contains("hidden");
 
-          if (isHidden) {
-            // Show sidebar
-            this.navBar.classList.remove("hidden");
+        if (isHidden) {
+          // Show sidebar
+          this.navBar.classList.remove("hidden");
             // Apply constraints when sidebar is shown
             this.applyResponsiveConstraints();
             const toggleSpan = toggleBtn.querySelector("span");
@@ -3063,14 +3072,14 @@ class SwaggerNavigator {
               toggleSpan.innerHTML = "";
               toggleSpan.appendChild(this.createIcon("arrowRight", 16));
             }
-            toggleBtn.title = "Hide sidebar";
-            toggleBtn.setAttribute("aria-label", "Hide sidebar");
-            toggleBtn.setAttribute("aria-expanded", "true");
-            this.removeFloatingShowButton();
-            this.saveSidebarState(false); // Save as visible
-          } else {
-            // Hide sidebar
-            this.navBar.classList.add("hidden");
+          toggleBtn.title = "Hide sidebar";
+          toggleBtn.setAttribute("aria-label", "Hide sidebar");
+          toggleBtn.setAttribute("aria-expanded", "true");
+          this.removeFloatingShowButton();
+          this.saveSidebarState(false); // Save as visible
+        } else {
+          // Hide sidebar
+          this.navBar.classList.add("hidden");
             // Remove constraints when sidebar is hidden
             this.removeResponsiveConstraints();
             const toggleSpan = toggleBtn.querySelector("span");
@@ -3078,11 +3087,11 @@ class SwaggerNavigator {
               toggleSpan.innerHTML = "";
               toggleSpan.appendChild(this.createIcon("arrowLeft", 16));
             }
-            toggleBtn.title = "Show sidebar";
-            toggleBtn.setAttribute("aria-label", "Show sidebar");
-            toggleBtn.setAttribute("aria-expanded", "false");
-            this.createFloatingShowButton();
-            this.saveSidebarState(true); // Save as hidden
+          toggleBtn.title = "Show sidebar";
+          toggleBtn.setAttribute("aria-label", "Show sidebar");
+          toggleBtn.setAttribute("aria-expanded", "false");
+          this.createFloatingShowButton();
+          this.saveSidebarState(true); // Save as hidden
           }
         } catch (error) {
           // Handle extension context invalidated errors gracefully
@@ -3144,15 +3153,15 @@ class SwaggerNavigator {
           }
 
           swaggerNavLog(
-            "SwaggerNav: Requesting service worker to open options page"
-          );
+          "SwaggerNav: Requesting service worker to open options page"
+        );
 
-          // Send message to service worker to open options page
-          // This avoids ERR_BLOCKED_BY_CLIENT since content scripts have limited API access
-          chrome.runtime.sendMessage(
-            { action: "openOptionsPage" },
-            (response) => {
-              if (chrome.runtime.lastError) {
+        // Send message to service worker to open options page
+        // This avoids ERR_BLOCKED_BY_CLIENT since content scripts have limited API access
+        chrome.runtime.sendMessage(
+          { action: "openOptionsPage" },
+          (response) => {
+            if (chrome.runtime.lastError) {
                 // Check if error is due to invalidated context
                 if (
                   chrome.runtime.lastError.message &&
@@ -3166,28 +3175,28 @@ class SwaggerNavigator {
                   return;
                 }
                 swaggerNavError(
-                  "SwaggerNav: Error sending message to service worker",
-                  chrome.runtime.lastError
-                );
-                // Fallback: try opening directly as a last resort
+                "SwaggerNav: Error sending message to service worker",
+                chrome.runtime.lastError
+              );
+              // Fallback: try opening directly as a last resort
                 try {
-                  window.open(chrome.runtime.getURL("options.html"), "_blank");
+              window.open(chrome.runtime.getURL("options.html"), "_blank");
                 } catch (fallbackError) {
                   swaggerNavError(
                     "SwaggerNav: Failed to open options page",
                     fallbackError
                   );
                 }
-              } else if (response && response.success) {
+            } else if (response && response.success) {
                 swaggerNavLog("SwaggerNav: Options page opened successfully");
-              } else {
+            } else {
                 swaggerNavError(
-                  "SwaggerNav: Service worker failed to open options page",
-                  response?.error
-                );
-              }
+                "SwaggerNav: Service worker failed to open options page",
+                response?.error
+              );
             }
-          );
+          }
+        );
         } catch (error) {
           // Handle extension context invalidated errors gracefully
           if (
@@ -3492,15 +3501,38 @@ class SwaggerNavigator {
           matchingHistory.slice(0, 5).forEach((historyQuery) => {
             const historyItem = document.createElement("div");
             historyItem.className = "swagger-nav-dropdown-item";
+            const clockIcon = this.createIcon("clock", 14);
+            clockIcon.style.flexShrink = "0";
+            const xIcon = this.createIcon("x", 12);
+            xIcon.style.flexShrink = "0";
+            
             historyItem.innerHTML = `
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 14px;">🕐</span>
+                <span style="display: flex; align-items: center; flex-shrink: 0;"></span>
                 <span style="flex: 1; font-size: 14px; color: var(--sn-endpoint-search-text);">${this.escapeHtml(
                   historyQuery
                 )}</span>
-                <button class="remove-history" style="padding: 4px 8px; background: transparent; border: none; color: var(--sn-endpoint-text-secondary); cursor: pointer; font-size: 12px; border-radius: 3px;">✕</button>
+                <button class="remove-history" style="padding: 4px 8px; background: transparent; border: none; color: var(--sn-endpoint-text-secondary); cursor: pointer; font-size: 12px; border-radius: 3px; display: flex; align-items: center; flex-shrink: 0;"></button>
               </div>
             `;
+            
+            const clockSpan = historyItem.querySelector("div > span:first-child");
+            if (clockSpan) clockSpan.appendChild(clockIcon);
+            const removeBtn = historyItem.querySelector(".remove-history");
+            if (removeBtn) {
+              removeBtn.appendChild(xIcon);
+              removeBtn.addEventListener("mouseenter", () => {
+                removeBtn.style.background = "var(--sn-endpoint-item-hover)";
+              });
+              removeBtn.addEventListener("mouseleave", () => {
+                removeBtn.style.background = "transparent";
+              });
+              removeBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this.removeFromSearchHistory(historyQuery);
+                showEnhancedDropdown(searchInput.value);
+              });
+            }
             historyItem.style.cssText = `padding: 10px 12px; cursor: pointer; background: var(--sn-endpoint-dropdown-bg); border-bottom: 1px solid var(--sn-endpoint-item-border); transition: background 0.15s;`;
 
             historyItem.addEventListener("mouseenter", () => {
@@ -3517,19 +3549,6 @@ class SwaggerNavigator {
                 this.filterEndpoints(historyQuery);
                 enhancedDropdown.style.display = "none";
               }
-            });
-
-            const removeBtn = historyItem.querySelector(".remove-history");
-            removeBtn.addEventListener("mouseenter", () => {
-              removeBtn.style.background = "var(--sn-endpoint-item-hover)";
-            });
-            removeBtn.addEventListener("mouseleave", () => {
-              removeBtn.style.background = "transparent";
-            });
-            removeBtn.addEventListener("click", (e) => {
-              e.stopPropagation();
-              this.removeFromSearchHistory(historyQuery);
-              showEnhancedDropdown(searchInput.value);
             });
 
             historySection.appendChild(historyItem);
@@ -4272,15 +4291,15 @@ class SwaggerNavigator {
       const attemptHashSync = (retryCount = 0, maxRetries = 10) => {
         const delay = Math.min(50 + retryCount * 50, 300); // 50ms, 100ms, 150ms... up to 300ms
 
-        setTimeout(() => {
-          // Find active/expanded endpoint in Swagger UI
-          const expandedOpblock = document.querySelector(".opblock.is-open");
-          if (expandedOpblock && expandedOpblock.id) {
+      setTimeout(() => {
+        // Find active/expanded endpoint in Swagger UI
+        const expandedOpblock = document.querySelector(".opblock.is-open");
+        if (expandedOpblock && expandedOpblock.id) {
             swaggerNavLog(
               `SwaggerNav: Hash changed, syncing sidebar and scrolling to expanded endpoint (attempt ${retryCount +
                 1}): ${expandedOpblock.id}`
             );
-            this.syncToSwaggerUI(expandedOpblock.id);
+          this.syncToSwaggerUI(expandedOpblock.id);
             // Scroll main page to the endpoint immediately
             this.scrollToEndpoint(expandedOpblock.id);
             return;
@@ -4301,7 +4320,7 @@ class SwaggerNavigator {
 
   // Check and sync to current Swagger UI state on initial load
   syncToCurrentSwaggerState() {
-    const hash = window.location.hash;
+      const hash = window.location.hash;
     if (!hash) {
       // No hash, check for any expanded endpoint
       setTimeout(() => {
@@ -4321,8 +4340,8 @@ class SwaggerNavigator {
           }
         }
       }, 100);
-      return;
-    }
+          return;
+        }
 
     // Wait for Swagger UI to expand endpoint from hash, then sync sidebar
     const attemptSync = (retryCount = 0, maxRetries = 15) => {
@@ -4340,13 +4359,13 @@ class SwaggerNavigator {
           // Scroll main page to the endpoint immediately
           this.scrollToEndpoint(expandedOpblock.id);
 
-          if (this.settings.autoTryOut) {
-            setTimeout(() => {
+              if (this.settings.autoTryOut) {
+                setTimeout(() => {
               this.clickTryItOut(expandedOpblock, expandedOpblock.id);
             }, 500);
-          }
-          return;
-        }
+              }
+              return;
+            }
 
         // Retry if endpoint not expanded yet
         if (retryCount < maxRetries) {
@@ -4372,20 +4391,20 @@ class SwaggerNavigator {
     if (!this._hashSyncObserver) {
       this._hashSyncObserver = new MutationObserver((mutations) => {
         // Check if any opblock became expanded
-        const expandedOpblock = document.querySelector(".opblock.is-open");
-        if (expandedOpblock && expandedOpblock.id) {
+      const expandedOpblock = document.querySelector(".opblock.is-open");
+      if (expandedOpblock && expandedOpblock.id) {
           const hash = window.location.hash;
           if (hash && hash.includes(expandedOpblock.id)) {
             swaggerNavLog(
               `SwaggerNav: Endpoint expanded via MutationObserver: ${expandedOpblock.id}`
-            );
-            this.syncToSwaggerUI(expandedOpblock.id);
+        );
+        this.syncToSwaggerUI(expandedOpblock.id);
             // Scroll main page to the endpoint immediately
             this.scrollToEndpoint(expandedOpblock.id);
 
-            if (this.settings.autoTryOut) {
-              setTimeout(() => {
-                this.clickTryItOut(expandedOpblock, expandedOpblock.id);
+        if (this.settings.autoTryOut) {
+          setTimeout(() => {
+            this.clickTryItOut(expandedOpblock, expandedOpblock.id);
               }, 500);
             }
 
@@ -4871,17 +4890,17 @@ class SwaggerNavigator {
         // Show form builder (if already created and enabled) and hide original wrapper
         // Only show if Form View is enabled in settings
         if (this.settings.enableFormView) {
-          const formContainers = opblock.querySelectorAll(
-            ".swagger-nav-body-container"
-          );
-          formContainers.forEach((container) => {
-            container.style.display = "grid";
-            // Also hide the original wrapper if it's visible
-            const wrapper = container.previousElementSibling;
-            if (wrapper && wrapper.style.display !== "none") {
-              wrapper.style.display = "none";
-            }
-          });
+        const formContainers = opblock.querySelectorAll(
+          ".swagger-nav-body-container"
+        );
+        formContainers.forEach((container) => {
+          container.style.display = "grid";
+          // Also hide the original wrapper if it's visible
+          const wrapper = container.previousElementSibling;
+          if (wrapper && wrapper.style.display !== "none") {
+            wrapper.style.display = "none";
+          }
+        });
         } else {
           // If disabled, ALWAYS hide Form View containers and show original textareas
           // This prevents containers from being re-shown by MutationObservers
@@ -5055,10 +5074,10 @@ class SwaggerNavigator {
 
     // Skip if already enhanced
     if (opblock.dataset.swaggerNavEnterHandler === "true") {
-      return;
-    }
+          return;
+      }
 
-    // Mark as enhanced
+      // Mark as enhanced
     opblock.dataset.swaggerNavEnterHandler = "true";
 
     // Add hint below Execute button if not already added
@@ -5162,7 +5181,7 @@ class SwaggerNavigator {
           // Insert after parent container
           insertTarget = executeParent;
           insertMethod = "afterend";
-        } else {
+          } else {
           // Insert after Execute button itself
           insertTarget = executeButton;
           insertMethod = "afterend";
@@ -5414,8 +5433,8 @@ class SwaggerNavigator {
     // If not a Swagger UI page, restore original functions and return immediately
     if (!isSwaggerUIPage) {
       this.restoreOriginalFunctions();
-      return;
-    }
+        return;
+      }
 
     // Only proceed if we're actually on a Swagger UI page
 
@@ -5442,7 +5461,7 @@ class SwaggerNavigator {
             this.handleServerError(response.status);
           }
           return response;
-        } catch (error) {
+    } catch (error) {
           // Network error or CORS error
           if (error.name === "TypeError" && error.message.includes("fetch")) {
             this.handleNetworkError(error);

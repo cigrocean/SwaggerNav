@@ -67,12 +67,25 @@
       searchWrapper.style.cssText =
         "width: 100% !important; max-width: 100% !important; margin-bottom: 6px; display: block !important; position: relative !important; box-sizing: border-box !important; z-index: 10000 !important;";
 
+      // Create search icon (SVG)
+      const searchIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      searchIcon.setAttribute("width", "16");
+      searchIcon.setAttribute("height", "16");
+      searchIcon.setAttribute("viewBox", "0 0 24 24");
+      searchIcon.setAttribute("fill", "none");
+      searchIcon.setAttribute("stroke", "currentColor");
+      searchIcon.setAttribute("stroke-width", "2");
+      searchIcon.setAttribute("stroke-linecap", "round");
+      searchIcon.setAttribute("stroke-linejoin", "round");
+      searchIcon.style.cssText = "position: absolute !important; left: 12px !important; top: 50% !important; transform: translateY(-50%) !important; color: var(--sn-param-clear-btn) !important; pointer-events: none !important; z-index: 2 !important;";
+      searchIcon.innerHTML = `<circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>`;
+
       // Create search input with CSS variables (auto-adapts to theme!)
       const searchInput = document.createElement("input");
       searchInput.type = "text";
       searchInput.className = "swagger-nav-select-search";
-      searchInput.placeholder = "🔍 Search options...";
-      searchInput.style.cssText = `display: block !important; width: 100% !important; max-width: none !important; padding: 8px 36px 8px 12px !important; margin: 0 !important; border: 2px solid var(--sn-param-search-border) !important; border-radius: 4px !important; background: var(--sn-param-search-bg) !important; color: var(--sn-param-search-text) !important; font-size: 14px !important; box-sizing: border-box !important; outline: none !important; font-family: sans-serif !important; min-height: 38px !important; line-height: 1.5 !important; z-index: 1 !important; position: relative !important; flex: 1 !important;`;
+      searchInput.placeholder = "Search options...";
+      searchInput.style.cssText = `display: block !important; width: 100% !important; max-width: none !important; padding: 8px 36px 8px 36px !important; margin: 0 !important; border: 2px solid var(--sn-param-search-border) !important; border-radius: 4px !important; background: var(--sn-param-search-bg) !important; color: var(--sn-param-search-text) !important; font-size: 14px !important; box-sizing: border-box !important; outline: none !important; font-family: sans-serif !important; min-height: 38px !important; line-height: 1.5 !important; z-index: 1 !important; position: relative !important; flex: 1 !important;`;
 
       // Create clear button with CSS variables
       const clearButton = document.createElement("button");
@@ -89,6 +102,7 @@
       // but scrolls with the page (top/left updated using scroll offsets)
       resultsDropdown.style.cssText = `display: none !important; position: absolute !important; max-height: 250px !important; overflow-y: auto !important; background: var(--sn-param-dropdown-bg) !important; border: 2px solid var(--sn-param-search-border) !important; border-radius: 4px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.35) !important; z-index: 2147483647 !important; box-sizing: border-box !important; font-family: sans-serif !important;`;
 
+      searchWrapper.appendChild(searchIcon);
       searchWrapper.appendChild(searchInput);
       searchWrapper.appendChild(clearButton);
       document.body.appendChild(resultsDropdown);

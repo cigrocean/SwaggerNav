@@ -1,12 +1,40 @@
-# SwaggerNav v1.1.7 Release Notes
+# SwaggerNav v1.1.8 Release Notes
 
-**Previous Version:** 1.1.6
+**Previous Version:** 1.1.7
 
 > **Note:** This file is updated for each release. The "What's New" section changes with each version, while the installation instructions remain the same.
 
 ---
 
-## 🎉 What's New in v1.1.7
+## 🎉 What's New in v1.1.8
+
+### **UI Improvements**
+
+- 🎨 **Complete Emoji to Icon Conversion** - Converted all remaining emojis (clock, star, magnifier) to clean SVG icons throughout the extension
+- 🔍 **Search Icon Enhancement** - Parameter search input now uses SVG search icon instead of emoji, positioned inside the input field
+- 📖 **Improved Text Readability** - Enhanced text contrast in Form View and Response View for both light and dark modes:
+  - Light mode: Darker text (#1a1a1a) for better readability
+  - Dark mode: Lighter text (#e5e5e5) for better readability
+
+### **Bug Fixes**
+
+- 🐛 **Fixed Duplicate Variable Declaration** - Resolved syntax error caused by duplicate `removeBtn` declaration in search history code
+
+### **Technical Improvements**
+
+- Added SVG search icon to parameter search input with proper positioning
+- Updated CSS variables for better text contrast in form and response views
+- Added media query rules for both light and dark mode text readability
+- Added forced theme support for text colors in form and response views
+
+---
+
+## 🎉 Previous Release: v1.1.7
+
+### **UI Improvements**
+
+- 🎨 **Modern Button & Input Styling** - Enhanced button and input styles with smoother transitions, better focus states, and improved hover effects for a more polished look
+- 📱 **Responsive Method Filters** - Method filter buttons (GET, POST, PUT, DELETE, PATCH) now wrap to multiple lines on small screens instead of overlapping, with horizontal scroll as fallback
 
 ### **UI Improvements**
 
@@ -267,7 +295,7 @@ When SwaggerNav is installed with default settings, Swagger UI now looks exactly
 
 ## 🎨 Complete Feature List
 
-SwaggerNav v1.1.5 includes all features from previous versions:
+SwaggerNav v1.1.8 includes all features from previous versions:
 
 ### 🧭 **Smart Navigation**
 

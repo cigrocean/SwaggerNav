@@ -48,7 +48,7 @@ function createIcon(iconName, size = 16) {
 function replaceEmojisWithIcons() {
   // Replace header icon
   const headerIcon = document.querySelector(".icon");
-  if (headerIcon) {
+  if (headerIcon && !headerIcon.querySelector("svg")) {
     headerIcon.innerHTML = "";
     headerIcon.appendChild(createIcon("compass", 24));
   }
@@ -56,11 +56,15 @@ function replaceEmojisWithIcons() {
   // Replace section title emojis
   const sectionTitles = document.querySelectorAll(".section-title");
   sectionTitles.forEach((title) => {
-    const text = title.textContent;
-    if (text.includes("⚡")) {
-      title.innerHTML = "";
-      title.appendChild(createIcon("zap", 18));
-      title.appendChild(document.createTextNode(" Auto Actions"));
+    const text = title.textContent || "";
+    if (text.includes("⚡") || (title.textContent.trim() === "" && !title.querySelector("svg"))) {
+      // Check if this is the Auto Actions section (first section title)
+      const section = title.closest(".section");
+      if (section && section.querySelector('[id="autoTryOut"]')) {
+        title.innerHTML = "";
+        title.appendChild(createIcon("zap", 18));
+        title.appendChild(document.createTextNode(" Auto Actions"));
+      }
     } else if (text.includes("✨")) {
       title.innerHTML = "";
       title.appendChild(createIcon("sparkles", 18));
@@ -71,24 +75,29 @@ function replaceEmojisWithIcons() {
   // Replace option emoji icons
   const optionEmojis = document.querySelectorAll(".option-emoji");
   optionEmojis.forEach((emoji) => {
+    if (emoji.querySelector("svg")) return; // Already has icon
+    
     const parent = emoji.parentElement;
-    const text = parent.textContent;
+    const text = parent.textContent || "";
+    const label = parent.querySelector(".option-label");
+    const labelText = label ? label.textContent.trim() : "";
+    
     emoji.innerHTML = "";
-    if (text.includes("🔓")) {
+    if (text.includes("🔓") || labelText.includes("Auto Try It Out")) {
       emoji.appendChild(createIcon("unlock", 20));
-    } else if (text.includes("📂")) {
+    } else if (text.includes("📂") || labelText.includes("Auto Expand")) {
       emoji.appendChild(createIcon("folder", 20));
-    } else if (text.includes("📄")) {
+    } else if (text.includes("📄") || labelText.includes("Swagger UI Theme")) {
       emoji.appendChild(createIcon("file", 20));
-    } else if (text.includes("🧭")) {
+    } else if (text.includes("🧭") || labelText.includes("Extension Theme")) {
       emoji.appendChild(createIcon("compass", 20));
-    } else if (text.includes("🎨")) {
+    } else if (text.includes("🎨") || labelText.includes("Background")) {
       emoji.appendChild(createIcon("palette", 20));
-    } else if (text.includes("📝")) {
+    } else if (text.includes("📝") || labelText.includes("JSON & Form View")) {
       emoji.appendChild(createIcon("edit", 20));
-    } else if (text.includes("🔍")) {
+    } else if (text.includes("🔍") || labelText.includes("Parameter Search")) {
       emoji.appendChild(createIcon("search", 20));
-    } else if (text.includes("📊")) {
+    } else if (text.includes("📊") || labelText.includes("Response View")) {
       emoji.appendChild(createIcon("barChart", 20));
     } else if (text.includes("✨")) {
       emoji.appendChild(createIcon("sparkles", 20));
@@ -99,14 +108,15 @@ function replaceEmojisWithIcons() {
   const themeIcons = document.querySelectorAll(".theme-icon");
   themeIcons.forEach((icon) => {
     const parent = icon.closest(".theme-option-content");
-    if (parent) {
-      const text = parent.textContent;
+    if (parent && !icon.querySelector("svg")) {
+      const text = parent.textContent || "";
+      const label = parent.querySelector(".theme-label");
       icon.innerHTML = "";
-      if (text.includes("☀️")) {
+      if (text.includes("☀️") || (label && label.textContent.trim() === "Light")) {
         icon.appendChild(createIcon("sun", 32));
-      } else if (text.includes("🌙")) {
+      } else if (text.includes("🌙") || (label && label.textContent.trim() === "Dark")) {
         icon.appendChild(createIcon("moon", 32));
-      } else if (text.includes("🔄")) {
+      } else if (text.includes("🔄") || (label && label.textContent.trim() === "Follow OS")) {
         icon.appendChild(createIcon("refresh", 32));
       }
     }
@@ -115,8 +125,8 @@ function replaceEmojisWithIcons() {
   // Replace custom background camera icon
   const customPreview = document.getElementById("customBackgroundPreview");
   if (customPreview) {
-    const cameraSpan = customPreview.querySelector("span");
-    if (cameraSpan && cameraSpan.textContent.includes("📸")) {
+    const cameraSpan = customPreview.querySelector(".camera-icon-placeholder");
+    if (cameraSpan && !cameraSpan.querySelector("svg")) {
       cameraSpan.innerHTML = "";
       cameraSpan.appendChild(createIcon("camera", 32));
     }
@@ -147,12 +157,15 @@ function replaceEmojisWithIcons() {
   notes.forEach((note) => {
     const strong = note.querySelector("strong");
     if (strong) {
-      const text = strong.textContent;
-      if (text.includes("⚠️")) {
+      const warningIcon = strong.querySelector(".note-warning-icon");
+      if (warningIcon && !warningIcon.querySelector("svg")) {
+        warningIcon.innerHTML = "";
+        warningIcon.appendChild(createIcon("alertTriangle", 14));
+      } else if (strong.textContent.includes("⚠️")) {
         strong.innerHTML = "";
         strong.appendChild(createIcon("alertTriangle", 14));
         strong.appendChild(document.createTextNode(" Important:"));
-      } else if (text.includes("💡")) {
+      } else if (strong.textContent.includes("💡")) {
         strong.innerHTML = "";
         strong.appendChild(createIcon("lightbulb", 14));
         strong.appendChild(document.createTextNode(" Pro Tip:"));
